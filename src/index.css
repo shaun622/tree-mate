@@ -5,9 +5,15 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
   }
   body {
-    @apply text-gray-900;
+    @apply text-gray-900 antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  * {
+    @apply selection:bg-tree-200 selection:text-tree-900;
   }
 }
 
@@ -17,5 +23,14 @@
   }
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+  .glass-strong {
+    @apply bg-white/90 backdrop-blur-xl border border-white/30;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-brand;
   }
 }

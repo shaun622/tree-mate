@@ -1,9 +1,9 @@
 export default function Button({ children, variant = 'primary', loading = false, className = '', disabled, ...props }) {
-  const base = 'inline-flex items-center justify-center min-h-[48px] px-6 rounded-2xl font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]'
+  const base = 'inline-flex items-center justify-center min-h-[48px] px-6 rounded-2xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97]'
   const variants = {
-    primary: 'bg-gradient-brand text-white shadow-glow hover:shadow-glow-lg',
-    secondary: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-card',
-    danger: 'bg-gradient-danger text-white',
+    primary: 'bg-gradient-brand text-white shadow-button hover:shadow-button-hover hover:-translate-y-0.5',
+    secondary: 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-card hover:shadow-card-hover',
+    danger: 'bg-gradient-danger text-white shadow-sm hover:shadow-md hover:-translate-y-0.5',
   }
   return (
     <button className={`${base} ${variants[variant]} ${className}`} disabled={disabled || loading} {...props}>

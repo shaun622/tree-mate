@@ -82,7 +82,7 @@ export default function Jobs() {
   return (
     <PageWrapper>
       <Header title="Jobs" rightAction={
-        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
+        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-all duration-200 active:scale-95">
           <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
       } />
@@ -91,7 +91,7 @@ export default function Jobs() {
         {/* Status Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {STATUS_FILTERS.map(s => (
-            <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${filter === s ? 'bg-tree-500 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
+            <button key={s} onClick={() => setFilter(s)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === s ? 'bg-gradient-brand text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
               {s === 'all' ? 'All' : statusLabel(s)}
             </button>
           ))}
