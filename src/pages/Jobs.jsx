@@ -94,7 +94,14 @@ export default function Jobs() {
     e.preventDefault()
     setSaving(true)
     const { data, error } = await supabase.from('jobs').insert({
-      ...form, business_id: business.id
+      business_id: business.id,
+      client_id: form.client_id || null,
+      job_site_id: form.job_site_id || null,
+      job_type: form.job_type || null,
+      scheduled_date: form.scheduled_date || null,
+      staff_id: form.staff_id || null,
+      notes: form.notes || null,
+      status: form.status,
     }).select().single()
     if (!error) {
       setJobs(prev => [data, ...prev])
