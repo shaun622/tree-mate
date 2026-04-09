@@ -1,0 +1,75 @@
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import Button from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { signIn } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const { error: err } = await signIn(email, password)
+    if (err) setError(err.message)
+    else navigate('/')
+    setLoading(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-page">
+      <div className="bg-gradient-brand px-6 pt-16 pb-12 text-center">
+        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-1">TreePro</h1>
+        <p className="text-white/80 text-sm">Tree services made simple</p>
+      </div>
+
+      <div className="px-6 -mt-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-elevated p-6 space-y-4">
+          <h2 className="text-xl font-bold text-gray-900">Sign In</h2>
+
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm rounded-xl p-3">{error}</div>
+          )}
+
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            placeholder="Your password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+
+          <Button type="submit" loading={loading} className="w-full">
+            Sign In
+          </Button>
+
+          <p className="text-center text-sm text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-tree-600 font-medium hover:text-tree-700">Sign up</Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  )
+}
