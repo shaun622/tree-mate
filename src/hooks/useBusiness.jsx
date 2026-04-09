@@ -5,12 +5,14 @@ import { useAuth } from './useAuth'
 const BusinessContext = createContext({})
 
 export function BusinessProvider({ children }) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [business, setBusiness] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const fetchBusiness = useCallback(async () => {
+    if (authLoading) return
     if (!user) { setBusiness(null); setLoading(false); return }
+    setLoading(true)
     const { data } = await supabase
       .from('businesses')
       .select('*')
@@ -18,7 +20,7 @@ export function BusinessProvider({ children }) {
       .single()
     setBusiness(data)
     setLoading(false)
-  }, [user])
+  }, [user, authLoading])
 
   useEffect(() => { fetchBusiness() }, [fetchBusiness])
 
@@ -44,7 +46,7 @@ export function BusinessProvider({ children }) {
   }
 
   return (
-    <BusinessContext.Provider value={{ business, loading, createBusiness, updateBusiness, refreshBusiness: fetchBusiness }}>
+    <BusinessContext.Provider value={{ business, loading: loading || authLoading, createBusiness, updateBusiness, refreshBusiness: fetchBusiness }}>
       {children}
     </BusinessContext.Provider>
   )
