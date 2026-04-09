@@ -33,6 +33,9 @@ export default function Jobs() {
     staff_id: '', notes: '', status: 'scheduled'
   })
   const [jobTypes, setJobTypes] = useState([])
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' })
+  const [savingClient, setSavingClient] = useState(false)
 
   useEffect(() => {
     if (!business?.id) return
@@ -63,6 +66,28 @@ export default function Jobs() {
   const badgeVariant = (status) => {
     const map = { scheduled: 'info', in_progress: 'primary', on_hold: 'warning', completed: 'success' }
     return map[status] || 'neutral'
+  }
+
+  const handleClientSelect = (value) => {
+    if (value === '__new__') {
+      setShowNewClient(true)
+      setForm(p => ({ ...p, client_id: '', job_site_id: '' }))
+    } else {
+      setShowNewClient(false)
+      setForm(p => ({ ...p, client_id: value, job_site_id: '' }))
+    }
+  }
+
+  const handleCreateClient = async () => {
+    if (!newClientForm.name.trim()) return
+    setSavingClient(true)
+    const { data, error } = await createClient(newClientForm)
+    if (!error && data) {
+      setForm(p => ({ ...p, client_id: data.id }))
+      setShowNewClient(false)
+      setNewClientForm({ name: '', email: '', phone: '' })
+    }
+    setSavingClient(false)
   }
 
   const handleCreate = async (e) => {
@@ -124,7 +149,21 @@ export default function Jobs() {
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Create Job" size="lg">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Select label="Client" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value, job_site_id: '' }))} options={[{ value: '', label: 'Select client...' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} required />
+          <Select label="Client" value={form.client_id} onChange={e => handleClientSelect(e.target.value)} options={[{ value: '', label: 'Select client...' }, { value: '__new__', label: '+ New Client' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} required />
+          {showNewClient && (
+            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Client</p>
+              <Input placeholder="Client name" value={newClientForm.name} onChange={e => setNewClientForm(p => ({ ...p, name: e.target.value }))} />
+              <div className="flex gap-2">
+                <Input placeholder="Email" type="email" value={newClientForm.email} onChange={e => setNewClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
+                <Input placeholder="Phone" type="tel" value={newClientForm.phone} onChange={e => setNewClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setShowNewClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
+                <Button onClick={handleCreateClient} loading={savingClient} className="flex-1 !min-h-[40px] text-xs">Add Client</Button>
+              </div>
+            </div>
+          )}
           {form.client_id && (
             <Select label="Job Site" value={form.job_site_id} onChange={e => setForm(p => ({ ...p, job_site_id: e.target.value }))} options={[{ value: '', label: 'Select site...' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
           )}
