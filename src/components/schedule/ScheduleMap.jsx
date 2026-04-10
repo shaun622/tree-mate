@@ -2,6 +2,15 @@ import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+const MAPBOX_STYLE = 'mapbox/streets-v12'
+const TILE_URL = MAPBOX_TOKEN
+  ? `https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/tiles/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`
+  : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+const TILE_ATTRIBUTION = MAPBOX_TOKEN
+  ? '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  : '&copy; OpenStreetMap'
+
 // Numbered green pin icon (matches the brand)
 function makeNumberIcon(num, color = '#22c55e') {
   return L.divIcon({
@@ -42,8 +51,9 @@ export default function ScheduleMap({ points = [], routeGeometry = null, onMarke
     <div style={{ height, width: '100%' }} className="rounded-2xl overflow-hidden border border-gray-200">
       <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
         <TileLayer
-          attribution='&copy; OpenStreetMap'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={TILE_ATTRIBUTION}
+          url={TILE_URL}
+          {...(MAPBOX_TOKEN ? { tileSize: 512, zoomOffset: -1 } : {})}
         />
         {routeGeometry?.length > 1 ? (
           <Polyline positions={routeGeometry} pathOptions={{ color: '#22c55e', weight: 5, opacity: 0.85 }} />

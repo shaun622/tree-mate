@@ -4,6 +4,14 @@ import L from 'leaflet'
 import { reverseGeocode, searchAddresses } from '../../lib/geocode'
 import Button from './Button'
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+const TILE_URL = MAPBOX_TOKEN
+  ? `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`
+  : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+const TILE_ATTRIBUTION = MAPBOX_TOKEN
+  ? '&copy; Mapbox &copy; OpenStreetMap'
+  : '&copy; OpenStreetMap'
+
 const pinIcon = L.divIcon({
   className: 'pin-icon',
   html: `<div style="position:relative;width:32px;height:42px;">
@@ -92,8 +100,9 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
           {center ? (
             <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
               <TileLayer
-                attribution='&copy; OpenStreetMap'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution={TILE_ATTRIBUTION}
+                url={TILE_URL}
+                {...(MAPBOX_TOKEN ? { tileSize: 512, zoomOffset: -1 } : {})}
               />
               <Recenter center={center} />
               <ClickHandler onClick={handleMapClick} />
