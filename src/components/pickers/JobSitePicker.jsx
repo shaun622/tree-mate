@@ -84,35 +84,37 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
           type="button"
           onClick={() => toggleUseClientAddr(!useClientAddr)}
           disabled={busy}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all duration-200 text-left disabled:opacity-60 ${
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left disabled:opacity-60 transition-colors duration-150 ${
             useClientAddr
-              ? 'bg-gradient-to-r from-tree-500 to-tree-600 border-tree-600 shadow-button'
-              : 'bg-white border-gray-100 hover:border-tree-200 hover:bg-tree-50/40'
+              ? 'bg-tree-600 border-tree-600'
+              : 'bg-white border-gray-200 hover:border-tree-300'
           }`}
         >
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-            useClientAddr ? 'bg-white/20' : 'bg-tree-50 text-tree-600'
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-150 ${
+            useClientAddr ? 'bg-white/15 text-white' : 'bg-tree-50 text-tree-600'
           }`}>
-            <svg className={`w-5 h-5 ${useClientAddr ? 'text-white' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold ${useClientAddr ? 'text-white' : 'text-gray-900'}`}>
+            <p className={`text-sm font-semibold transition-colors duration-150 ${useClientAddr ? 'text-white' : 'text-gray-900'}`}>
               Use customer's address
             </p>
-            <p className={`text-xs truncate ${useClientAddr ? 'text-white/80' : 'text-gray-500'}`}>
+            <p className={`text-xs truncate transition-colors duration-150 ${useClientAddr ? 'text-white/80' : 'text-gray-500'}`}>
               {clientAddress}
             </p>
           </div>
           {/* iOS-style toggle switch */}
-          <div className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-            useClientAddr ? 'bg-white/30' : 'bg-gray-200'
+          <div className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-colors duration-150 ${
+            useClientAddr ? 'bg-white/25' : 'bg-gray-200'
           }`}>
-            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-200 ${
-              useClientAddr ? 'left-[22px]' : 'left-0.5'
-            }`} />
+            <div
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-out"
+              style={{ transform: useClientAddr ? 'translateX(22px)' : 'translateX(2px)' }}
+            />
           </div>
         </button>
       )}
