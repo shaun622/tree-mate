@@ -159,6 +159,7 @@ export default function Jobs() {
           />
           <JobSitePicker
             sites={clientSites}
+            client={clients.find(c => c.id === form.client_id)}
             clientId={form.client_id}
             value={form.job_site_id}
             onChange={(id) => setForm(p => ({ ...p, job_site_id: id }))}

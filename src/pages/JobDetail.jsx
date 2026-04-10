@@ -222,6 +222,7 @@ export default function JobDetail() {
             />
             <JobSitePicker
               sites={editClientSites}
+              client={clients.find(c => c.id === editForm.client_id)}
               clientId={editForm.client_id}
               value={editForm.job_site_id}
               onChange={(id) => setEditForm(p => ({ ...p, job_site_id: id }))}

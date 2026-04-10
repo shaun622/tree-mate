@@ -3,11 +3,27 @@ import { Select, TextArea } from '../ui/Input'
 import AddressAutocomplete from '../ui/AddressAutocomplete'
 import Button from '../ui/Button'
 
-export default function JobSitePicker({ sites, clientId, value, onChange, onCreate, onUpdate, label = 'Job Site', required = false }) {
+export default function JobSitePicker({ sites, client, clientId, value, onChange, onCreate, onUpdate, label = 'Job Site', required = false }) {
   const [mode, setMode] = useState('idle') // 'idle' | 'new' | 'edit'
   const [newForm, setNewForm] = useState({ address: '', notes: '', lat: null, lng: null })
   const [editForm, setEditForm] = useState({ address: '', notes: '', lat: null, lng: null })
+  const [useClientAddr, setUseClientAddr] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  const clientAddress = client?.address || ''
+  const hasClientAddress = clientAddress.trim().length > 0
+
+  const toggleUseClientAddr = (checked) => {
+    setUseClientAddr(checked)
+    if (checked && hasClientAddress) {
+      setNewForm(p => ({
+        ...p,
+        address: clientAddress,
+        lat: client?.lat ?? null,
+        lng: client?.lng ?? null,
+      }))
+    }
+  }
 
   const selected = sites.find(s => s.id === value)
   const disabled = !clientId
@@ -30,6 +46,7 @@ export default function JobSitePicker({ sites, clientId, value, onChange, onCrea
       onChange(data.id)
       setMode('idle')
       setNewForm({ address: '', notes: '', lat: null, lng: null })
+      setUseClientAddr(false)
     }
     setBusy(false)
   }
@@ -70,9 +87,26 @@ export default function JobSitePicker({ sites, clientId, value, onChange, onCrea
       {mode === 'new' && (
         <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Site</p>
+          {hasClientAddress && (
+            <label className="flex items-center gap-2 px-3 py-2 bg-tree-50 border border-tree-200 rounded-xl cursor-pointer hover:bg-tree-100 transition-colors">
+              <input
+                type="checkbox"
+                checked={useClientAddr}
+                onChange={e => toggleUseClientAddr(e.target.checked)}
+                className="w-4 h-4 rounded border-tree-300 text-tree-600 focus:ring-tree-500"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-tree-700">Use customer's address</p>
+                <p className="text-[11px] text-tree-600/70 truncate">{clientAddress}</p>
+              </div>
+            </label>
+          )}
           <AddressAutocomplete
             value={newForm.address}
-            onChange={(addr, coords) => setNewForm(p => ({ ...p, address: addr, lat: coords?.lat ?? null, lng: coords?.lng ?? null }))}
+            onChange={(addr, coords) => {
+              setNewForm(p => ({ ...p, address: addr, lat: coords?.lat ?? null, lng: coords?.lng ?? null }))
+              if (useClientAddr) setUseClientAddr(false)
+            }}
             placeholder="Start typing site address..."
           />
           <TextArea placeholder="Notes (optional)" value={newForm.notes} onChange={e => setNewForm(p => ({ ...p, notes: e.target.value }))} rows={2} />
