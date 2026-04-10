@@ -44,7 +44,7 @@ serve(async (req) => {
             <p style="text-align:right;"><strong>Subtotal:</strong> $${Number(quote.subtotal).toFixed(2)}</p>
             <p style="text-align:right;"><strong>GST (10%):</strong> $${Number(quote.gst).toFixed(2)}</p>
             <p style="text-align:right;font-size:18px;"><strong>Total: $${Number(quote.total).toFixed(2)}</strong></p>
-            <p style="margin-top:24px;"><a href="https://tree.matehq.online/quote/${token}" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">View & Respond to Quote</a></p>
+            <p style="margin-top:24px;"><a href="https://tree-mate-production.up.railway.app/quote/${token}" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">View & Respond to Quote</a></p>
           </div>
         </div>
       `
