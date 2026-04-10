@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { searchAddresses } from '../../lib/geocode'
+import { searchAddresses, placeDetails } from '../../lib/geocode'
 import MapPinPicker from './MapPinPicker'
 
 export default function AddressAutocomplete({ value, onChange, label, placeholder = 'Start typing an address...', className = '' }) {
@@ -42,9 +42,20 @@ export default function AddressAutocomplete({ value, onChange, label, placeholde
     }, 450)
   }
 
-  const handlePick = (r) => {
+  const handlePick = async (r) => {
     setQuery(r.label)
     setOpen(false)
+    // Google Places predictions don't include coords — fetch details
+    if (r.placeId && (r.lat == null || r.lng == null)) {
+      setLoading(true)
+      const details = await placeDetails(r.placeId)
+      setLoading(false)
+      if (details) {
+        setQuery(details.label || r.label)
+        onChange(details.label || r.label, { lat: details.lat, lng: details.lng })
+        return
+      }
+    }
     onChange(r.label, { lat: r.lat, lng: r.lng })
   }
 

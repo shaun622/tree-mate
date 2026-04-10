@@ -1,5 +1,6 @@
-// Free OpenStreetMap Nominatim geocoding (no API key required)
-// Rate limit: 1 req/sec — we space requests out
+// Primary: Google Places API (New) via REST — fast, accurate, AU-biased
+// Fallback: free OpenStreetMap Nominatim (1 req/sec throttled)
+const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_PLACES_KEY
 const cache = new Map()
 let lastRequest = 0
 
@@ -30,10 +31,75 @@ export async function geocodeAddress(address) {
   return null
 }
 
+// Google Places (New) Autocomplete — returns predictions.
+// Each prediction only has placeId/text; we resolve lat/lng on selection via placeDetails().
+async function googleAutocomplete(query, country = 'AU') {
+  if (!GOOGLE_KEY) return null
+  try {
+    const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_KEY,
+      },
+      body: JSON.stringify({
+        input: query,
+        includedRegionCodes: [country.toLowerCase()],
+        languageCode: 'en',
+      }),
+    })
+    if (!res.ok) throw new Error('Places autocomplete ' + res.status)
+    const data = await res.json()
+    const suggestions = data.suggestions || []
+    return suggestions
+      .filter(s => s.placePrediction)
+      .map(s => ({
+        placeId: s.placePrediction.placeId,
+        label: s.placePrediction.text?.text || '',
+        lat: null,
+        lng: null,
+        address: {},
+      }))
+  } catch (e) {
+    console.warn('Google autocomplete failed:', e)
+    return null
+  }
+}
+
+// Resolve a Google placeId to coords + formatted address
+export async function placeDetails(placeId) {
+  if (!GOOGLE_KEY || !placeId) return null
+  try {
+    const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
+      headers: {
+        'X-Goog-Api-Key': GOOGLE_KEY,
+        'X-Goog-FieldMask': 'id,formattedAddress,location,displayName',
+      },
+    })
+    if (!res.ok) throw new Error('Place details ' + res.status)
+    const data = await res.json()
+    return {
+      label: data.formattedAddress || data.displayName?.text || '',
+      lat: data.location?.latitude ?? null,
+      lng: data.location?.longitude ?? null,
+    }
+  } catch (e) {
+    console.warn('Place details failed:', e)
+    return null
+  }
+}
+
 // Search for multiple address candidates (for autocomplete dropdowns).
-// Returns an array of { label, lat, lng }.
+// Returns an array of { label, lat, lng, placeId? }. Prefers Google Places,
+// falls back to Nominatim.
 export async function searchAddresses(query, { limit = 6, country = 'au' } = {}) {
   if (!query || query.trim().length < 3) return []
+
+  // Try Google Places first
+  const google = await googleAutocomplete(query, country.toUpperCase())
+  if (google && google.length > 0) return google.slice(0, limit)
+
+  // Fallback: Nominatim
   await throttle()
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&countrycodes=${country}&q=${encodeURIComponent(query)}`
