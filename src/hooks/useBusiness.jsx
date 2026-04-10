@@ -13,12 +13,14 @@ export function BusinessProvider({ children }) {
     if (authLoading) return
     if (!user) { setBusiness(null); setLoading(false); return }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('businesses')
       .select('*')
       .eq('owner_id', user.id)
-      .single()
-    setBusiness(data)
+      .order('created_at', { ascending: true })
+      .limit(1)
+    if (error) console.error('[useBusiness] fetch error:', error)
+    setBusiness(data && data.length > 0 ? data[0] : null)
     setLoading(false)
   }, [user, authLoading])
 

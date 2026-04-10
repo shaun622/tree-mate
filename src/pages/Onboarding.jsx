@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBusiness } from '../hooks/useBusiness'
 import { supabase } from '../lib/supabase'
@@ -10,9 +10,14 @@ export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ name: '', abn: '', phone: '', email: '', logo_url: '', brand_colour: '#22c55e' })
-  const { createBusiness } = useBusiness()
+  const { createBusiness, business, loading: bizLoading } = useBusiness()
   const { user } = useAuth()
   const navigate = useNavigate()
+
+  // If user already has a business, skip onboarding
+  useEffect(() => {
+    if (!bizLoading && business) navigate('/', { replace: true })
+  }, [bizLoading, business, navigate])
 
   const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }))
 

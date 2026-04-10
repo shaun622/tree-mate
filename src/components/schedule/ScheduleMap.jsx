@@ -65,13 +65,44 @@ export default function ScheduleMap({ points = [], routeGeometry = null, onMarke
             key={p.id || i}
             position={[p.lat, p.lng]}
             icon={makeNumberIcon(i + 1)}
-            eventHandlers={{ click: () => onMarkerClick?.(p) }}
           >
-            <Popup>
-              <div style={{ minWidth: 160 }}>
-                <p style={{ margin: 0, fontWeight: 600 }}>{p.label || `Stop ${i + 1}`}</p>
-                {p.subtitle && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>{p.subtitle}</p>}
-                {p.time && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#15803d', fontWeight: 600 }}>{p.time}</p>}
+            <Popup className="schedule-popup" maxWidth={260} minWidth={220}>
+              <div style={{ padding: '4px 2px', fontFamily: 'system-ui, sans-serif' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: 12,
+                    background: '#22c55e', color: 'white',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  }}>{i + 1}</div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: '#111827' }}>
+                    {p.label || `Stop ${i + 1}`}
+                  </p>
+                </div>
+                {p.subtitle && (
+                  <p style={{ margin: '0 0 6px 0', fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
+                    {p.subtitle}
+                  </p>
+                )}
+                {p.time && (
+                  <p style={{ margin: '0 0 10px 0', fontSize: 12, color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    {p.time}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => onMarkerClick?.(p)}
+                  style={{
+                    width: '100%', padding: '8px 12px',
+                    background: 'linear-gradient(135deg, #22c55e, #15803d)',
+                    color: 'white', border: 'none', borderRadius: 10,
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(34, 197, 94, 0.3)',
+                  }}
+                >
+                  View job
+                </button>
               </div>
             </Popup>
           </Marker>
