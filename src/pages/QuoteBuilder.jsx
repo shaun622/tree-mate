@@ -169,6 +169,22 @@ export default function QuoteBuilder() {
               </div>
             </div>
           )}
+          {form.client_id && (() => {
+            const selected = clients.find(c => c.id === form.client_id)
+            return selected ? (
+              <div className="bg-gray-50 rounded-xl p-3 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                  {selected.name?.charAt(0)}
+                </div>
+                <div className="text-sm space-y-0.5 min-w-0">
+                  <p className="font-semibold text-gray-900">{selected.name}</p>
+                  {selected.email && <p className="text-gray-500 truncate">{selected.email}</p>}
+                  {selected.phone && <p className="text-gray-500">{selected.phone}</p>}
+                  {selected.address && <p className="text-gray-400 truncate">{selected.address}</p>}
+                </div>
+              </div>
+            ) : null
+          })()}
           {form.client_id && (
             <Select label="Job Site" value={form.job_site_id} onChange={e => setForm(p => ({ ...p, job_site_id: e.target.value }))} options={[{ value: '', label: 'Select site (optional)' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
           )}
