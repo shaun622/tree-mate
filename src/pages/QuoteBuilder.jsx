@@ -17,13 +17,19 @@ export default function QuoteBuilder() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { business } = useBusiness()
-  const { clients, createClient } = useClients(business?.id)
+  const { clients, createClient, updateClient } = useClients(business?.id)
   const { getJobSitesByClient, createJobSite } = useJobSites(business?.id)
+  const [quoteStatus, setQuoteStatus] = useState(null)
+  const [showNewSite, setShowNewSite] = useState(false)
+  const [newSiteForm, setNewSiteForm] = useState({ address: '', notes: '' })
+  const [savingSite, setSavingSite] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [showNewClient, setShowNewClient] = useState(false)
   const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' })
   const [savingClient, setSavingClient] = useState(false)
+  const [editingClient, setEditingClient] = useState(false)
+  const [editClientForm, setEditClientForm] = useState({ name: '', email: '', phone: '', address: '' })
   const [quoteLimitHit, setQuoteLimitHit] = useState(false)
   const [monthlyCount, setMonthlyCount] = useState(0)
   const [form, setForm] = useState({
@@ -34,13 +40,16 @@ export default function QuoteBuilder() {
   useEffect(() => {
     if (id) {
       supabase.from('quotes').select('*').eq('id', id).single().then(({ data }) => {
-        if (data) setForm({
-          client_id: data.client_id || '',
-          job_site_id: data.job_site_id || '',
-          scope: data.scope || '',
-          terms: data.terms || '',
-          line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
-        })
+        if (data) {
+          setForm({
+            client_id: data.client_id || '',
+            job_site_id: data.job_site_id || '',
+            scope: data.scope || '',
+            terms: data.terms || '',
+            line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
+          })
+          setQuoteStatus(data.status)
+        }
       })
     }
   }, [id])
@@ -129,7 +138,34 @@ export default function QuoteBuilder() {
     navigate('/quotes')
   }
 
+  const handleCreateSite = async () => {
+    if (!newSiteForm.address.trim() || !form.client_id) return
+    setSavingSite(true)
+    const { data, error } = await createJobSite({ ...newSiteForm, client_id: form.client_id })
+    if (!error && data) {
+      setForm(p => ({ ...p, job_site_id: data.id }))
+      setShowNewSite(false)
+      setNewSiteForm({ address: '', notes: '' })
+    }
+    setSavingSite(false)
+  }
+
+  const handleJobSiteSelect = (value) => {
+    if (value === '__new__') {
+      setShowNewSite(true)
+      setForm(p => ({ ...p, job_site_id: '' }))
+    } else {
+      setShowNewSite(false)
+      setForm(p => ({ ...p, job_site_id: value }))
+    }
+  }
+
   const handleSend = async () => {
+    if (quoteStatus === 'accepted') {
+      if (!confirm('Quote already accepted by customer. Are you sure you want to send an amended quote?')) return
+    } else if (quoteStatus === 'sent' || quoteStatus === 'viewed') {
+      if (!confirm('Quote has been sent and not responded to. Are you sure you want to send it again?')) return
+    }
     setSending(true)
     const quote = await save('sent')
     if (quote?.id) {
@@ -144,6 +180,41 @@ export default function QuoteBuilder() {
       <Header title={id ? 'Edit Quote' : 'New Quote'} back="/quotes" />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Status banner */}
+        {quoteStatus === 'accepted' && (
+          <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-base">Quote Accepted</p>
+              <p className="text-xs text-white/80">Customer has accepted this quote</p>
+            </div>
+          </div>
+        )}
+        {(quoteStatus === 'sent' || quoteStatus === 'viewed') && (
+          <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-base">Quote Sent</p>
+              <p className="text-xs text-white/80">{quoteStatus === 'viewed' ? 'Customer has viewed this quote' : 'Awaiting customer response'}</p>
+            </div>
+          </div>
+        )}
+        {quoteStatus === 'declined' && (
+          <div className="bg-gradient-to-r from-red-500 to-red-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-base">Quote Declined</p>
+              <p className="text-xs text-white/80">Customer declined this quote</p>
+            </div>
+          </div>
+        )}
+
         {/* Plan restriction check */}
         {isTrialExpired(business) && (
           <UpgradePrompt message="Your free trial has ended. Choose a plan to continue creating quotes." />
@@ -172,21 +243,56 @@ export default function QuoteBuilder() {
           {form.client_id && (() => {
             const selected = clients.find(c => c.id === form.client_id)
             return selected ? (
-              <div className="bg-gray-50 rounded-xl p-3 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-                  {selected.name?.charAt(0)}
+              editingClient ? (
+                <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Client</p>
+                  <Input placeholder="Name" value={editClientForm.name} onChange={e => setEditClientForm(p => ({ ...p, name: e.target.value }))} />
+                  <div className="flex gap-2">
+                    <Input placeholder="Email" type="email" value={editClientForm.email} onChange={e => setEditClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
+                    <Input placeholder="Phone" type="tel" value={editClientForm.phone} onChange={e => setEditClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
+                  </div>
+                  <Input placeholder="Address" value={editClientForm.address} onChange={e => setEditClientForm(p => ({ ...p, address: e.target.value }))} />
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => setEditingClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
+                    <Button loading={savingClient} onClick={async () => {
+                      setSavingClient(true)
+                      await updateClient(selected.id, editClientForm)
+                      setEditingClient(false)
+                      setSavingClient(false)
+                    }} className="flex-1 !min-h-[40px] text-xs">Save</Button>
+                  </div>
                 </div>
-                <div className="text-sm space-y-0.5 min-w-0">
-                  <p className="font-semibold text-gray-900">{selected.name}</p>
-                  {selected.email && <p className="text-gray-500 truncate">{selected.email}</p>}
-                  {selected.phone && <p className="text-gray-500">{selected.phone}</p>}
-                  {selected.address && <p className="text-gray-400 truncate">{selected.address}</p>}
+              ) : (
+                <div className="bg-gray-50 rounded-xl p-3 flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                    {selected.name?.charAt(0)}
+                  </div>
+                  <div className="text-sm space-y-0.5 min-w-0 flex-1">
+                    <p className="font-semibold text-gray-900">{selected.name}</p>
+                    {selected.email && <p className="text-gray-500 truncate">{selected.email}</p>}
+                    {selected.phone && <p className="text-gray-500">{selected.phone}</p>}
+                    {selected.address && <p className="text-gray-400 truncate">{selected.address}</p>}
+                  </div>
+                  <button type="button" onClick={() => { setEditClientForm({ name: selected.name || '', email: selected.email || '', phone: selected.phone || '', address: selected.address || '' }); setEditingClient(true) }} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  </button>
                 </div>
-              </div>
+              )
             ) : null
           })()}
           {form.client_id && (
-            <Select label="Job Site" value={form.job_site_id} onChange={e => setForm(p => ({ ...p, job_site_id: e.target.value }))} options={[{ value: '', label: 'Select site (optional)' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
+            <Select label="Job Site" value={form.job_site_id} onChange={e => handleJobSiteSelect(e.target.value)} options={[{ value: '', label: 'Select site (optional)' }, { value: '__new__', label: '+ New Site' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
+          )}
+          {showNewSite && (
+            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Site</p>
+              <Input placeholder="Site address" value={newSiteForm.address} onChange={e => setNewSiteForm(p => ({ ...p, address: e.target.value }))} />
+              <Input placeholder="Notes (optional)" value={newSiteForm.notes} onChange={e => setNewSiteForm(p => ({ ...p, notes: e.target.value }))} />
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setShowNewSite(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
+                <Button onClick={handleCreateSite} loading={savingSite} className="flex-1 !min-h-[40px] text-xs">Add Site</Button>
+              </div>
+            </div>
           )}
         </Card>
 

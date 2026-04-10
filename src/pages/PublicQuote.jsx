@@ -113,8 +113,19 @@ export default function PublicQuote() {
           </div>
         )}
         {responded && (
-          <Card className="p-4 text-center">
-            <p className="text-tree-600 font-medium">Thank you for your response!</p>
+          <Card className="p-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-tree-50 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-7 h-7 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <p className="text-tree-600 font-semibold text-lg mb-1">Thank you for your response!</p>
+            <p className="text-gray-600 text-sm">Our team will reach out to you shortly to schedule the work.</p>
+            {(business?.phone || business?.email) && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Need to make adjustments?</p>
+                {business?.phone && <p className="text-sm text-gray-700"><a href={`tel:${business.phone}`} className="text-tree-600 font-medium">{business.phone}</a></p>}
+                {business?.email && <p className="text-sm text-gray-700"><a href={`mailto:${business.email}`} className="text-tree-600 font-medium">{business.email}</a></p>}
+              </div>
+            )}
           </Card>
         )}
       </div>

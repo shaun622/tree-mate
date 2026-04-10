@@ -10,7 +10,7 @@ const Login = React.lazy(() => import('./pages/Login'))
 const Signup = React.lazy(() => import('./pages/Signup'))
 const Onboarding = React.lazy(() => import('./pages/Onboarding'))
 const Dashboard = React.lazy(() => import('./pages/Dashboard'))
-const RoutePage = React.lazy(() => import('./pages/Route'))
+const Schedule = React.lazy(() => import('./pages/Schedule'))
 const Clients = React.lazy(() => import('./pages/Clients'))
 const ClientDetail = React.lazy(() => import('./pages/ClientDetail'))
 const JobSiteDetail = React.lazy(() => import('./pages/JobSiteDetail'))
@@ -138,7 +138,8 @@ export default function App() {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route element={<BusinessGuard />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/route" element={<RoutePage />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/route" element={<Schedule />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/clients/:id" element={<ClientDetail />} />
                 <Route path="/sites/:id" element={<JobSiteDetail />} />
