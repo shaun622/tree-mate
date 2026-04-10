@@ -7,14 +7,15 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-import { Input, TextArea, Select } from '../components/ui/Input'
+import { Input, TextArea } from '../components/ui/Input'
+import ClientPicker from '../components/pickers/ClientPicker'
 import { calculateGST, formatCurrency } from '../lib/utils'
 
 export default function InvoiceBuilder() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { business, updateBusiness } = useBusiness()
-  const { clients } = useClients(business?.id)
+  const { clients, createClient, updateClient } = useClients(business?.id)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     client_id: '', invoice_number: '', due_date: '', notes: '',
@@ -77,7 +78,13 @@ export default function InvoiceBuilder() {
       <div className="px-4 py-4 space-y-4">
         <Card className="p-4 space-y-3">
           <Input label="Invoice Number" value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
-          <Select label="Client" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} options={[{ value: '', label: 'Select client...' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} />
+          <ClientPicker
+            clients={clients}
+            value={form.client_id}
+            onChange={(id) => setForm(p => ({ ...p, client_id: id }))}
+            onCreate={createClient}
+            onUpdate={updateClient}
+          />
           <Input label="Due Date" type="date" value={form.due_date} onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))} />
         </Card>
 

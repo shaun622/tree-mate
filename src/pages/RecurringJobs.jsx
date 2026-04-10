@@ -5,17 +5,19 @@ import { useClients } from '../hooks/useClients'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
-import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, Select } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
-import { statusLabel, formatDate, MAINTENANCE_FREQUENCIES } from '../lib/utils'
+import ClientPicker from '../components/pickers/ClientPicker'
+import JobTypePicker from '../components/pickers/JobTypePicker'
+import { formatDate, MAINTENANCE_FREQUENCIES } from '../lib/utils'
 
 export default function RecurringJobs() {
   const { business } = useBusiness()
-  const { clients } = useClients(business?.id)
+  const { clients, createClient, updateClient } = useClients(business?.id)
   const [profiles, setProfiles] = useState([])
+  const [jobTypes, setJobTypes] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -25,7 +27,18 @@ export default function RecurringJobs() {
     if (!business?.id) return
     supabase.from('recurring_job_profiles').select('*').eq('business_id', business.id).order('created_at', { ascending: false })
       .then(({ data }) => { setProfiles(data || []); setLoading(false) })
+    supabase.from('job_type_templates').select('*').eq('business_id', business.id)
+      .then(({ data }) => setJobTypes(data || []))
   }, [business?.id])
+
+  const createJobTypeTemplate = async (name) => {
+    const { data, error } = await supabase
+      .from('job_type_templates')
+      .insert({ business_id: business.id, name })
+      .select()
+      .single()
+    if (!error && data) setJobTypes(prev => [...prev, data])
+  }
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -77,8 +90,21 @@ export default function RecurringJobs() {
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Add Recurring Job">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Select label="Client" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} options={[{ value: '', label: 'Select...' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} required />
-          <Input label="Job Type" placeholder="e.g. Hedge Trimming" value={form.job_type} onChange={e => setForm(p => ({ ...p, job_type: e.target.value }))} required />
+          <ClientPicker
+            clients={clients}
+            value={form.client_id}
+            onChange={(id) => setForm(p => ({ ...p, client_id: id }))}
+            onCreate={createClient}
+            onUpdate={updateClient}
+            required
+          />
+          <JobTypePicker
+            templates={jobTypes}
+            value={form.job_type}
+            onChange={(v) => setForm(p => ({ ...p, job_type: v }))}
+            onCreateTemplate={createJobTypeTemplate}
+            required
+          />
           <Select label="Frequency" value={form.frequency} onChange={e => setForm(p => ({ ...p, frequency: e.target.value }))} options={MAINTENANCE_FREQUENCIES.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
           <Input label="Next Run Date" type="date" value={form.next_run_at} onChange={e => setForm(p => ({ ...p, next_run_at: e.target.value }))} />
           <Button type="submit" loading={saving} className="w-full">Create Profile</Button>

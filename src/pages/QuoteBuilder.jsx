@@ -9,6 +9,8 @@ import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, TextArea, Select } from '../components/ui/Input'
+import ClientPicker from '../components/pickers/ClientPicker'
+import JobSitePicker from '../components/pickers/JobSitePicker'
 import { calculateGST, formatCurrency } from '../lib/utils'
 import { getPlanLimits, isTrialExpired } from '../lib/plans'
 import UpgradePrompt from '../components/ui/UpgradePrompt'
@@ -18,18 +20,10 @@ export default function QuoteBuilder() {
   const navigate = useNavigate()
   const { business } = useBusiness()
   const { clients, createClient, updateClient } = useClients(business?.id)
-  const { getJobSitesByClient, createJobSite } = useJobSites(business?.id)
+  const { getJobSitesByClient, createJobSite, updateJobSite } = useJobSites(business?.id)
   const [quoteStatus, setQuoteStatus] = useState(null)
-  const [showNewSite, setShowNewSite] = useState(false)
-  const [newSiteForm, setNewSiteForm] = useState({ address: '', notes: '' })
-  const [savingSite, setSavingSite] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
-  const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' })
-  const [savingClient, setSavingClient] = useState(false)
-  const [editingClient, setEditingClient] = useState(false)
-  const [editClientForm, setEditClientForm] = useState({ name: '', email: '', phone: '', address: '' })
   const [quoteLimitHit, setQuoteLimitHit] = useState(false)
   const [monthlyCount, setMonthlyCount] = useState(0)
   const [form, setForm] = useState({
@@ -73,28 +67,6 @@ export default function QuoteBuilder() {
 
   const clientSites = form.client_id ? getJobSitesByClient(form.client_id) : []
 
-  const handleClientSelect = (value) => {
-    if (value === '__new__') {
-      setShowNewClient(true)
-      setForm(p => ({ ...p, client_id: '', job_site_id: '' }))
-    } else {
-      setShowNewClient(false)
-      setForm(p => ({ ...p, client_id: value, job_site_id: '' }))
-    }
-  }
-
-  const handleCreateClient = async () => {
-    if (!newClientForm.name.trim()) return
-    setSavingClient(true)
-    const { data, error } = await createClient(newClientForm)
-    if (!error && data) {
-      setForm(p => ({ ...p, client_id: data.id }))
-      setShowNewClient(false)
-      setNewClientForm({ name: '', email: '', phone: '' })
-    }
-    setSavingClient(false)
-  }
-
   const updateItem = (index, field, value) => {
     setForm(prev => {
       const items = [...prev.line_items]
@@ -136,28 +108,6 @@ export default function QuoteBuilder() {
     await save('draft')
     setSaving(false)
     navigate('/quotes')
-  }
-
-  const handleCreateSite = async () => {
-    if (!newSiteForm.address.trim() || !form.client_id) return
-    setSavingSite(true)
-    const { data, error } = await createJobSite({ ...newSiteForm, client_id: form.client_id })
-    if (!error && data) {
-      setForm(p => ({ ...p, job_site_id: data.id }))
-      setShowNewSite(false)
-      setNewSiteForm({ address: '', notes: '' })
-    }
-    setSavingSite(false)
-  }
-
-  const handleJobSiteSelect = (value) => {
-    if (value === '__new__') {
-      setShowNewSite(true)
-      setForm(p => ({ ...p, job_site_id: '' }))
-    } else {
-      setShowNewSite(false)
-      setForm(p => ({ ...p, job_site_id: value }))
-    }
   }
 
   const handleSend = async () => {
@@ -225,75 +175,21 @@ export default function QuoteBuilder() {
 
         {/* Client & Site */}
         <Card className="p-4 space-y-3">
-          <Select label="Client" value={form.client_id} onChange={e => handleClientSelect(e.target.value)} options={[{ value: '', label: 'Select client...' }, { value: '__new__', label: '+ New Client' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} />
-          {showNewClient && (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Client</p>
-              <Input placeholder="Client name" value={newClientForm.name} onChange={e => setNewClientForm(p => ({ ...p, name: e.target.value }))} />
-              <div className="flex gap-2">
-                <Input placeholder="Email" type="email" value={newClientForm.email} onChange={e => setNewClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
-                <Input placeholder="Phone" type="tel" value={newClientForm.phone} onChange={e => setNewClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowNewClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                <Button onClick={handleCreateClient} loading={savingClient} className="flex-1 !min-h-[40px] text-xs">Add Client</Button>
-              </div>
-            </div>
-          )}
-          {form.client_id && (() => {
-            const selected = clients.find(c => c.id === form.client_id)
-            return selected ? (
-              editingClient ? (
-                <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Client</p>
-                  <Input placeholder="Name" value={editClientForm.name} onChange={e => setEditClientForm(p => ({ ...p, name: e.target.value }))} />
-                  <div className="flex gap-2">
-                    <Input placeholder="Email" type="email" value={editClientForm.email} onChange={e => setEditClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
-                    <Input placeholder="Phone" type="tel" value={editClientForm.phone} onChange={e => setEditClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
-                  </div>
-                  <Input placeholder="Address" value={editClientForm.address} onChange={e => setEditClientForm(p => ({ ...p, address: e.target.value }))} />
-                  <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => setEditingClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                    <Button loading={savingClient} onClick={async () => {
-                      setSavingClient(true)
-                      await updateClient(selected.id, editClientForm)
-                      setEditingClient(false)
-                      setSavingClient(false)
-                    }} className="flex-1 !min-h-[40px] text-xs">Save</Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-xl p-3 flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-                    {selected.name?.charAt(0)}
-                  </div>
-                  <div className="text-sm space-y-0.5 min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900">{selected.name}</p>
-                    {selected.email && <p className="text-gray-500 truncate">{selected.email}</p>}
-                    {selected.phone && <p className="text-gray-500">{selected.phone}</p>}
-                    {selected.address && <p className="text-gray-400 truncate">{selected.address}</p>}
-                  </div>
-                  <button type="button" onClick={() => { setEditClientForm({ name: selected.name || '', email: selected.email || '', phone: selected.phone || '', address: selected.address || '' }); setEditingClient(true) }} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                  </button>
-                </div>
-              )
-            ) : null
-          })()}
-          {form.client_id && (
-            <Select label="Job Site" value={form.job_site_id} onChange={e => handleJobSiteSelect(e.target.value)} options={[{ value: '', label: 'Select site (optional)' }, { value: '__new__', label: '+ New Site' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
-          )}
-          {showNewSite && (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Site</p>
-              <Input placeholder="Site address" value={newSiteForm.address} onChange={e => setNewSiteForm(p => ({ ...p, address: e.target.value }))} />
-              <Input placeholder="Notes (optional)" value={newSiteForm.notes} onChange={e => setNewSiteForm(p => ({ ...p, notes: e.target.value }))} />
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowNewSite(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                <Button onClick={handleCreateSite} loading={savingSite} className="flex-1 !min-h-[40px] text-xs">Add Site</Button>
-              </div>
-            </div>
-          )}
+          <ClientPicker
+            clients={clients}
+            value={form.client_id}
+            onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+            onCreate={createClient}
+            onUpdate={updateClient}
+          />
+          <JobSitePicker
+            sites={clientSites}
+            clientId={form.client_id}
+            value={form.job_site_id}
+            onChange={(id) => setForm(p => ({ ...p, job_site_id: id }))}
+            onCreate={createJobSite}
+            onUpdate={updateJobSite}
+          />
         </Card>
 
         {/* Line Items */}

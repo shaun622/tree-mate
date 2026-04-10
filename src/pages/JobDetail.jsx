@@ -12,14 +12,17 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, Select, TextArea } from '../components/ui/Input'
-import { statusLabel, formatDate, SUGGESTED_JOB_TYPES } from '../lib/utils'
+import ClientPicker from '../components/pickers/ClientPicker'
+import JobSitePicker from '../components/pickers/JobSitePicker'
+import JobTypePicker from '../components/pickers/JobTypePicker'
+import { statusLabel, formatDate } from '../lib/utils'
 
 export default function JobDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { business } = useBusiness()
-  const { clients } = useClients(business?.id)
-  const { jobSites, getJobSitesByClient } = useJobSites(business?.id)
+  const { clients, createClient, updateClient } = useClients(business?.id)
+  const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
   const [job, setJob] = useState(null)
   const [client, setClient] = useState(null)
@@ -126,11 +129,16 @@ export default function JobDetail() {
     if (!error) navigate('/jobs')
   }
 
-  const allJobTypes = [
-    ...jobTypes.map(t => ({ value: t.name, label: t.name })),
-    ...SUGGESTED_JOB_TYPES.filter(s => !jobTypes.find(t => t.name === s.name)).map(s => ({ value: s.name, label: s.name }))
-  ]
   const editClientSites = editForm?.client_id ? getJobSitesByClient(editForm.client_id) : []
+
+  const createJobTypeTemplate = async (name) => {
+    const { data, error } = await supabase
+      .from('job_type_templates')
+      .insert({ business_id: business.id, name })
+      .select()
+      .single()
+    if (!error && data) setJobTypes(prev => [...prev, data])
+  }
 
   const badgeVariant = { scheduled: 'info', in_progress: 'primary', on_hold: 'warning', completed: 'success' }
 
@@ -204,11 +212,28 @@ export default function JobDetail() {
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Job" size="lg">
         {editForm && (
           <form onSubmit={handleSaveEdit} className="space-y-4">
-            <Select label="Client" value={editForm.client_id} onChange={e => setEditForm(p => ({ ...p, client_id: e.target.value, job_site_id: '' }))} options={[{ value: '', label: 'Select client...' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} required />
-            {editForm.client_id && (
-              <Select label="Job Site" value={editForm.job_site_id} onChange={e => setEditForm(p => ({ ...p, job_site_id: e.target.value }))} options={[{ value: '', label: 'Select site...' }, ...editClientSites.map(s => ({ value: s.id, label: s.address }))]} />
-            )}
-            <Select label="Job Type" value={editForm.job_type} onChange={e => setEditForm(p => ({ ...p, job_type: e.target.value }))} options={[{ value: '', label: 'Select type...' }, ...allJobTypes]} />
+            <ClientPicker
+              clients={clients}
+              value={editForm.client_id}
+              onChange={(id) => setEditForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+              onCreate={createClient}
+              onUpdate={updateClient}
+              required
+            />
+            <JobSitePicker
+              sites={editClientSites}
+              clientId={editForm.client_id}
+              value={editForm.job_site_id}
+              onChange={(id) => setEditForm(p => ({ ...p, job_site_id: id }))}
+              onCreate={createJobSite}
+              onUpdate={updateJobSite}
+            />
+            <JobTypePicker
+              templates={jobTypes}
+              value={editForm.job_type}
+              onChange={(v) => setEditForm(p => ({ ...p, job_type: v }))}
+              onCreateTemplate={createJobTypeTemplate}
+            />
             <Select label="Status" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))} options={[
               { value: 'scheduled', label: 'Scheduled' },
               { value: 'in_progress', label: 'In Progress' },

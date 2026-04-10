@@ -13,14 +13,17 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, Select, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
-import { statusLabel, statusColor, formatDate, SUGGESTED_JOB_TYPES } from '../lib/utils'
+import ClientPicker from '../components/pickers/ClientPicker'
+import JobSitePicker from '../components/pickers/JobSitePicker'
+import JobTypePicker from '../components/pickers/JobTypePicker'
+import { statusLabel, formatDate } from '../lib/utils'
 
 const STATUS_FILTERS = ['all', 'scheduled', 'in_progress', 'on_hold', 'completed']
 
 export default function Jobs() {
   const { business } = useBusiness()
   const { clients, createClient, updateClient } = useClients(business?.id)
-  const { jobSites, createJobSite, getJobSitesByClient } = useJobSites(business?.id)
+  const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
   const navigate = useNavigate()
   const [jobs, setJobs] = useState([])
@@ -34,14 +37,6 @@ export default function Jobs() {
     staff_id: '', notes: '', status: 'scheduled'
   })
   const [jobTypes, setJobTypes] = useState([])
-  const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' })
-  const [savingClient, setSavingClient] = useState(false)
-  const [editingClient, setEditingClient] = useState(false)
-  const [editClientForm, setEditClientForm] = useState({ name: '', email: '', phone: '', address: '' })
-  const [showNewSite, setShowNewSite] = useState(false)
-  const [newSiteForm, setNewSiteForm] = useState({ address: '', notes: '' })
-  const [savingSite, setSavingSite] = useState(false)
 
   useEffect(() => {
     if (!business?.id) return
@@ -64,58 +59,18 @@ export default function Jobs() {
   const siteMap = Object.fromEntries(jobSites.map(s => [s.id, s]))
   const clientSites = form.client_id ? getJobSitesByClient(form.client_id) : []
 
-  const allJobTypes = [
-    ...jobTypes.map(t => ({ value: t.name, label: t.name })),
-    ...SUGGESTED_JOB_TYPES.filter(s => !jobTypes.find(t => t.name === s.name)).map(s => ({ value: s.name, label: s.name }))
-  ]
-
   const badgeVariant = (status) => {
     const map = { scheduled: 'info', in_progress: 'primary', on_hold: 'warning', completed: 'success' }
     return map[status] || 'neutral'
   }
 
-  const handleClientSelect = (value) => {
-    if (value === '__new__') {
-      setShowNewClient(true)
-      setForm(p => ({ ...p, client_id: '', job_site_id: '' }))
-    } else {
-      setShowNewClient(false)
-      setForm(p => ({ ...p, client_id: value, job_site_id: '' }))
-    }
-  }
-
-  const handleJobSiteSelect = (value) => {
-    if (value === '__new__') {
-      setShowNewSite(true)
-      setForm(p => ({ ...p, job_site_id: '' }))
-    } else {
-      setShowNewSite(false)
-      setForm(p => ({ ...p, job_site_id: value }))
-    }
-  }
-
-  const handleCreateSite = async () => {
-    if (!newSiteForm.address.trim() || !form.client_id) return
-    setSavingSite(true)
-    const { data, error } = await createJobSite({ ...newSiteForm, client_id: form.client_id })
-    if (!error && data) {
-      setForm(p => ({ ...p, job_site_id: data.id }))
-      setShowNewSite(false)
-      setNewSiteForm({ address: '', notes: '' })
-    }
-    setSavingSite(false)
-  }
-
-  const handleCreateClient = async () => {
-    if (!newClientForm.name.trim()) return
-    setSavingClient(true)
-    const { data, error } = await createClient(newClientForm)
-    if (!error && data) {
-      setForm(p => ({ ...p, client_id: data.id }))
-      setShowNewClient(false)
-      setNewClientForm({ name: '', email: '', phone: '' })
-    }
-    setSavingClient(false)
+  const createJobTypeTemplate = async (name) => {
+    const { data, error } = await supabase
+      .from('job_type_templates')
+      .insert({ business_id: business.id, name })
+      .select()
+      .single()
+    if (!error && data) setJobTypes(prev => [...prev, data])
   }
 
   const handleCreate = async (e) => {
@@ -194,76 +149,28 @@ export default function Jobs() {
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Create Job" size="lg">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Select label="Client" value={form.client_id} onChange={e => handleClientSelect(e.target.value)} options={[{ value: '', label: 'Select client...' }, { value: '__new__', label: '+ New Client' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} required />
-          {showNewClient && (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Client</p>
-              <Input placeholder="Client name" value={newClientForm.name} onChange={e => setNewClientForm(p => ({ ...p, name: e.target.value }))} />
-              <div className="flex gap-2">
-                <Input placeholder="Email" type="email" value={newClientForm.email} onChange={e => setNewClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
-                <Input placeholder="Phone" type="tel" value={newClientForm.phone} onChange={e => setNewClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowNewClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                <Button onClick={handleCreateClient} loading={savingClient} className="flex-1 !min-h-[40px] text-xs">Add Client</Button>
-              </div>
-            </div>
-          )}
-          {form.client_id && (() => {
-            const selected = clients.find(c => c.id === form.client_id)
-            return selected ? (
-              editingClient ? (
-                <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Client</p>
-                  <Input placeholder="Name" value={editClientForm.name} onChange={e => setEditClientForm(p => ({ ...p, name: e.target.value }))} />
-                  <div className="flex gap-2">
-                    <Input placeholder="Email" type="email" value={editClientForm.email} onChange={e => setEditClientForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
-                    <Input placeholder="Phone" type="tel" value={editClientForm.phone} onChange={e => setEditClientForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
-                  </div>
-                  <Input placeholder="Address" value={editClientForm.address} onChange={e => setEditClientForm(p => ({ ...p, address: e.target.value }))} />
-                  <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => setEditingClient(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                    <Button loading={savingClient} onClick={async () => {
-                      setSavingClient(true)
-                      await updateClient(selected.id, editClientForm)
-                      setEditingClient(false)
-                      setSavingClient(false)
-                    }} className="flex-1 !min-h-[40px] text-xs">Save</Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gray-50 rounded-xl p-3 flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
-                    {selected.name?.charAt(0)}
-                  </div>
-                  <div className="text-sm space-y-0.5 min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900">{selected.name}</p>
-                    {selected.email && <p className="text-gray-500 truncate">{selected.email}</p>}
-                    {selected.phone && <p className="text-gray-500">{selected.phone}</p>}
-                    {selected.address && <p className="text-gray-400 truncate">{selected.address}</p>}
-                  </div>
-                  <button type="button" onClick={() => { setEditClientForm({ name: selected.name || '', email: selected.email || '', phone: selected.phone || '', address: selected.address || '' }); setEditingClient(true) }} className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors flex-shrink-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                  </button>
-                </div>
-              )
-            ) : null
-          })()}
-          {form.client_id && (
-            <Select label="Job Site" value={form.job_site_id} onChange={e => handleJobSiteSelect(e.target.value)} options={[{ value: '', label: 'Select site...' }, { value: '__new__', label: '+ New Site' }, ...clientSites.map(s => ({ value: s.id, label: s.address }))]} />
-          )}
-          {showNewSite && (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Site</p>
-              <Input placeholder="Site address" value={newSiteForm.address} onChange={e => setNewSiteForm(p => ({ ...p, address: e.target.value }))} />
-              <Input placeholder="Notes (optional)" value={newSiteForm.notes} onChange={e => setNewSiteForm(p => ({ ...p, notes: e.target.value }))} />
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowNewSite(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-                <Button onClick={handleCreateSite} loading={savingSite} className="flex-1 !min-h-[40px] text-xs">Add Site</Button>
-              </div>
-            </div>
-          )}
-          <Select label="Job Type" value={form.job_type} onChange={e => setForm(p => ({ ...p, job_type: e.target.value }))} options={[{ value: '', label: 'Select type...' }, ...allJobTypes]} />
+          <ClientPicker
+            clients={clients}
+            value={form.client_id}
+            onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+            onCreate={createClient}
+            onUpdate={updateClient}
+            required
+          />
+          <JobSitePicker
+            sites={clientSites}
+            clientId={form.client_id}
+            value={form.job_site_id}
+            onChange={(id) => setForm(p => ({ ...p, job_site_id: id }))}
+            onCreate={createJobSite}
+            onUpdate={updateJobSite}
+          />
+          <JobTypePicker
+            templates={jobTypes}
+            value={form.job_type}
+            onChange={(v) => setForm(p => ({ ...p, job_type: v }))}
+            onCreateTemplate={createJobTypeTemplate}
+          />
           <div className="flex gap-2">
             <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
             <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />
