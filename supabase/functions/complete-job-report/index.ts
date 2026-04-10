@@ -57,7 +57,7 @@ serve(async (req) => {
             ${report.trees_removed ? `<p>Trees Removed: <strong>${report.trees_removed}</strong></p>` : ''}
             ${report.stump_count ? `<p>Stumps Ground: <strong>${report.stump_count}</strong></p>` : ''}
             ${report.notes ? `<p><em>${report.notes}</em></p>` : ''}
-            <p style="margin-top:24px;"><a href="${Deno.env.get('SITE_URL') || ''}/portal" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">View in Portal</a></p>
+            <p style="margin-top:24px;"><a href="https://tree.matehq.online/portal" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">View in Portal</a></p>
           </div>
         </div>
       `
@@ -66,7 +66,7 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: `${business?.name || 'TreePro'} <noreply@${Deno.env.get('RESEND_DOMAIN') || 'resend.dev'}>`,
+          from: `${business?.name || 'TreePro'} <info@matehq.online>`,
           to: [clientEmail],
           subject: `Job Report - ${site?.address || 'Your Property'}`,
           html,

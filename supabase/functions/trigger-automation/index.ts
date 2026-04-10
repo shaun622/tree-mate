@@ -33,7 +33,7 @@ serve(async (req) => {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              from: `TreePro <noreply@${Deno.env.get('RESEND_DOMAIN') || 'resend.dev'}>`,
+              from: `TreePro <info@matehq.online>`,
               to: [context.client_email],
               subject,
               html: `<div style="font-family:sans-serif;">${body.replace(/\n/g, '<br>')}</div>`,
