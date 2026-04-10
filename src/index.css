@@ -12,6 +12,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  body.modal-open .app-bottom-nav {
+    display: none;
+  }
   * {
     @apply selection:bg-tree-200 selection:text-tree-900;
   }

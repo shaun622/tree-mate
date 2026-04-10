@@ -18,7 +18,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom">
+    <nav className="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 safe-bottom">
       <div className="max-w-app mx-auto">
         <div className="mx-3 mb-2 bg-white/90 backdrop-blur-xl rounded-2xl shadow-elevated border border-white/50">
           <div className="flex items-center justify-around h-16">
