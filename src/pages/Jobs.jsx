@@ -131,18 +131,65 @@ export default function Jobs() {
             actionLabel="Create Job" onAction={() => setShowModal(true)}
           />
         ) : (
-          <div className="space-y-2">
-            {filtered.map(job => (
-              <Card key={job.id} hover onClick={() => navigate(`/jobs/${job.id}`)} className="p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-gray-900">{job.job_type || 'Job'}</p>
-                  <Badge variant={badgeVariant(job.status)}>{statusLabel(job.status)}</Badge>
-                </div>
-                <p className="text-sm text-gray-500">{clientMap[job.client_id]?.name || ''}</p>
-                <p className="text-sm text-gray-400">{siteMap[job.job_site_id]?.address || ''}</p>
-                {job.scheduled_date && <p className="text-xs text-gray-400 mt-1">{formatDate(job.scheduled_date)}</p>}
-              </Card>
-            ))}
+          <div className="space-y-3">
+            {filtered.map(job => {
+              const jc = clientMap[job.client_id]
+              const js = siteMap[job.job_site_id]
+              const timeStr = job.scheduled_start
+                ? new Date(job.scheduled_start).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })
+                : null
+              return (
+                <button
+                  key={job.id}
+                  type="button"
+                  onClick={() => navigate(`/jobs/${job.id}`)}
+                  className="w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:border-tree-200 hover:shadow-elevated transition-all duration-150 active:scale-[0.995]"
+                >
+                  <div className="flex">
+                    {/* Thumbnail strip */}
+                    <div className="w-16 bg-gradient-to-br from-tree-500 to-tree-700 flex flex-col items-center justify-center text-white flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {job.scheduled_date && (
+                        <p className="text-[10px] font-bold mt-1 leading-tight text-center px-1">
+                          {new Date(job.scheduled_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex-1 p-3 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <p className="font-bold text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                        <Badge variant={badgeVariant(job.status)}>{statusLabel(job.status)}</Badge>
+                      </div>
+                      {jc && (
+                        <p className="text-sm text-gray-700 truncate flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                          {jc.name}
+                        </p>
+                      )}
+                      {js?.address && (
+                        <p className="text-xs text-gray-500 truncate flex items-center gap-1.5 mt-0.5">
+                          <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          {js.address}
+                        </p>
+                      )}
+                      {(timeStr || job.duration_minutes) && (
+                        <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500">
+                          {timeStr && (
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" /></svg>
+                              {timeStr}
+                            </span>
+                          )}
+                          {job.duration_minutes && <span>· {job.duration_minutes}m</span>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
       </div>

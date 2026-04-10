@@ -7,15 +7,13 @@ import { useJobSites } from '../hooks/useJobSites'
 import { useStaff } from '../hooks/useStaff'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
-import Card from '../components/ui/Card'
-import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, Select, TextArea } from '../components/ui/Input'
 import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
-import { statusLabel, formatDate } from '../lib/utils'
+import JobDetailView, { useJobDetail } from '../components/jobs/JobDetailView'
 
 export default function JobDetail() {
   const { id } = useParams()
@@ -24,35 +22,12 @@ export default function JobDetail() {
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
-  const [job, setJob] = useState(null)
-  const [client, setClient] = useState(null)
-  const [site, setSite] = useState(null)
-  const [reports, setReports] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { job, client, site, reports, loading, setJob, setClient, setSite } = useJobDetail(id)
   const [updating, setUpdating] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
   const [editForm, setEditForm] = useState(null)
   const [jobTypes, setJobTypes] = useState([])
-
-  useEffect(() => {
-    const fetch = async () => {
-      const { data: jobData } = await supabase.from('jobs').select('*').eq('id', id).single()
-      setJob(jobData)
-      if (jobData) {
-        const [clientRes, siteRes, reportsRes] = await Promise.all([
-          jobData.client_id ? supabase.from('clients').select('*').eq('id', jobData.client_id).single() : { data: null },
-          jobData.job_site_id ? supabase.from('job_sites').select('*').eq('id', jobData.job_site_id).single() : { data: null },
-          supabase.from('job_reports').select('*').eq('job_id', id).order('created_at', { ascending: false }),
-        ])
-        setClient(clientRes.data)
-        setSite(siteRes.data)
-        setReports(reportsRes.data || [])
-      }
-      setLoading(false)
-    }
-    fetch()
-  }, [id])
 
   useEffect(() => {
     if (!business?.id) return
@@ -140,73 +115,26 @@ export default function JobDetail() {
     if (!error && data) setJobTypes(prev => [...prev, data])
   }
 
-  const badgeVariant = { scheduled: 'info', in_progress: 'primary', on_hold: 'warning', completed: 'success' }
-
   if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
 
   return (
     <PageWrapper>
-      <Header title={job?.job_type || 'Job'} back="/jobs" rightAction={
-        <button onClick={openEdit} className="p-2 hover:bg-black/5 rounded-xl transition-all duration-200 active:scale-95" aria-label="Edit job">
-          <svg className="w-5 h-5 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-        </button>
-      } />
+      <Header title={job?.job_type || 'Job'} back="/jobs" />
 
-      <div className="px-4 py-4 space-y-4">
-        <Card className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">{job?.job_type || 'Job'}</h2>
-            <Badge variant={badgeVariant[job?.status] || 'neutral'}>{statusLabel(job?.status)}</Badge>
-          </div>
-          {client && <p className="text-sm text-gray-600">Client: <strong>{client.name}</strong></p>}
-          {site && <p className="text-sm text-gray-600">Site: <strong>{site.address}</strong></p>}
-          {job?.scheduled_date && <p className="text-sm text-gray-600">Scheduled: <strong>{formatDate(job.scheduled_date)}</strong></p>}
-          {job?.notes && <p className="text-sm text-gray-500 italic">{job.notes}</p>}
-        </Card>
-
-        {/* Status Actions */}
-        <div className="flex gap-2">
-          {job?.status === 'scheduled' && (
-            <Button onClick={() => updateStatus('in_progress')} loading={updating} className="flex-1">Start Job</Button>
-          )}
-          {job?.status === 'in_progress' && (
-            <>
-              <Button variant="secondary" onClick={() => updateStatus('on_hold')} loading={updating} className="flex-1">Put On Hold</Button>
-              <Button onClick={() => updateStatus('completed')} loading={updating} className="flex-1">Complete</Button>
-            </>
-          )}
-          {job?.status === 'on_hold' && (
-            <Button onClick={() => updateStatus('in_progress')} loading={updating} className="flex-1">Resume</Button>
-          )}
-        </div>
-
-        {/* Create Report */}
-        {(job?.status === 'in_progress' || job?.status === 'completed') && site && (
-          <Button variant="secondary" onClick={() => navigate(`/sites/${site.id}/report`)} className="w-full">
-            Create Job Report
-          </Button>
-        )}
-
-        {/* Reports */}
-        {reports.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Reports</h3>
-            <div className="space-y-2">
-              {reports.map(r => (
-                <Card key={r.id} hover onClick={() => navigate(`/reports/${r.id}`)} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{formatDate(r.created_at)}</p>
-                    <Badge variant={r.status === 'completed' ? 'success' : 'warning'}>{statusLabel(r.status)}</Badge>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button onClick={handleDelete} className="w-full text-xs text-red-500 hover:text-red-700 py-2 font-semibold">
-          Delete Job
-        </button>
+      <div className="px-4 py-4">
+        <JobDetailView
+          job={job}
+          client={client}
+          site={site}
+          staff={staff}
+          reports={reports}
+          updating={updating}
+          onStatusChange={updateStatus}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onCreateReport={site ? () => navigate(`/sites/${site.id}/report`) : null}
+          onOpenReport={(rid) => navigate(`/reports/${rid}`)}
+        />
       </div>
 
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Job" size="lg">

@@ -7,7 +7,9 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
+import Modal from '../components/ui/Modal'
 import ScheduleMap from '../components/schedule/ScheduleMap'
+import JobDetailView, { useJobDetail } from '../components/jobs/JobDetailView'
 import { geocodeAddress, totalRouteKm, estimateTravelMinutes, getRoadRoute } from '../lib/geocode'
 import { statusLabel } from '../lib/utils'
 
@@ -45,6 +47,23 @@ export default function Schedule() {
   const [draggingId, setDraggingId] = useState(null)
   const [dragOverId, setDragOverId] = useState(null)
   const [roadRoute, setRoadRoute] = useState(null)
+  const [openJobId, setOpenJobId] = useState(null)
+  const modalJob = useJobDetail(openJobId)
+  const [modalUpdating, setModalUpdating] = useState(false)
+
+  const modalUpdateStatus = async (status) => {
+    if (!modalJob.job) return
+    setModalUpdating(true)
+    const updates = { status }
+    if (status === 'completed') updates.completed_at = new Date().toISOString()
+    if (status === 'in_progress' && !modalJob.job.started_at) updates.started_at = new Date().toISOString()
+    const { data } = await supabase.from('jobs').update(updates).eq('id', modalJob.job.id).select().single()
+    if (data) {
+      modalJob.setJob(data)
+      setJobs(prev => prev.map(j => j.id === data.id ? data : j))
+    }
+    setModalUpdating(false)
+  }
 
   // Fetch jobs for selected day (uses scheduled_start, falls back to scheduled_date)
   useEffect(() => {
@@ -298,7 +317,7 @@ export default function Schedule() {
                       return (
                         <div
                           key={job.id}
-                          onClick={() => navigate(`/jobs/${job.id}`)}
+                          onClick={() => setOpenJobId(job.id)}
                           className="bg-tree-50/70 hover:bg-tree-50 border border-tree-200/70 rounded-2xl p-4 cursor-pointer transition-all duration-200 active:scale-[0.99]"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
@@ -340,7 +359,7 @@ export default function Schedule() {
               points={mapPoints}
               routeGeometry={roadRoute?.geometry}
               height={420}
-              onMarkerClick={(p) => navigate(`/jobs/${p.id}`)}
+              onMarkerClick={(p) => setOpenJobId(p.id)}
             />
             {mapPoints.length < jobs.length && (
               <p className="text-xs text-gray-500 text-center">
@@ -367,7 +386,7 @@ export default function Schedule() {
                   className={`relative bg-white rounded-2xl shadow-card border-l-4 transition-all duration-200 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-tree-400' : ''}`}
                   style={{ borderLeftColor: sty.border }}
                 >
-                  <div onClick={() => navigate(`/jobs/${job.id}`)} className="p-4 cursor-pointer">
+                  <div onClick={() => setOpenJobId(job.id)} className="p-4 cursor-pointer">
                     <div className="flex items-start gap-3">
                       <div className="flex flex-col items-center gap-1 flex-shrink-0">
                         <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${sty.bg} ${sty.text}`}>
@@ -414,6 +433,26 @@ export default function Schedule() {
           </div>
         )}
       </div>
+
+      <Modal open={!!openJobId} onClose={() => setOpenJobId(null)} title="Job Details" size="lg">
+        {modalJob.loading ? (
+          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+        ) : (
+          <JobDetailView
+            job={modalJob.job}
+            client={modalJob.client}
+            site={modalJob.site}
+            staff={staff}
+            reports={modalJob.reports}
+            updating={modalUpdating}
+            onStatusChange={modalUpdateStatus}
+            onEdit={() => { setOpenJobId(null); navigate(`/jobs/${modalJob.job.id}`) }}
+            onCreateReport={modalJob.site ? () => { setOpenJobId(null); navigate(`/sites/${modalJob.site.id}/report`) } : null}
+            onOpenReport={(rid) => { setOpenJobId(null); navigate(`/reports/${rid}`) }}
+            compact
+          />
+        )}
+      </Modal>
     </PageWrapper>
   )
 }
