@@ -19,7 +19,7 @@ CREATE TABLE businesses (
   email TEXT,
   stripe_customer_id TEXT,
   stripe_subscription_id TEXT,
-  plan TEXT DEFAULT 'trial' CHECK (plan IN ('trial','starter','pro')),
+  plan TEXT DEFAULT 'trial' CHECK (plan IN ('trial','basic','unlimited')),
   trial_ends_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days'),
   next_invoice_number INTEGER DEFAULT 1,
   invoice_prefix TEXT DEFAULT 'INV',

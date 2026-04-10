@@ -1,8 +1,9 @@
 import React, { Suspense } from 'react'
-import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
 import BottomNav from './components/layout/BottomNav'
+import { isTrialExpired, trialDaysLeft } from './lib/plans'
 
 // Lazy load all pages
 const Login = React.lazy(() => import('./pages/Login'))
@@ -61,6 +62,41 @@ function ProtectedRoute() {
   return <Outlet />
 }
 
+function TrialExpiredBanner() {
+  const navigate = useNavigate()
+  return (
+    <div className="max-w-app mx-auto px-4 pt-2">
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-red-900">Trial expired</p>
+          <p className="text-xs text-red-600">Choose a plan to keep using TreePro.</p>
+        </div>
+        <button onClick={() => navigate('/subscription')} className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 transition-colors flex-shrink-0">
+          Upgrade
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function TrialWarningBanner({ daysLeft }) {
+  const navigate = useNavigate()
+  if (daysLeft > 3) return null
+  return (
+    <div className="max-w-app mx-auto px-4 pt-2">
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3">
+        <p className="text-xs text-amber-700 flex-1"><strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> left in your trial.</p>
+        <button onClick={() => navigate('/subscription')} className="px-3 py-1 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors flex-shrink-0">
+          Choose Plan
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function BusinessGuard() {
   const { business, loading } = useBusiness()
   const location = useLocation()
@@ -68,8 +104,13 @@ function BusinessGuard() {
   if (loading) return <LoadingSpinner />
   if (!business && location.pathname !== '/onboarding') return <Navigate to="/onboarding" replace />
 
+  const expired = isTrialExpired(business)
+  const daysLeft = business?.plan === 'trial' ? trialDaysLeft(business) : null
+
   return (
     <>
+      {expired && <TrialExpiredBanner />}
+      {!expired && daysLeft !== null && <TrialWarningBanner daysLeft={daysLeft} />}
       <Outlet />
       <BottomNav />
     </>

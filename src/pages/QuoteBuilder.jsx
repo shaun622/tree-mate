@@ -10,6 +10,8 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, TextArea, Select } from '../components/ui/Input'
 import { calculateGST, formatCurrency } from '../lib/utils'
+import { getPlanLimits, isTrialExpired } from '../lib/plans'
+import UpgradePrompt from '../components/ui/UpgradePrompt'
 
 export default function QuoteBuilder() {
   const { id } = useParams()
@@ -22,6 +24,8 @@ export default function QuoteBuilder() {
   const [showNewClient, setShowNewClient] = useState(false)
   const [newClientForm, setNewClientForm] = useState({ name: '', email: '', phone: '' })
   const [savingClient, setSavingClient] = useState(false)
+  const [quoteLimitHit, setQuoteLimitHit] = useState(false)
+  const [monthlyCount, setMonthlyCount] = useState(0)
   const [form, setForm] = useState({
     client_id: '', job_site_id: '', scope: '', terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
@@ -40,6 +44,23 @@ export default function QuoteBuilder() {
       })
     }
   }, [id])
+
+  // Check monthly quote count for plan limits
+  useEffect(() => {
+    if (!business?.id || id) return
+    const limits = getPlanLimits(business.plan)
+    if (limits.quotesPerMonth === Infinity) return
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    monthStart.setHours(0, 0, 0, 0)
+    supabase.from('quotes').select('id', { count: 'exact', head: true })
+      .eq('business_id', business.id)
+      .gte('created_at', monthStart.toISOString())
+      .then(({ count }) => {
+        setMonthlyCount(count || 0)
+        if ((count || 0) >= limits.quotesPerMonth) setQuoteLimitHit(true)
+      })
+  }, [business?.id, business?.plan, id])
 
   const clientSites = form.client_id ? getJobSitesByClient(form.client_id) : []
 
@@ -123,6 +144,14 @@ export default function QuoteBuilder() {
       <Header title={id ? 'Edit Quote' : 'New Quote'} back="/quotes" />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Plan restriction check */}
+        {isTrialExpired(business) && (
+          <UpgradePrompt message="Your free trial has ended. Choose a plan to continue creating quotes." />
+        )}
+        {!id && quoteLimitHit && !isTrialExpired(business) && (
+          <UpgradePrompt message={`You've used ${monthlyCount} of 10 quotes this month. Upgrade to Unlimited for unlimited quotes.`} />
+        )}
+
         {/* Client & Site */}
         <Card className="p-4 space-y-3">
           <Select label="Client" value={form.client_id} onChange={e => handleClientSelect(e.target.value)} options={[{ value: '', label: 'Select client...' }, { value: '__new__', label: '+ New Client' }, ...clients.map(c => ({ value: c.id, label: c.name }))]} />
@@ -180,10 +209,12 @@ export default function QuoteBuilder() {
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={handleSave} loading={saving} className="flex-1">Save Draft</Button>
-          <Button onClick={handleSend} loading={sending} className="flex-1">Send Quote</Button>
-        </div>
+        {!(isTrialExpired(business) || (!id && quoteLimitHit)) && (
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={handleSave} loading={saving} className="flex-1">Save Draft</Button>
+            <Button onClick={handleSend} loading={sending} className="flex-1">Send Quote</Button>
+          </div>
+        )}
       </div>
     </PageWrapper>
   )

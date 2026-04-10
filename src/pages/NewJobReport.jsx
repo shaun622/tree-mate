@@ -11,6 +11,8 @@ import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import { Input, TextArea, Select } from '../components/ui/Input'
 import { statusLabel, PHOTO_TAGS, HEALTH_CONDITIONS, ACTIONS_TAKEN, SUGGESTED_JOB_TYPES, SUGGESTED_EQUIPMENT, DEFAULT_TASKS } from '../lib/utils'
+import { canUseFeature } from '../lib/plans'
+import UpgradePrompt from '../components/ui/UpgradePrompt'
 
 export default function NewJobReport() {
   const { id: siteId } = useParams()
@@ -215,22 +217,28 @@ export default function NewJobReport() {
         {/* Photos */}
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Photos</h3>
-          {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {photos.map(p => (
-                <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden">
-                  <img src={p.signed_url} alt="" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md">{p.tag}</span>
+          {canUseFeature(business, 'photos') ? (
+            <>
+              {photos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {photos.map(p => (
+                    <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden">
+                      <img src={p.signed_url} alt="" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md">{p.tag}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+              <div className="flex gap-2">
+                <select value={photoTag} onChange={e => setPhotoTag(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm">
+                  {PHOTO_TAGS.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                </select>
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-tree-50 file:text-tree-700" />
+              </div>
+            </>
+          ) : (
+            <UpgradePrompt message="Job photos are available on the Unlimited plan." />
           )}
-          <div className="flex gap-2">
-            <select value={photoTag} onChange={e => setPhotoTag(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm">
-              {PHOTO_TAGS.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-            </select>
-            <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-tree-50 file:text-tree-700" />
-          </div>
         </Card>
 
         {/* Summary Fields */}

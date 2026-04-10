@@ -12,7 +12,7 @@ import { Input, Select } from '../../components/ui/Input'
 import EmptyState from '../../components/ui/EmptyState'
 import { STAFF_ROLES } from '../../lib/utils'
 
-const PLAN_LIMITS = { trial: 1, starter: 2, pro: 10 }
+const PLAN_LIMITS = { trial: 5, basic: 5, unlimited: Infinity }
 
 export default function Staff() {
   const { business } = useBusiness()
