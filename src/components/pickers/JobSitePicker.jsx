@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Input, Select, TextArea } from '../ui/Input'
+import { Select, TextArea } from '../ui/Input'
+import AddressAutocomplete from '../ui/AddressAutocomplete'
 import Button from '../ui/Button'
 
 export default function JobSitePicker({ sites, clientId, value, onChange, onCreate, onUpdate, label = 'Job Site', required = false }) {
   const [mode, setMode] = useState('idle') // 'idle' | 'new' | 'edit'
-  const [newForm, setNewForm] = useState({ address: '', notes: '' })
-  const [editForm, setEditForm] = useState({ address: '', notes: '' })
+  const [newForm, setNewForm] = useState({ address: '', notes: '', lat: null, lng: null })
+  const [editForm, setEditForm] = useState({ address: '', notes: '', lat: null, lng: null })
   const [busy, setBusy] = useState(false)
 
   const selected = sites.find(s => s.id === value)
@@ -28,14 +29,19 @@ export default function JobSitePicker({ sites, clientId, value, onChange, onCrea
     if (!error && data) {
       onChange(data.id)
       setMode('idle')
-      setNewForm({ address: '', notes: '' })
+      setNewForm({ address: '', notes: '', lat: null, lng: null })
     }
     setBusy(false)
   }
 
   const startEdit = () => {
     if (!selected) return
-    setEditForm({ address: selected.address || '', notes: selected.notes || '' })
+    setEditForm({
+      address: selected.address || '',
+      notes: selected.notes || '',
+      lat: selected.lat ?? null,
+      lng: selected.lng ?? null,
+    })
     setMode('edit')
   }
 
@@ -64,7 +70,11 @@ export default function JobSitePicker({ sites, clientId, value, onChange, onCrea
       {mode === 'new' && (
         <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Quick Add Site</p>
-          <Input placeholder="Site address" value={newForm.address} onChange={e => setNewForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete
+            value={newForm.address}
+            onChange={(addr, coords) => setNewForm(p => ({ ...p, address: addr, lat: coords?.lat ?? null, lng: coords?.lng ?? null }))}
+            placeholder="Start typing site address..."
+          />
           <TextArea placeholder="Notes (optional)" value={newForm.notes} onChange={e => setNewForm(p => ({ ...p, notes: e.target.value }))} rows={2} />
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
@@ -76,7 +86,11 @@ export default function JobSitePicker({ sites, clientId, value, onChange, onCrea
       {mode === 'edit' && selected && (
         <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Site</p>
-          <Input placeholder="Site address" value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete
+            value={editForm.address}
+            onChange={(addr, coords) => setEditForm(p => ({ ...p, address: addr, lat: coords?.lat ?? p.lat, lng: coords?.lng ?? p.lng }))}
+            placeholder="Start typing site address..."
+          />
           <TextArea placeholder="Notes (optional)" value={editForm.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} rows={2} />
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>

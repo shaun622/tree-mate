@@ -3,17 +3,19 @@
 const cache = new Map()
 let lastRequest = 0
 
-export async function geocodeAddress(address) {
-  if (!address) return null
-  if (cache.has(address)) return cache.get(address)
-
-  // Throttle to ~1 req/sec
+async function throttle() {
   const wait = Math.max(0, 1100 - (Date.now() - lastRequest))
   if (wait > 0) await new Promise(r => setTimeout(r, wait))
   lastRequest = Date.now()
+}
 
+export async function geocodeAddress(address) {
+  if (!address) return null
+  if (cache.has(address)) return cache.get(address)
+  await throttle()
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`
+    // countrycodes=au biases results to Australia so we don't pick foreign streets
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=au&q=${encodeURIComponent(address)}`
     const res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
     const data = await res.json()
     if (data?.[0]) {
@@ -25,6 +27,42 @@ export async function geocodeAddress(address) {
     console.warn('Geocode failed:', address, e)
   }
   cache.set(address, null)
+  return null
+}
+
+// Search for multiple address candidates (for autocomplete dropdowns).
+// Returns an array of { label, lat, lng }.
+export async function searchAddresses(query, { limit = 6, country = 'au' } = {}) {
+  if (!query || query.trim().length < 3) return []
+  await throttle()
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=${limit}&countrycodes=${country}&q=${encodeURIComponent(query)}`
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
+    const data = await res.json()
+    return (data || []).map(r => ({
+      label: r.display_name,
+      lat: parseFloat(r.lat),
+      lng: parseFloat(r.lon),
+      address: r.address || {},
+    }))
+  } catch (e) {
+    console.warn('Address search failed:', e)
+    return []
+  }
+}
+
+// Reverse geocode a coordinate to a human-readable address.
+export async function reverseGeocode(lat, lng) {
+  if (lat == null || lng == null) return null
+  await throttle()
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } })
+    const data = await res.json()
+    if (data?.display_name) return { label: data.display_name, lat, lng, address: data.address || {} }
+  } catch (e) {
+    console.warn('Reverse geocode failed:', e)
+  }
   return null
 }
 

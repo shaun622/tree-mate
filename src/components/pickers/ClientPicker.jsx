@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Input, Select } from '../ui/Input'
+import AddressAutocomplete from '../ui/AddressAutocomplete'
 import Button from '../ui/Button'
 
 export default function ClientPicker({ clients, value, onChange, onCreate, onUpdate, label = 'Client', required = false }) {
@@ -72,7 +73,11 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
             <Input placeholder="Email" type="email" value={newForm.email} onChange={e => setNewForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
             <Input placeholder="Phone" type="tel" value={newForm.phone} onChange={e => setNewForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
           </div>
-          <Input placeholder="Address (optional)" value={newForm.address} onChange={e => setNewForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete
+            value={newForm.address}
+            onChange={(addr) => setNewForm(p => ({ ...p, address: addr }))}
+            placeholder="Address (optional)"
+          />
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
             <Button type="button" onClick={handleCreate} loading={busy} className="flex-1 !min-h-[40px] text-xs">Add Client</Button>
@@ -88,7 +93,11 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
             <Input placeholder="Email" type="email" value={editForm.email} onChange={e => setEditForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
             <Input placeholder="Phone" type="tel" value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
           </div>
-          <Input placeholder="Address" value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete
+            value={editForm.address}
+            onChange={(addr) => setEditForm(p => ({ ...p, address: addr }))}
+            placeholder="Address"
+          />
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
             <Button type="button" loading={busy} onClick={handleSaveEdit} className="flex-1 !min-h-[40px] text-xs">Save</Button>
