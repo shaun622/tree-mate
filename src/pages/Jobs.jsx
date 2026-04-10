@@ -33,7 +33,7 @@ export default function Jobs() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     client_id: '', job_site_id: '', job_type: '', scheduled_date: '',
-    scheduled_time: '', duration_minutes: 60,
+    scheduled_time: '09:00', duration_minutes: 60,
     staff_id: '', notes: '', status: 'scheduled'
   })
   const [jobTypes, setJobTypes] = useState([])
@@ -99,7 +99,7 @@ export default function Jobs() {
     if (!error) {
       setJobs(prev => [data, ...prev])
       setShowModal(false)
-      setForm({ client_id: '', job_site_id: '', job_type: '', scheduled_date: '', scheduled_time: '', duration_minutes: 60, staff_id: '', notes: '', status: 'scheduled' })
+      setForm({ client_id: '', job_site_id: '', job_type: '', scheduled_date: '', scheduled_time: '09:00', duration_minutes: 60, staff_id: '', notes: '', status: 'scheduled' })
     }
     setSaving(false)
   }
@@ -172,7 +172,7 @@ export default function Jobs() {
             onCreateTemplate={createJobTypeTemplate}
           />
           <div className="flex gap-2">
-            <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
+            <Input label="Date *" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" required />
             <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />
           </div>
           <Input label="Duration (min)" type="number" min="15" step="15" value={form.duration_minutes} onChange={e => setForm(p => ({ ...p, duration_minutes: e.target.value }))} />

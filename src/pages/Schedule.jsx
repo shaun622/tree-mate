@@ -34,8 +34,11 @@ export default function Schedule() {
   const { staff } = useStaff(business?.id)
   const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
-  const [view, setView] = useState('list') // 'list' | 'map'
+  const [view, setView] = useState('list') // 'list' | 'upcoming' | 'map'
   const [jobs, setJobs] = useState([])
+  const [upcomingJobs, setUpcomingJobs] = useState([])
+  const [upcomingSites, setUpcomingSites] = useState({})
+  const [upcomingClients, setUpcomingClients] = useState({})
   const [sites, setSites] = useState({}) // id -> site (with lat/lng)
   const [clients, setClients] = useState({})
   const [loading, setLoading] = useState(true)
@@ -88,6 +91,34 @@ export default function Schedule() {
     }
     fetchData()
   }, [business?.id, selectedDate])
+
+  // Fetch all upcoming jobs (from today onward, excluding completed)
+  useEffect(() => {
+    if (!business?.id) return
+    const fetchUpcoming = async () => {
+      const today = ymd(startOfDay(new Date()))
+      const nowISO = startOfDay(new Date()).toISOString()
+      const { data } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('business_id', business.id)
+        .neq('status', 'completed')
+        .or(`scheduled_start.gte.${nowISO},scheduled_date.gte.${today}`)
+        .order('scheduled_start', { ascending: true, nullsFirst: false })
+        .limit(50)
+      const list = data || []
+      setUpcomingJobs(list)
+      const siteIds = [...new Set(list.filter(j => j.job_site_id).map(j => j.job_site_id))]
+      const clientIds = [...new Set(list.filter(j => j.client_id).map(j => j.client_id))]
+      const [sitesRes, clientsRes] = await Promise.all([
+        siteIds.length ? supabase.from('job_sites').select('*').in('id', siteIds) : Promise.resolve({ data: [] }),
+        clientIds.length ? supabase.from('clients').select('*').in('id', clientIds) : Promise.resolve({ data: [] }),
+      ])
+      setUpcomingSites(Object.fromEntries((sitesRes.data || []).map(s => [s.id, s])))
+      setUpcomingClients(Object.fromEntries((clientsRes.data || []).map(c => [c.id, c])))
+    }
+    fetchUpcoming()
+  }, [business?.id, jobs])
 
   // Build map points in route order from current jobs
   const mapPoints = jobs
@@ -205,6 +236,12 @@ export default function Schedule() {
             List
           </button>
           <button
+            onClick={() => setView('upcoming')}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === 'upcoming' ? 'bg-white text-tree-500/80 shadow-sm' : 'text-gray-500'}`}
+          >
+            Upcoming
+          </button>
+          <button
             onClick={() => setView('map')}
             className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === 'map' ? 'bg-white text-tree-600 shadow-sm' : 'text-gray-500'}`}
           >
@@ -213,7 +250,7 @@ export default function Schedule() {
         </div>
 
         {/* Travel summary */}
-        {mapPoints.length > 1 && (
+        {view !== 'upcoming' && mapPoints.length > 1 && (
           <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
@@ -226,7 +263,68 @@ export default function Schedule() {
           </div>
         )}
 
-        {loading ? (
+        {view === 'upcoming' ? (
+          upcomingJobs.length === 0 ? (
+            <EmptyState
+              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              title="No upcoming jobs"
+              description="Nothing scheduled ahead"
+              actionLabel="Create Job"
+              onAction={() => navigate('/jobs')}
+            />
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(
+                upcomingJobs.reduce((acc, j) => {
+                  const key = j.scheduled_date || (j.scheduled_start ? ymd(new Date(j.scheduled_start)) : 'unscheduled')
+                  if (!acc[key]) acc[key] = []
+                  acc[key].push(j)
+                  return acc
+                }, {})
+              ).map(([dateKey, dayJobs]) => {
+                const dateObj = dateKey === 'unscheduled' ? null : new Date(dateKey)
+                const dayLbl = dateObj ? dateObj.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Unscheduled'
+                const isDayToday = dateKey === ymd(new Date())
+                return (
+                  <div key={dateKey} className="space-y-2">
+                    <div className="flex items-center gap-2 px-1">
+                      <p className="text-xs font-bold uppercase tracking-wide text-tree-500/80">{isDayToday ? 'Today' : dayLbl}</p>
+                      <div className="flex-1 h-px bg-tree-200/60" />
+                      <span className="text-[10px] font-semibold text-tree-500/70">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
+                    </div>
+                    {dayJobs.map(job => {
+                      const site = upcomingSites[job.job_site_id]
+                      const client = upcomingClients[job.client_id]
+                      return (
+                        <div
+                          key={job.id}
+                          onClick={() => navigate(`/jobs/${job.id}`)}
+                          className="bg-tree-50/70 hover:bg-tree-50 border border-tree-200/70 rounded-2xl p-4 cursor-pointer transition-all duration-200 active:scale-[0.99]"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="font-semibold text-tree-800/90 truncate">{job.job_type || 'Job'}</p>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-white/70 text-tree-600/80">
+                              {statusLabel(job.status)}
+                            </span>
+                          </div>
+                          {client && <p className="text-sm text-tree-700/70 truncate">{client.name}</p>}
+                          {site?.address && <p className="text-xs text-tree-600/60 truncate">{site.address}</p>}
+                          {job.scheduled_start && (
+                            <p className="text-xs font-semibold text-tree-600/80 mt-1.5 flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              {formatTime(job.scheduled_start)}
+                              {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        ) : loading ? (
           <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : jobs.length === 0 ? (
           <EmptyState
