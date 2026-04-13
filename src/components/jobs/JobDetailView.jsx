@@ -28,7 +28,7 @@ function InfoRow({ icon, label, value, sub }) {
 }
 
 // ── Pipeline Stepper ─────────────────────────────────────────────────────────
-function PipelineStepper({ currentStatus }) {
+function PipelineStepper({ currentStatus, onStepClick }) {
   const stages = JOB_STATUSES
   const currentIdx = stages.indexOf(currentStatus)
 
@@ -43,11 +43,15 @@ function PipelineStepper({ currentStatus }) {
               {i > 0 && (
                 <div className={`w-5 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-tree-400' : 'bg-gray-200'}`} />
               )}
-              <div className="flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onStepClick?.(stage)}
+                className="flex flex-col items-center gap-1 cursor-pointer"
+              >
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-300 ${
-                  isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow' :
+                  isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
                   isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
-                  'bg-white border-gray-200 text-gray-300'
+                  'bg-white border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
                 }`}>
                   {isComplete ? (
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -60,7 +64,7 @@ function PipelineStepper({ currentStatus }) {
                 }`}>
                   {statusLabel(stage)}
                 </span>
-              </div>
+              </button>
             </div>
           )
         })}
@@ -148,10 +152,23 @@ export default function JobDetailView({
     }
   }
 
+  const handleStepClick = (stage) => {
+    if (stage === job.status) return // already on this stage
+    if (stage === 'approved' && onDepositCapture) {
+      onDepositCapture()
+    } else if (stage === 'quoted' && onCreateQuote) {
+      onCreateQuote()
+    } else if (stage === 'invoiced' && onCreateInvoice) {
+      onCreateInvoice()
+    } else {
+      onStatusChange?.(stage)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Pipeline stepper */}
-      <PipelineStepper currentStatus={job.status} />
+      <PipelineStepper currentStatus={job.status} onStepClick={handleStepClick} />
 
       {/* Hero: Map or gradient banner */}
       {hasCoords ? (
