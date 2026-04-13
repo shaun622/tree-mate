@@ -167,6 +167,7 @@ export default function JobDetail() {
   }
 
   if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
+  if (!job) return <PageWrapper><Header title="Job" back="/jobs" /><div className="px-4 py-12 text-center"><p className="text-sm text-gray-400">Job not found</p><Button variant="secondary" onClick={() => navigate('/jobs')} className="mt-4">Back to Jobs</Button></div></PageWrapper>
 
   return (
     <PageWrapper>
