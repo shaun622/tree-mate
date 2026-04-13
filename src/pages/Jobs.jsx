@@ -14,6 +14,7 @@ import EmptyState from '../components/ui/EmptyState'
 import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
+import JobDetailView from '../components/jobs/JobDetailView'
 import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../lib/utils'
 
 // 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
@@ -50,6 +51,9 @@ export default function Jobs() {
     scheduled_date: '', scheduled_time: '09:00', notes: '',
   })
   const [jobTypes, setJobTypes] = useState([])
+  const [previewJob, setPreviewJob] = useState(null) // job detail modal
+  const [previewData, setPreviewData] = useState({ client: null, site: null, quote: null, reports: [] })
+  const [previewUpdating, setPreviewUpdating] = useState(false)
 
   useEffect(() => {
     if (!business?.id) return
@@ -91,6 +95,50 @@ export default function Jobs() {
     if (!error && data) setJobTypes(prev => [...prev, data])
   }
 
+  // ── Job Preview Modal ──────────────────────────────────────────────────────
+  const openPreview = async (job) => {
+    setPreviewJob(job)
+    const [c, s, q, r] = await Promise.all([
+      job.client_id ? supabase.from('clients').select('*').eq('id', job.client_id).single() : { data: null },
+      job.job_site_id ? supabase.from('job_sites').select('*').eq('id', job.job_site_id).single() : { data: null },
+      job.quote_id ? supabase.from('quotes').select('*').eq('id', job.quote_id).single() : { data: null },
+      supabase.from('job_reports').select('*').eq('job_id', job.id).order('created_at', { ascending: false }),
+    ])
+    setPreviewData({ client: c.data, site: s.data, quote: q.data, reports: r.data || [] })
+  }
+
+  const closePreview = () => {
+    setPreviewJob(null)
+    setPreviewData({ client: null, site: null, quote: null, reports: [] })
+  }
+
+  const previewStatusChange = async (status) => {
+    if (!previewJob) return
+    setPreviewUpdating(true)
+    const updates = { status }
+    if (status === 'completed') updates.completed_at = new Date().toISOString()
+    if (status === 'paid') updates.completed_at = updates.completed_at || new Date().toISOString()
+    const { data } = await supabase.from('jobs').update(updates).eq('id', previewJob.id).select().single()
+    if (data) {
+      setPreviewJob(data)
+      setJobs(prev => prev.map(j => j.id === data.id ? data : j))
+    }
+    setPreviewUpdating(false)
+  }
+
+  const previewAcceptQuote = async () => {
+    if (!previewData.quote?.id || !previewJob) return
+    setPreviewUpdating(true)
+    const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', previewData.quote.id).select().single()
+    if (updatedQuote) setPreviewData(prev => ({ ...prev, quote: updatedQuote }))
+    const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', previewJob.id).select().single()
+    if (updatedJob) {
+      setPreviewJob(updatedJob)
+      setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+    }
+    setPreviewUpdating(false)
+  }
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -130,7 +178,7 @@ export default function Jobs() {
   }
 
   // ── Job Card (shared between list and pipeline) ────────────────────────────
-  const JobCard = ({ job, compact = false, done = false, invoiceView = false }) => {
+  const JobCard = ({ job, compact = false, done = false, invoiceView = false, quotedView = false }) => {
     const jc = clientMap[job.client_id]
     const js = siteMap[job.job_site_id]
     const quote = quotes[job.quote_id]
@@ -138,12 +186,33 @@ export default function Jobs() {
     const showPriority = job.priority && job.priority !== 'normal'
     const pStyle = PRIORITY_STYLES[job.priority] || {}
 
+    const handleClick = () => {
+      if (quotedView) openPreview(job)
+      else navigate(`/jobs/${job.id}`)
+    }
+
+    const handleQuickEdit = (e) => {
+      e.stopPropagation()
+      if (job.quote_id) navigate(`/quotes/${job.quote_id}`)
+      else navigate(`/quotes/new?job_id=${job.id}`)
+    }
+
+    const handleQuickAccept = async (e) => {
+      e.stopPropagation()
+      if (!job.quote_id) return
+      const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', job.quote_id).select().single()
+      if (updatedQuote) setQuotes(prev => ({ ...prev, [updatedQuote.id]: updatedQuote }))
+      const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', job.id).select().single()
+      if (updatedJob) setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+    }
+
     return (
-      <button
-        type="button"
-        onClick={() => navigate(`/jobs/${job.id}`)}
-        className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-tree-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.995] ${done ? 'opacity-60' : ''}`}
-      >
+      <div className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-tree-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ${done ? 'opacity-60' : ''}`}>
+        <button
+          type="button"
+          onClick={handleClick}
+          className="w-full text-left active:scale-[0.995] transition-all duration-200"
+        >
         {compact ? (
           /* Pipeline compact card */
           <div className="p-3">
@@ -230,7 +299,32 @@ export default function Jobs() {
             </div>
           </div>
         )}
-      </button>
+        </button>
+        {/* Quick actions for Quoted view */}
+        {quotedView && !compact && (
+          <div className="flex border-t border-gray-100">
+            <button
+              onClick={handleQuickEdit}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all duration-200"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              {job.quote_id ? 'Edit Quote' : 'Create Quote'}
+            </button>
+            {job.quote_id && job.status !== 'approved' && (
+              <>
+                <div className="w-px bg-gray-100" />
+                <button
+                  onClick={handleQuickAccept}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-tree-600 hover:text-white hover:bg-tree-600 transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  Accept
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -322,10 +416,32 @@ export default function Jobs() {
           </div>
         ) : (
           <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
-            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} invoiceView={filter === 'invoice'} />)}
+            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} invoiceView={filter === 'invoice'} quotedView={filter === 'quoted'} />)}
           </div>
         )}
       </div>
+
+      {/* Job Preview Modal (Quoted tab) */}
+      <Modal open={!!previewJob} onClose={closePreview} title={previewJob?.job_type || 'Job'} size="lg">
+        {previewJob && (
+          <JobDetailView
+            job={previewJob}
+            client={previewData.client}
+            site={previewData.site}
+            quote={previewData.quote}
+            staff={staff}
+            reports={previewData.reports}
+            updating={previewUpdating}
+            compact
+            onStatusChange={previewStatusChange}
+            onEditQuote={previewData.quote ? () => { closePreview(); navigate(`/quotes/${previewData.quote.id}`) } : null}
+            onAcceptQuote={previewData.quote ? previewAcceptQuote : null}
+            onCreateQuote={() => { closePreview(); navigate(`/quotes/new?job_id=${previewJob.id}`) }}
+            onCreateInvoice={() => { closePreview(); navigate(`/invoices/new?job_id=${previewJob.id}`) }}
+            onEdit={() => { closePreview(); navigate(`/jobs/${previewJob.id}`) }}
+          />
+        )}
+      </Modal>
 
       {/* Create Job Modal */}
       <Modal open={showModal} onClose={() => setShowModal(false)} title="New Job">
