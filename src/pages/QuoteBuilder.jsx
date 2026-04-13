@@ -230,13 +230,22 @@ export default function QuoteBuilder() {
 
         {/* Client & Site */}
         <Card className="p-4 space-y-3">
-          <ClientPicker
-            clients={clients}
-            value={form.client_id}
-            onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
-            onCreate={createClient}
-            onUpdate={updateClient}
-          />
+          {linkedJobId && form.client_id ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <p className="text-sm font-semibold text-gray-900 py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
+                {clients.find(c => c.id === form.client_id)?.name || 'Loading...'}
+              </p>
+            </div>
+          ) : (
+            <ClientPicker
+              clients={clients}
+              value={form.client_id}
+              onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+              onCreate={createClient}
+              onUpdate={updateClient}
+            />
+          )}
           <JobSitePicker
             sites={clientSites}
             client={clients.find(c => c.id === form.client_id)}

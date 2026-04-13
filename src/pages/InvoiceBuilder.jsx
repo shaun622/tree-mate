@@ -113,13 +113,22 @@ export default function InvoiceBuilder() {
 
         <Card className="p-4 space-y-3">
           <Input label="Invoice Number" value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
-          <ClientPicker
-            clients={clients}
-            value={form.client_id}
-            onChange={(id) => setForm(p => ({ ...p, client_id: id }))}
-            onCreate={createClient}
-            onUpdate={updateClient}
-          />
+          {linkedJobId && form.client_id ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <p className="text-sm font-semibold text-gray-900 py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
+                {clients.find(c => c.id === form.client_id)?.name || 'Loading...'}
+              </p>
+            </div>
+          ) : (
+            <ClientPicker
+              clients={clients}
+              value={form.client_id}
+              onChange={(id) => setForm(p => ({ ...p, client_id: id }))}
+              onCreate={createClient}
+              onUpdate={updateClient}
+            />
+          )}
           <Input label="Due Date" type="date" value={form.due_date} onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))} />
         </Card>
 
