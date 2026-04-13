@@ -105,19 +105,26 @@ export default function InvoiceBuilder() {
     const payload = {
       business_id: business.id, client_id: form.client_id || null,
       invoice_number: form.invoice_number, due_date: form.due_date || null,
-      notes: form.notes, line_items: form.line_items, subtotal, gst, total, status,
+      notes: form.notes, line_items: form.line_items, subtotal, gst, total,
+      status: status === 'sent' ? 'draft' : status, // edge function sets 'sent'
       job_id: linkedJobId || null,
     }
+    let invoiceId = id
     if (id) {
       await supabase.from('invoices').update(payload).eq('id', id)
     } else {
       const { data } = await supabase.from('invoices').insert(payload).select().single()
+      invoiceId = data?.id
       // Increment invoice number
       await updateBusiness({ next_invoice_number: (business.next_invoice_number || 1) + 1 })
       // Link invoice back to job and update job status to 'invoiced'
       if (linkedJobId && data) {
         await supabase.from('jobs').update({ status: 'invoiced' }).eq('id', linkedJobId)
       }
+    }
+    // Send email via edge function
+    if (status === 'sent' && invoiceId) {
+      await supabase.functions.invoke('send-invoice', { body: { invoice_id: invoiceId } })
     }
     setSaving(false)
     navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/invoices')
