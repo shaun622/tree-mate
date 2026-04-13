@@ -18,7 +18,16 @@ import JobTypePicker from '../components/pickers/JobTypePicker'
 import { statusLabel, statusColor, formatCurrency, JOB_STATUSES, JOB_PRIORITIES, ESTIMATED_DURATIONS, PRIORITY_STYLES } from '../lib/utils'
 
 const PIPELINE_COLUMNS = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress', 'completed']
-const LIST_FILTERS = ['all', ...PIPELINE_COLUMNS, 'invoiced', 'paid']
+
+// Simplified filter pills — merge related statuses
+const LIST_FILTERS = [
+  { key: 'all', label: 'All', statuses: null },
+  { key: 'enquiry', label: 'Enquiry', statuses: ['enquiry', 'site_visit'] },
+  { key: 'quoted', label: 'Quoted', statuses: ['quoted'] },
+  { key: 'approved', label: 'Approved', statuses: ['approved'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
+  { key: 'completed', label: 'Completed', statuses: ['completed', 'invoiced', 'paid'] },
+]
 
 const INITIAL_STATUS_OPTIONS = [
   { value: 'enquiry', label: 'Enquiry' },
@@ -37,7 +46,13 @@ export default function Jobs() {
   const [jobs, setJobs] = useState([])
   const [quotes, setQuotes] = useState({}) // quote_id -> quote
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState(searchParams.get('status') || 'all')
+  const [filter, setFilter] = useState(() => {
+    const param = searchParams.get('status')
+    if (!param) return 'all'
+    // Map DB statuses to simplified filter keys
+    const filterForStatus = LIST_FILTERS.find(f => f.statuses?.includes(param))
+    return filterForStatus ? filterForStatus.key : 'all'
+  })
   const [viewMode, setViewMode] = useState('list') // 'list' | 'pipeline'
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -72,7 +87,8 @@ export default function Jobs() {
     fetchJobTypes()
   }, [business?.id])
 
-  const filtered = filter === 'all' ? jobs : jobs.filter(j => j.status === filter)
+  const activeFilter = LIST_FILTERS.find(f => f.key === filter) || LIST_FILTERS[0]
+  const filtered = activeFilter.statuses ? jobs.filter(j => activeFilter.statuses.includes(j.status)) : jobs
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
   const siteMap = Object.fromEntries(jobSites.map(s => [s.id, s]))
@@ -287,11 +303,14 @@ export default function Jobs() {
       <div className="px-4 py-4 space-y-4">
         {viewMode === 'list' && (
           <div className="flex flex-wrap gap-2">
-            {LIST_FILTERS.map(s => (
-              <button key={s} onClick={() => setFilter(s)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === s ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
-                {s === 'all' ? `All (${jobs.length})` : `${statusLabel(s)} (${jobs.filter(j => j.status === s).length})`}
-              </button>
-            ))}
+            {LIST_FILTERS.map(f => {
+              const count = f.statuses ? jobs.filter(j => f.statuses.includes(j.status)).length : jobs.length
+              return (
+                <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
+                  {f.label} ({count})
+                </button>
+              )
+            })}
           </div>
         )}
 
@@ -307,7 +326,7 @@ export default function Jobs() {
           <PipelineView />
         ) : filtered.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-400">No jobs with status "{statusLabel(filter)}"</p>
+            <p className="text-sm text-gray-400">No {activeFilter.label.toLowerCase()} jobs</p>
           </div>
         ) : (
           <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
