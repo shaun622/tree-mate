@@ -107,7 +107,7 @@ export default function Dashboard() {
         </button>
       } />
 
-      <div className="px-4 py-5 space-y-5">
+      <div className="px-4 py-4 space-y-4">
         {/* Welcome */}
         <div>
           <h2 className="text-xl font-bold text-gray-900">Welcome back</h2>
@@ -125,7 +125,7 @@ export default function Dashboard() {
                 <button
                   key={stage.key}
                   onClick={() => navigate(`/jobs?status=${stage.key}`)}
-                  className={`rounded-xl p-3 text-center transition-all duration-200 active:scale-95 ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
+                  className={`rounded-2xl p-3 text-center transition-all duration-200 active:scale-95 hover:shadow-card ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
                 >
                   <p className={`text-xl font-bold ${needsAttention ? 'text-amber-700' : stage.text}`}>{count}</p>
                   <p className={`text-[10px] font-semibold mt-0.5 ${needsAttention ? 'text-amber-600' : stage.text} opacity-70`}>{stage.label}</p>
@@ -139,7 +139,7 @@ export default function Dashboard() {
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-900">Today</h3>
-            <button onClick={() => navigate('/schedule')} className="text-xs font-semibold text-tree-600">View Schedule</button>
+            <button onClick={() => navigate('/schedule')} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">View Schedule</button>
           </div>
 
           {/* Progress bar */}
@@ -149,8 +149,8 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600">{completedOfTotal} of {scheduledForToday} completed</p>
                 <p className="text-sm font-bold text-gray-900">{progressPct}%</p>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-tree-500 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-tree-400 to-tree-600 rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPct}%` }} />
               </div>
             </div>
           ) : (
@@ -159,15 +159,15 @@ export default function Dashboard() {
 
           {/* Stat pills */}
           <div className="flex gap-2">
-            <div className="flex-1 bg-sky-50 rounded-xl p-3 text-center">
+            <div className="flex-1 bg-sky-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
               <p className="text-lg font-bold text-sky-700">{todayStats.siteVisits}</p>
               <p className="text-[10px] font-semibold text-sky-600">Site Visits</p>
             </div>
-            <div className="flex-1 bg-tree-50 rounded-xl p-3 text-center">
+            <div className="flex-1 bg-tree-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
               <p className="text-lg font-bold text-tree-700">{todayStats.jobs}</p>
               <p className="text-[10px] font-semibold text-tree-600">Jobs</p>
             </div>
-            <div className="flex-1 bg-emerald-50 rounded-xl p-3 text-center">
+            <div className="flex-1 bg-emerald-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
               <div className="flex items-center justify-center gap-1">
                 <p className="text-lg font-bold text-emerald-700">{todayStats.completed}</p>
                 {todayStats.completed > 0 && (
@@ -182,26 +182,26 @@ export default function Dashboard() {
         {/* Revenue Snapshot */}
         <Card className="p-4 space-y-3">
           <h3 className="text-sm font-bold text-gray-900">Revenue This Month</h3>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-tree-500" />
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-tree-500" />
                 <span className="text-sm text-gray-600">Completed Work</span>
               </div>
               <span className="text-sm font-bold text-gray-900">{formatCurrency(revenue.completedValue)}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <div className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 <span className="text-sm text-gray-600">Pending Quotes</span>
               </div>
               <span className="text-sm font-bold text-amber-600">{formatCurrency(revenue.pendingQuotes)}</span>
             </div>
             {revenue.overdueCount > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-sm text-red-600">{revenue.overdueCount} Overdue Invoice{revenue.overdueCount > 1 ? 's' : ''}</span>
+              <div className="flex items-center justify-between py-1 px-3 -mx-3 bg-red-50 rounded-xl">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-sm font-medium text-red-600">{revenue.overdueCount} Overdue Invoice{revenue.overdueCount > 1 ? 's' : ''}</span>
                 </div>
                 <span className="text-sm font-bold text-red-600">{formatCurrency(revenue.overdueInvoices)}</span>
               </div>
@@ -219,14 +219,14 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               Recent Activity
               {unreadCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-tree-500 text-white rounded-full">{unreadCount}</span>
+                <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-tree-500 text-white rounded-full animate-scale-in">{unreadCount}</span>
               )}
             </h3>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs font-semibold text-tree-600">Mark all read</button>
+              <button onClick={markAllRead} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">Mark all read</button>
             )}
           </div>
           <ActivityPanel activities={activities.slice(0, 10)} onMarkRead={markRead} />

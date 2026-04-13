@@ -114,12 +114,12 @@ export default function Clients() {
         <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
 
         {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 no-scrollbar">
           {FILTERS.map(f => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${filter === f.key ? 'bg-tree-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {f.label} ({filterCounts[f.key] || 0})
             </button>

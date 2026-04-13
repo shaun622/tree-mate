@@ -33,30 +33,29 @@ function PipelineStepper({ currentStatus }) {
   const currentIdx = stages.indexOf(currentStatus)
 
   return (
-    <div className="overflow-x-auto -mx-1 px-1 pb-1 no-scrollbar">
+    <div className="overflow-x-auto -mx-1 px-1 pb-2 no-scrollbar">
       <div className="flex items-center gap-0 min-w-max">
         {stages.map((stage, i) => {
           const isComplete = i < currentIdx
           const isCurrent = i === currentIdx
-          const isFuture = i > currentIdx
           return (
             <div key={stage} className="flex items-center">
               {i > 0 && (
-                <div className={`w-4 h-0.5 ${isComplete ? 'bg-tree-500' : 'bg-gray-200'}`} />
+                <div className={`w-5 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-tree-400' : 'bg-gray-200'}`} />
               )}
-              <div className="flex flex-col items-center gap-0.5">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
-                  isComplete ? 'bg-tree-500 border-tree-500 text-white' :
-                  isCurrent ? 'bg-white border-tree-500 text-tree-600' :
+              <div className="flex flex-col items-center gap-1">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-300 ${
+                  isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow' :
+                  isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
                   'bg-white border-gray-200 text-gray-300'
                 }`}>
                   {isComplete ? (
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   ) : (
                     i + 1
                   )}
                 </div>
-                <span className={`text-[8px] font-semibold leading-tight text-center whitespace-nowrap ${
+                <span className={`text-[8px] font-semibold leading-tight text-center whitespace-nowrap transition-colors duration-300 ${
                   isCurrent ? 'text-tree-600' : isComplete ? 'text-tree-500' : 'text-gray-300'
                 }`}>
                   {statusLabel(stage)}
@@ -316,7 +315,7 @@ export default function JobDetailView({
           {photos.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {photos.map(p => (
-                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-2xl overflow-hidden bg-gray-100 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
                   <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                 </a>
               ))}
@@ -331,7 +330,7 @@ export default function JobDetailView({
           <Button variant="secondary" onClick={onEdit} className="flex-1">Edit Job</Button>
         )}
         {onDelete && (
-          <button onClick={onDelete} className="flex-1 text-xs text-red-500 hover:text-red-700 py-2 font-semibold">
+          <button onClick={onDelete} className="flex-1 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-2xl font-semibold transition-all duration-200">
             Delete Job
           </button>
         )}

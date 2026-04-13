@@ -141,7 +141,7 @@ export default function Jobs() {
       <button
         type="button"
         onClick={() => navigate(`/jobs/${job.id}`)}
-        className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100 hover:border-tree-200 hover:shadow-elevated transition-all duration-150 active:scale-[0.995] ${compact ? '' : ''}`}
+        className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-tree-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.995]`}
       >
         {compact ? (
           /* Pipeline compact card */
@@ -247,7 +247,7 @@ export default function Jobs() {
               </div>
               <div className="space-y-2 min-h-[100px]">
                 {columnJobs[col].length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-200 rounded-xl h-20 flex items-center justify-center">
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl h-20 flex items-center justify-center">
                     <p className="text-xs text-gray-300">No jobs</p>
                   </div>
                 ) : (

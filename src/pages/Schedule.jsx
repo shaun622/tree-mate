@@ -356,17 +356,17 @@ export default function Schedule() {
       <div
         key={job.id}
         onClick={() => setOpenJobId(job.id)}
-        className="bg-white rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-all duration-200 active:scale-[0.99]"
+        className="bg-white rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
         style={{ borderLeftColor: STATUS_COLORS.site_visit.border }}
       >
         <div className="flex items-start justify-between gap-2 mb-1">
           <p className="font-semibold text-gray-900 truncate">{client?.name || 'Client'}</p>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-sky-50 text-sky-700">
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-xl whitespace-nowrap bg-sky-50 text-sky-700 ring-1 ring-sky-200/50">
             Site Visit
           </span>
         </div>
-        {site?.address && <p className="text-xs text-gray-400 truncate">{site.address}</p>}
-        <div className="flex items-center gap-3 mt-2">
+        {site?.address && <p className="text-xs text-gray-400 truncate mt-0.5">{site.address}</p>}
+        <div className="flex items-center gap-3 mt-2.5">
           {job.scheduled_start && (
             <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -379,7 +379,7 @@ export default function Schedule() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-xs font-semibold text-tree-600 flex items-center gap-1"
+              className="text-xs font-semibold text-tree-600 hover:text-tree-700 flex items-center gap-1 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               Navigate
@@ -400,7 +400,7 @@ export default function Schedule() {
         {/* Week navigation */}
         <Card className="p-3">
           <div className="flex items-center justify-between gap-2">
-            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95">
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <div className="text-center flex-1">
@@ -408,7 +408,7 @@ export default function Schedule() {
                 {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
               </p>
             </div>
-            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95">
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>
@@ -460,14 +460,14 @@ export default function Schedule() {
         {(view === 'today' || view === 'map') && (
           <Card className="p-3">
             <div className="flex items-center justify-between gap-2">
-              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="text-center flex-1">
                 <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
                 <p className="text-sm font-bold text-gray-900">{dayLabel}</p>
               </div>
-              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95">
                 <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
@@ -480,12 +480,12 @@ export default function Schedule() {
         )}
 
         {/* View toggle — Today | Week | Upcoming | Map */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
           {['today', 'week', 'upcoming', 'map'].map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === v ? 'bg-white text-tree-600 shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${view === v ? 'bg-white text-tree-600 shadow-card' : 'text-gray-500 hover:text-gray-700'}`}
             >
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
@@ -589,7 +589,7 @@ export default function Schedule() {
                         <div
                           key={job.id}
                           onClick={() => setOpenJobId(job.id)}
-                          className="bg-tree-50/70 hover:bg-tree-50 border border-tree-200/70 rounded-2xl p-4 cursor-pointer transition-all duration-200 active:scale-[0.99]"
+                          className="bg-white border border-gray-100/80 rounded-2xl shadow-card p-4 cursor-pointer transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <p className="font-semibold text-tree-800/90 truncate">{job.job_type || 'Job'}</p>
