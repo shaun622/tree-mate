@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
@@ -8,6 +8,7 @@ import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Input, TextArea } from '../components/ui/Input'
+import Modal from '../components/ui/Modal'
 import ClientPicker from '../components/pickers/ClientPicker'
 import { calculateGST, formatCurrency } from '../lib/utils'
 
@@ -20,6 +21,8 @@ export default function InvoiceBuilder() {
   const { clients, createClient, updateClient } = useClients(business?.id)
   const [saving, setSaving] = useState(false)
   const [linkedJobId, setLinkedJobId] = useState(jobId || null)
+  const [showEditClient, setShowEditClient] = useState(false)
+  const [editClientForm, setEditClientForm] = useState({ name: '', email: '', phone: '', address: '' })
   const [form, setForm] = useState({
     client_id: '', invoice_number: '', due_date: '', notes: '',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
@@ -78,6 +81,22 @@ export default function InvoiceBuilder() {
   const addItem = () => setForm(prev => ({ ...prev, line_items: [...prev.line_items, { description: '', quantity: 1, unit_price: 0 }] }))
   const removeItem = (index) => setForm(prev => ({ ...prev, line_items: prev.line_items.filter((_, i) => i !== index) }))
 
+  const selectedClient = useMemo(() => clients.find(c => c.id === form.client_id), [clients, form.client_id])
+
+  const openEditClient = () => {
+    if (selectedClient) {
+      setEditClientForm({ name: selectedClient.name || '', email: selectedClient.email || '', phone: selectedClient.phone || '', address: selectedClient.address || '' })
+      setShowEditClient(true)
+    }
+  }
+
+  const handleSaveClient = async (e) => {
+    e.preventDefault()
+    if (!selectedClient) return
+    await updateClient(selectedClient.id, editClientForm)
+    setShowEditClient(false)
+  }
+
   const subtotal = form.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
   const { gst, total } = calculateGST(subtotal)
 
@@ -117,24 +136,37 @@ export default function InvoiceBuilder() {
           </div>
         )}
 
-        <Card className="p-4 space-y-3">
-          <Input label="Invoice Number" value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
-          {linkedJobId && form.client_id ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
-              <p className="text-sm font-semibold text-gray-900 py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
-                {clients.find(c => c.id === form.client_id)?.name || 'Loading...'}
-              </p>
+        {/* Client Details Card */}
+        {selectedClient ? (
+          <Card className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Bill To</h3>
+              <button onClick={openEditClient} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Edit client details">
+                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              </button>
             </div>
-          ) : (
+            <p className="text-sm font-bold text-gray-900">{selectedClient.name}</p>
+            {selectedClient.phone && <p className="text-sm text-gray-600 mt-0.5">{selectedClient.phone}</p>}
+            {selectedClient.email && <p className="text-sm text-gray-600 mt-0.5">{selectedClient.email}</p>}
+            {selectedClient.address && <p className="text-sm text-gray-500 mt-0.5">{selectedClient.address}</p>}
+            {!selectedClient.phone && !selectedClient.email && !selectedClient.address && (
+              <button onClick={openEditClient} className="text-xs text-tree-600 font-semibold mt-1 hover:text-tree-700">+ Add contact details</button>
+            )}
+          </Card>
+        ) : (
+          <Card className="p-4">
             <ClientPicker
               clients={clients}
               value={form.client_id}
-              onChange={(id) => setForm(p => ({ ...p, client_id: id }))}
+              onChange={(cid) => setForm(p => ({ ...p, client_id: cid }))}
               onCreate={createClient}
               onUpdate={updateClient}
             />
-          )}
+          </Card>
+        )}
+
+        <Card className="p-4 space-y-3">
+          <Input label="Invoice Number" value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
           <Input label="Due Date" type="date" value={form.due_date} onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))} />
         </Card>
 
@@ -180,6 +212,16 @@ export default function InvoiceBuilder() {
           <Button onClick={() => handleSave('sent')} loading={saving} className="flex-1">Send Invoice</Button>
         </div>
       </div>
+      {/* Edit Client Modal */}
+      <Modal open={showEditClient} onClose={() => setShowEditClient(false)} title="Edit Client Details">
+        <form onSubmit={handleSaveClient} className="space-y-4">
+          <Input label="Name" value={editClientForm.name} onChange={e => setEditClientForm(p => ({ ...p, name: e.target.value }))} required />
+          <Input label="Phone" type="tel" value={editClientForm.phone} onChange={e => setEditClientForm(p => ({ ...p, phone: e.target.value }))} />
+          <Input label="Email" type="email" value={editClientForm.email} onChange={e => setEditClientForm(p => ({ ...p, email: e.target.value }))} />
+          <Input label="Address" value={editClientForm.address} onChange={e => setEditClientForm(p => ({ ...p, address: e.target.value }))} />
+          <Button type="submit" className="w-full">Save</Button>
+        </form>
+      </Modal>
     </PageWrapper>
   )
 }
