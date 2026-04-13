@@ -18,14 +18,14 @@ import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../li
 
 const PIPELINE_COLUMNS = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress', 'completed']
 
-// Simplified filter pills — merge related statuses
+// Filter pills follow the pipeline: Enquiry → Quoted → Approved → Scheduled → Invoiced → Completed
 const LIST_FILTERS = [
   { key: 'enquiry', label: 'Enquiry', statuses: ['enquiry', 'site_visit'] },
   { key: 'quoted', label: 'Quoted', statuses: ['quoted'] },
   { key: 'approved', label: 'Approved', statuses: ['approved'] },
   { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
-  { key: 'completed', label: 'Completed', statuses: ['completed', 'paid'] },
   { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
+  { key: 'completed', label: 'Completed', statuses: ['paid', 'completed'] },
 ]
 
 
