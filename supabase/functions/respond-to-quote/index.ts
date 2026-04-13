@@ -21,15 +21,22 @@ Deno.serve(async (req) => {
     const { data: quote } = await supabase.from('quotes').select('*, clients(*)').eq('id', quote_id).single()
     const { data: business } = quote ? await supabase.from('businesses').select('*').eq('id', quote.business_id).single() : { data: null }
 
-    // If accepted, create a job
+    // If accepted, update existing linked job to approved or create one
     if (response === 'accept' && quote) {
-      await supabase.from('jobs').insert({
-        business_id: quote.business_id,
-        client_id: quote.client_id,
-        job_site_id: quote.job_site_id,
-        quote_id: quote.id,
-        status: 'scheduled',
-      })
+      if (quote.job_id) {
+        await supabase.from('jobs').update({ status: 'approved' }).eq('id', quote.job_id)
+      } else {
+        const { data: newJob } = await supabase.from('jobs').insert({
+          business_id: quote.business_id,
+          client_id: quote.client_id,
+          job_site_id: quote.job_site_id,
+          quote_id: quote.id,
+          status: 'approved',
+        }).select().single()
+        if (newJob) {
+          await supabase.from('quotes').update({ job_id: newJob.id }).eq('id', quote.id)
+        }
+      }
     }
 
     await supabase.from('activity_feed').insert({
@@ -101,7 +108,7 @@ Deno.serve(async (req) => {
                 ${quote.clients?.email ? `<p style="margin:4px 0 0;color:#374151;font-size:14px;">${quote.clients.email}</p>` : ''}
                 ${quote.clients?.phone ? `<p style="margin:2px 0 0;color:#374151;font-size:14px;">${quote.clients.phone}</p>` : ''}
               </div>
-              <p>A new job has been automatically created and added to your scheduled jobs.</p>
+              <p>The job has been moved to your approved pipeline — ready to schedule.</p>
               <p style="margin-top:24px;"><a href="https://tree-mate-production.up.railway.app/jobs" style="background:#22c55e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">View Jobs</a></p>
             </div>
           </div>
