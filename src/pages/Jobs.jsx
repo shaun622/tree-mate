@@ -18,17 +18,14 @@ import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../li
 
 const PIPELINE_COLUMNS = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress', 'completed']
 
-const ACTIVE_STATUSES = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress']
-const COMPLETED_STATUSES = ['completed', 'invoiced', 'paid']
-
 // Simplified filter pills — merge related statuses
 const LIST_FILTERS = [
-  { key: 'all', label: 'Active', statuses: ACTIVE_STATUSES },
   { key: 'enquiry', label: 'Enquiry', statuses: ['enquiry', 'site_visit'] },
   { key: 'quoted', label: 'Quoted', statuses: ['quoted'] },
   { key: 'approved', label: 'Approved', statuses: ['approved'] },
   { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
-  { key: 'completed', label: 'Completed', statuses: COMPLETED_STATUSES },
+  { key: 'completed', label: 'Completed', statuses: ['completed', 'paid'] },
+  { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
 ]
 
 
@@ -44,10 +41,10 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState(() => {
     const param = searchParams.get('status')
-    if (!param) return 'all'
+    if (!param) return 'enquiry'
     // Map DB statuses to simplified filter keys
     const filterForStatus = LIST_FILTERS.find(f => f.statuses?.includes(param))
-    return filterForStatus ? filterForStatus.key : 'all'
+    return filterForStatus ? filterForStatus.key : 'enquiry'
   })
   const [viewMode, setViewMode] = useState('list') // 'list' | 'pipeline'
   const [showModal, setShowModal] = useState(false)
@@ -83,7 +80,7 @@ export default function Jobs() {
 
   const activeFilter = LIST_FILTERS.find(f => f.key === filter) || LIST_FILTERS[0]
   const filtered = jobs.filter(j => activeFilter.statuses.includes(j.status))
-  const isCompletedView = filter === 'completed'
+  const isCompletedView = filter === 'completed' || filter === 'invoiced'
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
   const siteMap = Object.fromEntries(jobSites.map(s => [s.id, s]))
