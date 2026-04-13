@@ -142,6 +142,7 @@ export default function QuoteBuilder() {
           if (newJob) {
             await supabase.from('quotes').update({ job_id: newJob.id }).eq('id', data.id)
             setLinkedJobId(newJob.id)
+            return { ...data, job_id: newJob.id }
           }
         }
         return data
@@ -152,9 +153,10 @@ export default function QuoteBuilder() {
 
   const handleSave = async () => {
     setSaving(true)
-    await save('draft')
+    const result = await save('draft')
     setSaving(false)
-    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/jobs')
+    const jobTo = linkedJobId || result?.job_id
+    navigate(jobTo ? `/jobs/${jobTo}` : '/jobs')
   }
 
   const handleSend = async () => {
@@ -169,7 +171,8 @@ export default function QuoteBuilder() {
       await supabase.functions.invoke('send-quote', { body: { quote_id: quote.id || id } })
     }
     setSending(false)
-    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/jobs')
+    const jobTo = linkedJobId || quote?.job_id
+    navigate(jobTo ? `/jobs/${jobTo}` : '/jobs')
   }
 
   return (
