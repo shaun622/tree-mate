@@ -46,19 +46,25 @@ export default function InvoiceBuilder() {
     }
   }, [id, business])
 
-  // Pre-fill from linked job's quote
+  // Pre-fill from linked job and its quote
   useEffect(() => {
     if (!jobId || id) return
-    supabase.from('jobs').select('*, quotes(*)').eq('id', jobId).single().then(({ data: job }) => {
+    const prefill = async () => {
+      const { data: job } = await supabase.from('jobs').select('*').eq('id', jobId).single()
       if (!job) return
-      const quote = job.quotes
+      let quote = null
+      if (job.quote_id) {
+        const { data } = await supabase.from('quotes').select('*').eq('id', job.quote_id).single()
+        quote = data
+      }
       setForm(prev => ({
         ...prev,
         client_id: job.client_id || prev.client_id,
         line_items: quote?.line_items?.length ? quote.line_items : prev.line_items,
         notes: quote?.scope ? `Scope: ${quote.scope}` : prev.notes,
       }))
-    })
+    }
+    prefill()
   }, [jobId, id])
 
   const updateItem = (index, field, value) => {
