@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useActivity(businessId) {
@@ -23,7 +23,6 @@ export function useActivity(businessId) {
 
     if (!businessId) return
 
-    // CRITICAL: unique channel name with timestamp to prevent collisions
     const channelName = `activity-feed-${businessId}-${Date.now()}`
     const channel = supabase
       .channel(channelName)
@@ -40,5 +39,20 @@ export function useActivity(businessId) {
     return () => { supabase.removeChannel(channel) }
   }, [businessId, fetchActivities])
 
-  return { activities, loading }
+  const unreadCount = useMemo(() => activities.filter(a => !a.is_read).length, [activities])
+
+  const markRead = useCallback(async (id) => {
+    await supabase.from('activity_feed').update({ is_read: true }).eq('id', id)
+    setActivities(prev => prev.map(a => a.id === id ? { ...a, is_read: true } : a))
+  }, [])
+
+  const markAllRead = useCallback(async () => {
+    if (!businessId) return
+    const unreadIds = activities.filter(a => !a.is_read).map(a => a.id)
+    if (unreadIds.length === 0) return
+    await supabase.from('activity_feed').update({ is_read: true }).in('id', unreadIds)
+    setActivities(prev => prev.map(a => ({ ...a, is_read: true })))
+  }, [businessId, activities])
+
+  return { activities, loading, unreadCount, markRead, markAllRead }
 }

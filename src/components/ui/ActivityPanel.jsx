@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { formatDateTime } from '../../lib/utils'
 
 const ICONS = {
@@ -46,9 +47,16 @@ const DEFAULT_ICON = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
 )
 
-export default function ActivityPanel({ activities = [] }) {
+export default function ActivityPanel({ activities = [], onMarkRead }) {
+  const navigate = useNavigate()
+
   if (activities.length === 0) {
     return <p className="text-sm text-gray-400 text-center py-4">No recent activity</p>
+  }
+
+  const handleClick = (a) => {
+    if (onMarkRead && !a.is_read) onMarkRead(a.id)
+    if (a.link_to) navigate(a.link_to)
   }
 
   return (
@@ -56,13 +64,24 @@ export default function ActivityPanel({ activities = [] }) {
       {activities.map(a => {
         const icon = ICONS[a.type] || DEFAULT_ICON
         const color = COLORS[a.type] || 'bg-gray-50 text-gray-500'
+        const isClickable = !!a.link_to
         return (
-          <div key={a.id} className="flex items-start gap-3 animate-fade-in">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
-              {icon}
+          <div
+            key={a.id}
+            onClick={isClickable ? () => handleClick(a) : undefined}
+            className={`flex items-start gap-3 animate-fade-in ${isClickable ? 'cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-1 rounded-xl transition-colors' : ''} ${!a.is_read ? '' : 'opacity-70'}`}
+          >
+            <div className="relative flex-shrink-0">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${color}`}>
+                {icon}
+              </div>
+              {!a.is_read && (
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-tree-500 rounded-full" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-900">{a.message}</p>
+              {a.title && <p className="text-sm font-semibold text-gray-900">{a.title}</p>}
+              <p className="text-sm text-gray-600">{a.message || a.description}</p>
               <p className="text-xs text-gray-400 mt-0.5">{formatDateTime(a.created_at)}</p>
             </div>
           </div>

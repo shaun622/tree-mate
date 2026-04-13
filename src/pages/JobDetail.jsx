@@ -14,6 +14,7 @@ import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import JobDetailView, { useJobDetail } from '../components/jobs/JobDetailView'
+import { JOB_STATUSES } from '../lib/utils'
 
 export default function JobDetail() {
   const { id } = useParams()
@@ -22,7 +23,7 @@ export default function JobDetail() {
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
-  const { job, client, site, reports, loading, setJob, setClient, setSite } = useJobDetail(id)
+  const { job, client, site, quote, reports, loading, setJob, setClient, setSite } = useJobDetail(id)
   const [updating, setUpdating] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
@@ -39,6 +40,7 @@ export default function JobDetail() {
     const updates = { status }
     if (status === 'completed') updates.completed_at = new Date().toISOString()
     if (status === 'in_progress' && !job.started_at) updates.started_at = new Date().toISOString()
+    if (status === 'paid') updates.completed_at = updates.completed_at || new Date().toISOString()
     const { data } = await supabase.from('jobs').update(updates).eq('id', id).select().single()
     if (data) setJob(data)
     setUpdating(false)
@@ -126,6 +128,7 @@ export default function JobDetail() {
           job={job}
           client={client}
           site={site}
+          quote={quote}
           staff={staff}
           reports={reports}
           updating={updating}
@@ -134,6 +137,8 @@ export default function JobDetail() {
           onDelete={handleDelete}
           onCreateReport={site ? () => navigate(`/sites/${site.id}/report`) : null}
           onOpenReport={(rid) => navigate(`/reports/${rid}`)}
+          onCreateQuote={() => navigate(`/quotes/new?job_id=${id}`)}
+          onCreateInvoice={() => navigate(`/invoices/new?job_id=${id}`)}
         />
       </div>
 
@@ -163,12 +168,7 @@ export default function JobDetail() {
               onChange={(v) => setEditForm(p => ({ ...p, job_type: v }))}
               onCreateTemplate={createJobTypeTemplate}
             />
-            <Select label="Status" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))} options={[
-              { value: 'scheduled', label: 'Scheduled' },
-              { value: 'in_progress', label: 'In Progress' },
-              { value: 'on_hold', label: 'On Hold' },
-              { value: 'completed', label: 'Completed' },
-            ]} />
+            <Select label="Status" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))} options={JOB_STATUSES.map(s => ({ value: s, label: s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }))} />
             <div className="flex gap-2">
               <Input label="Date" type="date" value={editForm.scheduled_date} onChange={e => setEditForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
               <Input label="Time" type="time" value={editForm.scheduled_time} onChange={e => setEditForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />

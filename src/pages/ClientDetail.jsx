@@ -11,7 +11,7 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, TextArea, Select } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
-import { statusLabel, SITE_TYPES, SITE_ACCESS, HAZARDS, MAINTENANCE_FREQUENCIES } from '../lib/utils'
+import { statusLabel, SITE_TYPES, SITE_ACCESS, HAZARDS, MAINTENANCE_FREQUENCIES, formatCurrency } from '../lib/utils'
 
 export default function ClientDetail() {
   const { id } = useParams()
@@ -20,6 +20,9 @@ export default function ClientDetail() {
   const { business } = useBusiness()
   const { createJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const [client, setClient] = useState(null)
+  const [clientJobs, setClientJobs] = useState([])
+  const [clientQuotes, setClientQuotes] = useState([])
+  const [clientInvoices, setClientInvoices] = useState([])
   const [loading, setLoading] = useState(true)
   const [showSiteModal, setShowSiteModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -32,12 +35,20 @@ export default function ClientDetail() {
   const sites = getJobSitesByClient(id)
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase.from('clients').select('*').eq('id', id).single()
-      setClient(data)
+    const fetchAll = async () => {
+      const [clientRes, jobsRes, quotesRes, invoicesRes] = await Promise.all([
+        supabase.from('clients').select('*').eq('id', id).single(),
+        supabase.from('jobs').select('*').eq('client_id', id).order('created_at', { ascending: false }),
+        supabase.from('quotes').select('*').eq('client_id', id).order('created_at', { ascending: false }),
+        supabase.from('invoices').select('*').eq('client_id', id).order('created_at', { ascending: false }),
+      ])
+      setClient(clientRes.data)
+      setClientJobs(jobsRes.data || [])
+      setClientQuotes(quotesRes.data || [])
+      setClientInvoices(invoicesRes.data || [])
       setLoading(false)
     }
-    fetch()
+    fetchAll()
   }, [id])
 
   // Auto-open Add Job Site modal from URL param
@@ -130,6 +141,85 @@ export default function ClientDetail() {
             </div>
           )}
         </div>
+
+        {/* Jobs */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-900">Jobs ({clientJobs.length})</h3>
+            <button onClick={() => navigate('/jobs')} className="text-xs font-semibold text-tree-600">+ New Job</button>
+          </div>
+          {clientJobs.length === 0 ? (
+            <p className="text-sm text-gray-400">No jobs yet</p>
+          ) : (
+            <div className="space-y-2">
+              {clientJobs.slice(0, 5).map(job => (
+                  <Card key={job.id} hover onClick={() => navigate(`/jobs/${job.id}`)} className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                        <p className="text-xs text-gray-400">{job.scheduled_date || new Date(job.created_at).toLocaleDateString('en-AU')}</p>
+                      </div>
+                      <Badge variant={['completed', 'paid'].includes(job.status) ? 'neutral' : ['in_progress', 'scheduled', 'approved'].includes(job.status) ? 'success' : job.status === 'quoted' ? 'warning' : 'info'}>
+                        {statusLabel(job.status)}
+                      </Badge>
+                    </div>
+                  </Card>
+              ))}
+              {clientJobs.length > 5 && <p className="text-xs text-gray-400 text-center">+{clientJobs.length - 5} more</p>}
+            </div>
+          )}
+        </div>
+
+        {/* Quotes */}
+        {clientQuotes.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Quotes ({clientQuotes.length})</h3>
+            <div className="space-y-2">
+              {clientQuotes.slice(0, 5).map(q => (
+                <Card key={q.id} hover onClick={() => navigate(`/quotes/${q.id}`)} className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">{q.scope?.split('\n')[0] || 'Quote'}</p>
+                      <p className="text-xs text-gray-400">{new Date(q.created_at).toLocaleDateString('en-AU')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">{formatCurrency(q.total)}</p>
+                      <p className="text-xs text-gray-400">{statusLabel(q.status)}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Invoices */}
+        {clientInvoices.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Invoices ({clientInvoices.length})</h3>
+            <div className="space-y-2">
+              {clientInvoices.slice(0, 5).map(inv => {
+                const isOverdue = inv.status === 'sent' && inv.due_date && new Date(inv.due_date) < new Date()
+                return (
+                  <Card key={inv.id} hover onClick={() => navigate(`/invoices/${inv.id}`)} className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">{inv.invoice_number || 'Invoice'}</p>
+                        <p className="text-xs text-gray-400">{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-AU')}` : ''}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-900">{formatCurrency(inv.total)}</p>
+                        <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-400'}`}>
+                          {isOverdue ? 'Overdue' : statusLabel(inv.status)}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Job Site Modal */}

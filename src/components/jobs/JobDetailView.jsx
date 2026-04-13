@@ -4,9 +4,7 @@ import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
 import ScheduleMap from '../schedule/ScheduleMap'
-import { statusLabel, formatDate } from '../../lib/utils'
-
-const BADGE = { scheduled: 'info', in_progress: 'primary', on_hold: 'warning', completed: 'success' }
+import { statusLabel, statusColor, formatDate, formatCurrency, JOB_STATUSES, PRIORITY_STYLES } from '../../lib/utils'
 
 function formatTime(d) {
   if (!d) return ''
@@ -29,15 +27,105 @@ function InfoRow({ icon, label, value, sub }) {
   )
 }
 
+// ── Pipeline Stepper ─────────────────────────────────────────────────────────
+function PipelineStepper({ currentStatus }) {
+  const stages = JOB_STATUSES
+  const currentIdx = stages.indexOf(currentStatus)
+
+  return (
+    <div className="overflow-x-auto -mx-1 px-1 pb-1 no-scrollbar">
+      <div className="flex items-center gap-0 min-w-max">
+        {stages.map((stage, i) => {
+          const isComplete = i < currentIdx
+          const isCurrent = i === currentIdx
+          const isFuture = i > currentIdx
+          return (
+            <div key={stage} className="flex items-center">
+              {i > 0 && (
+                <div className={`w-4 h-0.5 ${isComplete ? 'bg-tree-500' : 'bg-gray-200'}`} />
+              )}
+              <div className="flex flex-col items-center gap-0.5">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
+                  isComplete ? 'bg-tree-500 border-tree-500 text-white' :
+                  isCurrent ? 'bg-white border-tree-500 text-tree-600' :
+                  'bg-white border-gray-200 text-gray-300'
+                }`}>
+                  {isComplete ? (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span className={`text-[8px] font-semibold leading-tight text-center whitespace-nowrap ${
+                  isCurrent ? 'text-tree-600' : isComplete ? 'text-tree-500' : 'text-gray-300'
+                }`}>
+                  {statusLabel(stage)}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Status transition config ────────────────────────────────────────────────
+const TRANSITIONS = {
+  enquiry:     { next: 'site_visit', label: 'Book Site Visit', variant: 'primary' },
+  site_visit:  { next: 'quoted',     label: 'Create Quote',    variant: 'primary', navigateTo: 'quote' },
+  quoted:      { next: 'approved',   label: 'Mark Approved',   variant: 'primary' },
+  approved:    { next: 'scheduled',  label: 'Schedule Job',    variant: 'primary' },
+  scheduled:   { next: 'in_progress', label: 'Start Job',     variant: 'primary' },
+  in_progress: { next: 'completed',  label: 'Complete Job',   variant: 'primary' },
+  completed:   { next: 'invoiced',   label: 'Create Invoice',  variant: 'primary', navigateTo: 'invoice' },
+  invoiced:    { next: 'paid',       label: 'Mark Paid',       variant: 'primary' },
+}
+
 export default function JobDetailView({
-  job, client, site, staff = [], reports = [],
+  job, client, site, quote, staff = [], reports = [],
   onEdit, onDelete, onStatusChange, onCreateReport, onOpenReport,
+  onCreateQuote, onCreateInvoice,
   updating = false, compact = false,
 }) {
+  const [photos, setPhotos] = useState([])
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+
+  // Fetch photos attached directly to this job
+  useEffect(() => {
+    if (!job?.id) return
+    supabase.from('job_photos').select('*')
+      .eq('job_id', job.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setPhotos(data || []))
+  }, [job?.id])
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !job?.id) return
+    setUploadingPhoto(true)
+    const ext = file.name.split('.').pop()
+    const path = `job-photos/${job.id}/${Date.now()}.${ext}`
+    const { error: uploadError } = await supabase.storage.from('photos').upload(path, file)
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path)
+      const { data: photo } = await supabase.from('job_photos').insert({
+        job_id: job.id,
+        photo_url: publicUrl,
+        tag: 'general',
+      }).select().single()
+      if (photo) setPhotos(prev => [photo, ...prev])
+    }
+    setUploadingPhoto(false)
+  }
+
   if (!job) return null
 
   const hasCoords = site?.lat != null && site?.lng != null
   const assignedStaff = staff.find(s => s.id === job.staff_id)
+  const showPriority = job.priority && job.priority !== 'normal'
+  const pStyle = PRIORITY_STYLES[job.priority] || {}
+  const transition = TRANSITIONS[job.status]
 
   const mapPoint = hasCoords ? [{
     id: job.id,
@@ -48,25 +136,48 @@ export default function JobDetailView({
     time: job.scheduled_start ? formatTime(job.scheduled_start) : null,
   }] : []
 
+  const handleTransition = () => {
+    if (!transition) return
+    if (transition.navigateTo === 'quote') {
+      onCreateQuote?.()
+    } else if (transition.navigateTo === 'invoice') {
+      onCreateInvoice?.()
+    } else {
+      onStatusChange?.(transition.next)
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {/* Pipeline stepper */}
+      <PipelineStepper currentStatus={job.status} />
+
       {/* Hero: Map or gradient banner */}
       {hasCoords ? (
         <ScheduleMap points={mapPoint} height={compact ? 180 : 220} />
       ) : (
-        <div className="h-32 rounded-2xl bg-gradient-to-br from-tree-500 via-tree-600 to-tree-700 flex items-center justify-center shadow-button">
-          <svg className="w-12 h-12 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+        <div className="h-28 rounded-2xl bg-gradient-to-br from-tree-500 via-tree-600 to-tree-700 flex items-center justify-center shadow-button">
+          <svg className="w-10 h-10 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
         </div>
       )}
 
       {/* Header card */}
       <Card className="p-4">
-        <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 leading-tight">{job.job_type || 'Job'}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-900 leading-tight">{job.job_type || 'Job'}</h2>
+              {showPriority && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${pStyle.bg} ${pStyle.text}`}>
+                  {statusLabel(job.priority)}
+                </span>
+              )}
+            </div>
             {client && <p className="text-sm text-gray-500 mt-0.5">{client.name}</p>}
           </div>
-          <Badge variant={BADGE[job.status] || 'neutral'}>{statusLabel(job.status)}</Badge>
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
+            {statusLabel(job.status)}
+          </span>
         </div>
         {job.notes && (
           <p className="text-sm text-gray-600 mt-2 leading-relaxed italic">{job.notes}</p>
@@ -81,10 +192,18 @@ export default function JobDetailView({
           value={site?.address || 'No address set'}
           sub={site?.notes}
         />
+        {job.site_visit_date && (
+          <InfoRow
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>}
+            label="Site Visit"
+            value={formatDate(job.site_visit_date)}
+            sub={job.site_visit_time || null}
+          />
+        )}
         <InfoRow
           icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
           label="Scheduled"
-          value={job.scheduled_date ? formatDate(job.scheduled_date) : 'Not scheduled'}
+          value={job.scheduled_date ? formatDate(job.scheduled_date) : null}
           sub={job.scheduled_start ? `${formatTime(job.scheduled_start)}${job.scheduled_end ? ` – ${formatTime(job.scheduled_end)}` : ''}` : null}
         />
         <InfoRow
@@ -92,6 +211,13 @@ export default function JobDetailView({
           label="Duration"
           value={job.duration_minutes ? `${job.duration_minutes} min` : null}
         />
+        {job.estimated_duration && job.estimated_duration !== 'half_day' && (
+          <InfoRow
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            label="Estimated Duration"
+            value={statusLabel(job.estimated_duration)}
+          />
+        )}
         {assignedStaff && (
           <InfoRow
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
@@ -113,28 +239,50 @@ export default function JobDetailView({
             value={<a href={`mailto:${client.email}`} className="text-tree-600 hover:underline truncate block">{client.email}</a>}
           />
         )}
+        {job.completion_notes && (
+          <InfoRow
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            label="Completion Notes"
+            value={job.completion_notes}
+          />
+        )}
+        {job.time_spent_hours > 0 && (
+          <InfoRow
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            label="Time Spent"
+            value={`${job.time_spent_hours} hours`}
+          />
+        )}
       </Card>
 
-      {/* Status actions */}
-      {onStatusChange && (
-        <div className="flex gap-2">
-          {job.status === 'scheduled' && (
-            <Button onClick={() => onStatusChange('in_progress')} loading={updating} className="flex-1">Start Job</Button>
+      {/* Quote section */}
+      {quote && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-gray-900">Quote</h3>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg ${statusColor(quote.status)}`}>
+              {statusLabel(quote.status)}
+            </span>
+          </div>
+          <p className="text-lg font-bold text-tree-600">{formatCurrency(quote.total)}</p>
+          {quote.line_items?.length > 0 && (
+            <p className="text-xs text-gray-400 mt-1">{quote.line_items.length} line item{quote.line_items.length !== 1 ? 's' : ''}</p>
           )}
-          {job.status === 'in_progress' && (
-            <>
-              <Button variant="secondary" onClick={() => onStatusChange('on_hold')} loading={updating} className="flex-1">Put On Hold</Button>
-              <Button onClick={() => onStatusChange('completed')} loading={updating} className="flex-1">Complete</Button>
-            </>
-          )}
-          {job.status === 'on_hold' && (
-            <Button onClick={() => onStatusChange('in_progress')} loading={updating} className="flex-1">Resume</Button>
-          )}
-        </div>
+        </Card>
+      )}
+      {!quote && onCreateQuote && ['enquiry', 'site_visit', 'quoted'].includes(job.status) && (
+        <Button variant="secondary" onClick={onCreateQuote} className="w-full">Create Quote</Button>
+      )}
+
+      {/* Primary action button (pipeline transition) */}
+      {transition && onStatusChange && job.status !== 'paid' && (
+        <Button onClick={handleTransition} loading={updating} className="w-full">
+          {transition.label}
+        </Button>
       )}
 
       {/* Create report */}
-      {onCreateReport && (job.status === 'in_progress' || job.status === 'completed') && site && (
+      {onCreateReport && ['scheduled', 'in_progress', 'completed'].includes(job.status) && site && (
         <Button variant="secondary" onClick={onCreateReport} className="w-full">Create Job Report</Button>
       )}
 
@@ -152,6 +300,28 @@ export default function JobDetailView({
               </Card>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Photos section */}
+      {!compact && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-900">Photos ({photos.length})</h3>
+            <label className={`text-xs font-semibold text-tree-600 cursor-pointer ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
+              {uploadingPhoto ? 'Uploading...' : '+ Add Photo'}
+              <input type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="hidden" />
+            </label>
+          </div>
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map(p => (
+                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                  <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -175,6 +345,7 @@ export function useJobDetail(jobId) {
   const [job, setJob] = useState(null)
   const [client, setClient] = useState(null)
   const [site, setSite] = useState(null)
+  const [quote, setQuote] = useState(null)
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -184,19 +355,21 @@ export function useJobDetail(jobId) {
     const { data: jobData } = await supabase.from('jobs').select('*').eq('id', jobId).single()
     setJob(jobData)
     if (jobData) {
-      const [c, s, r] = await Promise.all([
+      const [c, s, r, q] = await Promise.all([
         jobData.client_id ? supabase.from('clients').select('*').eq('id', jobData.client_id).single() : { data: null },
         jobData.job_site_id ? supabase.from('job_sites').select('*').eq('id', jobData.job_site_id).single() : { data: null },
         supabase.from('job_reports').select('*').eq('job_id', jobId).order('created_at', { ascending: false }),
+        jobData.quote_id ? supabase.from('quotes').select('*').eq('id', jobData.quote_id).single() : { data: null },
       ])
       setClient(c.data)
       setSite(s.data)
       setReports(r.data || [])
+      setQuote(q.data)
     }
     setLoading(false)
   }
 
   useEffect(() => { refetch() }, [jobId])
 
-  return { job, client, site, reports, loading, setJob, setClient, setSite, refetch }
+  return { job, client, site, quote, reports, loading, setJob, setClient, setSite, setQuote, refetch }
 }

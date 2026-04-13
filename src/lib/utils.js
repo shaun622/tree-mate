@@ -35,13 +35,41 @@ export function calculateGST(subtotal) {
   }
 }
 
+// ── Job Pipeline ────────────────────────────────────────────────────────────
+export const JOB_STATUSES = [
+  'enquiry', 'site_visit', 'quoted', 'approved',
+  'scheduled', 'in_progress', 'completed', 'invoiced', 'paid',
+]
+
+export const JOB_PRIORITIES = ['normal', 'urgent', 'emergency']
+
+export const ESTIMATED_DURATIONS = [
+  { value: 'half_day', label: 'Half Day' },
+  { value: 'full_day', label: 'Full Day' },
+  { value: 'two_days', label: '2 Days' },
+  { value: 'three_plus', label: '3+ Days' },
+]
+
+export const PRIORITY_STYLES = {
+  normal:    { bg: '', text: '' }, // no badge for normal
+  urgent:    { bg: 'bg-amber-100', text: 'text-amber-700' },
+  emergency: { bg: 'bg-red-100', text: 'text-red-700' },
+}
+
 // ── Status Colours (Tailwind) ────────────────────────────────────────────────
 const STATUS_STYLES = {
-  // Job statuses
-  scheduled:      { bg: 'bg-blue-100 text-blue-700',    dot: 'bg-blue-500' },
-  in_progress:    { bg: 'bg-amber-100 text-amber-700',  dot: 'bg-amber-500' },
+  // Job pipeline statuses
+  enquiry:        { bg: 'bg-purple-100 text-purple-700',   dot: 'bg-purple-500' },
+  site_visit:     { bg: 'bg-sky-100 text-sky-700',         dot: 'bg-sky-500' },
+  quoted:         { bg: 'bg-indigo-100 text-indigo-700',   dot: 'bg-indigo-500' },
+  approved:       { bg: 'bg-teal-100 text-teal-700',       dot: 'bg-teal-500' },
+  scheduled:      { bg: 'bg-blue-100 text-blue-700',       dot: 'bg-blue-500' },
+  in_progress:    { bg: 'bg-amber-100 text-amber-700',     dot: 'bg-amber-500' },
+  completed:      { bg: 'bg-green-100 text-green-700',     dot: 'bg-green-500' },
+  invoiced:       { bg: 'bg-orange-100 text-orange-700',   dot: 'bg-orange-500' },
+  paid:           { bg: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  // Legacy
   on_hold:        { bg: 'bg-gray-100 text-gray-700',    dot: 'bg-gray-400' },
-  completed:      { bg: 'bg-green-100 text-green-700',  dot: 'bg-green-500' },
   // Quote statuses
   draft:          { bg: 'bg-gray-100 text-gray-600',    dot: 'bg-gray-400' },
   sent:           { bg: 'bg-blue-100 text-blue-700',    dot: 'bg-blue-500' },
@@ -49,9 +77,8 @@ const STATUS_STYLES = {
   follow_up:      { bg: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500' },
   accepted:       { bg: 'bg-green-100 text-green-700',  dot: 'bg-green-500' },
   declined:       { bg: 'bg-red-100 text-red-700',      dot: 'bg-red-500' },
-  // Pipeline stages
+  // Client pipeline stages
   lead:           { bg: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500' },
-  quoted:         { bg: 'bg-sky-100 text-sky-700',       dot: 'bg-sky-500' },
   active:         { bg: 'bg-green-100 text-green-700',   dot: 'bg-green-500' },
   lost:           { bg: 'bg-red-100 text-red-700',       dot: 'bg-red-500' },
   // Tree health
@@ -60,6 +87,8 @@ const STATUS_STYLES = {
   dead:           { bg: 'bg-gray-200 text-gray-700',     dot: 'bg-gray-500' },
   hazardous:      { bg: 'bg-red-100 text-red-700',       dot: 'bg-red-600' },
   storm_damaged:  { bg: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+  // Invoice statuses
+  overdue:        { bg: 'bg-red-100 text-red-700',       dot: 'bg-red-500' },
 }
 
 const DEFAULT_STYLE = { bg: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' }

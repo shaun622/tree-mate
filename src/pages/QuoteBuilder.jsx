@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
@@ -18,6 +18,8 @@ import UpgradePrompt from '../components/ui/UpgradePrompt'
 export default function QuoteBuilder() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const jobId = searchParams.get('job_id')
   const { business } = useBusiness()
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { getJobSitesByClient, createJobSite, updateJobSite } = useJobSites(business?.id)
@@ -26,11 +28,14 @@ export default function QuoteBuilder() {
   const [sending, setSending] = useState(false)
   const [quoteLimitHit, setQuoteLimitHit] = useState(false)
   const [monthlyCount, setMonthlyCount] = useState(0)
+  const [linkedJobId, setLinkedJobId] = useState(jobId || null)
   const [form, setForm] = useState({
     client_id: '', job_site_id: '', scope: '', terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
+    inclusions: '', exclusions: '',
   })
 
+  // Load existing quote for editing
   useEffect(() => {
     if (id) {
       supabase.from('quotes').select('*').eq('id', id).single().then(({ data }) => {
@@ -41,12 +46,30 @@ export default function QuoteBuilder() {
             scope: data.scope || '',
             terms: data.terms || '',
             line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
+            inclusions: data.inclusions || '',
+            exclusions: data.exclusions || '',
           })
           setQuoteStatus(data.status)
+          if (data.job_id) setLinkedJobId(data.job_id)
         }
       })
     }
   }, [id])
+
+  // Pre-fill from linked job
+  useEffect(() => {
+    if (!jobId || id) return // only for new quotes from a job
+    supabase.from('jobs').select('*').eq('id', jobId).single().then(({ data: job }) => {
+      if (job) {
+        setForm(prev => ({
+          ...prev,
+          client_id: job.client_id || prev.client_id,
+          job_site_id: job.job_site_id || prev.job_site_id,
+          scope: job.job_type ? `${job.job_type}${job.notes ? ` - ${job.notes}` : ''}` : prev.scope,
+        }))
+      }
+    })
+  }, [jobId, id])
 
   // Check monthly quote count for plan limits
   useEffect(() => {
@@ -93,12 +116,36 @@ export default function QuoteBuilder() {
       gst,
       total,
       status,
+      inclusions: form.inclusions || null,
+      exclusions: form.exclusions || null,
+      job_id: linkedJobId || null,
     }
     if (id) {
       await supabase.from('quotes').update(payload).eq('id', id)
+      return { id }
     } else {
       const { data } = await supabase.from('quotes').insert(payload).select().single()
-      if (data) return data
+      if (data) {
+        // Link quote back to the job and update job status
+        if (linkedJobId) {
+          await supabase.from('jobs').update({ quote_id: data.id, status: 'quoted' }).eq('id', linkedJobId)
+        } else {
+          // Auto-create a job in "quoted" status for standalone quotes
+          const { data: newJob } = await supabase.from('jobs').insert({
+            business_id: business.id,
+            client_id: form.client_id || null,
+            job_site_id: form.job_site_id || null,
+            quote_id: data.id,
+            status: 'quoted',
+            job_type: form.scope?.split('\n')[0]?.substring(0, 50) || 'Quote',
+          }).select().single()
+          if (newJob) {
+            await supabase.from('quotes').update({ job_id: newJob.id }).eq('id', data.id)
+            setLinkedJobId(newJob.id)
+          }
+        }
+        return data
+      }
     }
     return { id }
   }
@@ -107,7 +154,7 @@ export default function QuoteBuilder() {
     setSaving(true)
     await save('draft')
     setSaving(false)
-    navigate('/quotes')
+    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/quotes')
   }
 
   const handleSend = async () => {
@@ -122,14 +169,22 @@ export default function QuoteBuilder() {
       await supabase.functions.invoke('send-quote', { body: { quote_id: quote.id || id } })
     }
     setSending(false)
-    navigate('/quotes')
+    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/quotes')
   }
 
   return (
     <PageWrapper>
-      <Header title={id ? 'Edit Quote' : 'New Quote'} back="/quotes" />
+      <Header title={id ? 'Edit Quote' : 'New Quote'} back={linkedJobId ? `/jobs/${linkedJobId}` : '/quotes'} />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Job link banner */}
+        {linkedJobId && !id && (
+          <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-tree-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <p className="text-xs font-semibold text-tree-700">Linked to job — quote will update the job pipeline</p>
+          </div>
+        )}
+
         {/* Status banner */}
         {quoteStatus === 'accepted' && (
           <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
@@ -221,9 +276,11 @@ export default function QuoteBuilder() {
           </div>
         </Card>
 
-        {/* Scope & Terms */}
+        {/* Scope, Inclusions, Exclusions & Terms */}
         <Card className="p-4 space-y-3">
           <TextArea label="Scope of Work" placeholder="Describe the work to be performed..." value={form.scope} onChange={e => setForm(p => ({ ...p, scope: e.target.value }))} />
+          <TextArea label="Inclusions" placeholder="What's included (green waste removal, stump grinding, site cleanup...)" value={form.inclusions} onChange={e => setForm(p => ({ ...p, inclusions: e.target.value }))} rows={3} />
+          <TextArea label="Exclusions" placeholder="What's NOT included..." value={form.exclusions} onChange={e => setForm(p => ({ ...p, exclusions: e.target.value }))} rows={3} />
           <TextArea label="Terms & Conditions" value={form.terms} onChange={e => setForm(p => ({ ...p, terms: e.target.value }))} />
         </Card>
 

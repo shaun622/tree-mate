@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
@@ -14,22 +14,29 @@ import { calculateGST, formatCurrency } from '../lib/utils'
 export default function InvoiceBuilder() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const jobId = searchParams.get('job_id')
   const { business, updateBusiness } = useBusiness()
   const { clients, createClient, updateClient } = useClients(business?.id)
   const [saving, setSaving] = useState(false)
+  const [linkedJobId, setLinkedJobId] = useState(jobId || null)
   const [form, setForm] = useState({
     client_id: '', invoice_number: '', due_date: '', notes: '',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
   })
 
+  // Load existing invoice for editing
   useEffect(() => {
     if (id) {
       supabase.from('invoices').select('*').eq('id', id).single().then(({ data }) => {
-        if (data) setForm({
-          client_id: data.client_id || '', invoice_number: data.invoice_number || '',
-          due_date: data.due_date || '', notes: data.notes || '',
-          line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
-        })
+        if (data) {
+          setForm({
+            client_id: data.client_id || '', invoice_number: data.invoice_number || '',
+            due_date: data.due_date || '', notes: data.notes || '',
+            line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
+          })
+          if (data.job_id) setLinkedJobId(data.job_id)
+        }
       })
     } else if (business) {
       const num = `${business.invoice_prefix || 'INV'}-${String(business.next_invoice_number || 1).padStart(4, '0')}`
@@ -38,6 +45,21 @@ export default function InvoiceBuilder() {
       setForm(p => ({ ...p, invoice_number: num, due_date: due.toISOString().split('T')[0] }))
     }
   }, [id, business])
+
+  // Pre-fill from linked job's quote
+  useEffect(() => {
+    if (!jobId || id) return
+    supabase.from('jobs').select('*, quotes(*)').eq('id', jobId).single().then(({ data: job }) => {
+      if (!job) return
+      const quote = job.quotes
+      setForm(prev => ({
+        ...prev,
+        client_id: job.client_id || prev.client_id,
+        line_items: quote?.line_items?.length ? quote.line_items : prev.line_items,
+        notes: quote?.scope ? `Scope: ${quote.scope}` : prev.notes,
+      }))
+    })
+  }, [jobId, id])
 
   const updateItem = (index, field, value) => {
     setForm(prev => {
@@ -59,23 +81,36 @@ export default function InvoiceBuilder() {
       business_id: business.id, client_id: form.client_id || null,
       invoice_number: form.invoice_number, due_date: form.due_date || null,
       notes: form.notes, line_items: form.line_items, subtotal, gst, total, status,
+      job_id: linkedJobId || null,
     }
     if (id) {
       await supabase.from('invoices').update(payload).eq('id', id)
     } else {
-      await supabase.from('invoices').insert(payload)
+      const { data } = await supabase.from('invoices').insert(payload).select().single()
       // Increment invoice number
       await updateBusiness({ next_invoice_number: (business.next_invoice_number || 1) + 1 })
+      // Link invoice back to job and update job status to 'invoiced'
+      if (linkedJobId && data) {
+        await supabase.from('jobs').update({ status: 'invoiced' }).eq('id', linkedJobId)
+      }
     }
     setSaving(false)
-    navigate('/invoices')
+    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/invoices')
   }
 
   return (
     <PageWrapper>
-      <Header title={id ? 'Edit Invoice' : 'New Invoice'} back="/invoices" />
+      <Header title={id ? 'Edit Invoice' : 'New Invoice'} back={linkedJobId ? `/jobs/${linkedJobId}` : '/invoices'} />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Job link banner */}
+        {linkedJobId && !id && (
+          <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-tree-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <p className="text-xs font-semibold text-tree-700">Linked to job — invoice will update the job pipeline</p>
+          </div>
+        )}
+
         <Card className="p-4 space-y-3">
           <Input label="Invoice Number" value={form.invoice_number} onChange={e => setForm(p => ({ ...p, invoice_number: e.target.value }))} />
           <ClientPicker

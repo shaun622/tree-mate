@@ -8,43 +8,96 @@ import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import ActivityPanel from '../components/ui/ActivityPanel'
+import { formatCurrency, statusLabel } from '../lib/utils'
+
+const PIPELINE_STAGES = [
+  { key: 'enquiry', label: 'Enquiries', color: 'bg-purple-500', lightBg: 'bg-purple-50', text: 'text-purple-700' },
+  { key: 'site_visit', label: 'Site Visits', color: 'bg-sky-500', lightBg: 'bg-sky-50', text: 'text-sky-700' },
+  { key: 'quoted', label: 'Quoted', color: 'bg-indigo-500', lightBg: 'bg-indigo-50', text: 'text-indigo-700', attention: true },
+  { key: 'approved', label: 'Approved', color: 'bg-teal-500', lightBg: 'bg-teal-50', text: 'text-teal-700' },
+  { key: 'scheduled', label: 'Scheduled', color: 'bg-green-500', lightBg: 'bg-green-50', text: 'text-green-700' },
+  { key: 'in_progress', label: 'In Progress', color: 'bg-blue-500', lightBg: 'bg-blue-50', text: 'text-blue-700' },
+]
 
 export default function Dashboard() {
   const { business } = useBusiness()
-  const { activities } = useActivity(business?.id)
+  const { activities, unreadCount, markRead, markAllRead } = useActivity(business?.id)
   const navigate = useNavigate()
-  const [stats, setStats] = useState({ jobsThisWeek: 0, activeJobs: 0, pendingQuotes: 0, overdueSites: 0 })
+  const [pipelineCounts, setPipelineCounts] = useState({})
+  const [todayStats, setTodayStats] = useState({ siteVisits: 0, jobs: 0, completed: 0, total: 0 })
+  const [revenue, setRevenue] = useState({ completedValue: 0, pendingQuotes: 0, overdueInvoices: 0, overdueCount: 0 })
 
   useEffect(() => {
     if (!business?.id) return
-    const fetchStats = async () => {
-      const now = new Date()
-      const weekStart = new Date(now)
-      weekStart.setDate(now.getDate() - now.getDay())
-      weekStart.setHours(0, 0, 0, 0)
+    const fetchDashboard = async () => {
+      // Pipeline counts
+      const countPromises = PIPELINE_STAGES.map(stage =>
+        supabase.from('jobs').select('id', { count: 'exact', head: true })
+          .eq('business_id', business.id).eq('status', stage.key)
+      )
 
-      const [jobsWeek, activeJobs, pendingQuotes, overdueSites] = await Promise.all([
-        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('business_id', business.id).eq('status', 'completed').gte('completed_at', weekStart.toISOString()),
-        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('business_id', business.id).eq('status', 'in_progress'),
-        supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('business_id', business.id).in('status', ['draft', 'sent', 'viewed', 'follow_up']),
-        supabase.from('job_sites').select('id', { count: 'exact', head: true }).eq('business_id', business.id).eq('regular_maintenance', true).lt('next_due_at', now.toISOString()),
+      // Today's stats
+      const today = new Date()
+      const todayStr = today.toISOString().split('T')[0]
+      const todayStart = new Date(today); todayStart.setHours(0, 0, 0, 0)
+      const todayEnd = new Date(today); todayEnd.setHours(23, 59, 59, 999)
+
+      const [
+        ...pipelineResults
+      ] = await Promise.all(countPromises)
+
+      const counts = {}
+      PIPELINE_STAGES.forEach((stage, i) => {
+        counts[stage.key] = pipelineResults[i].count || 0
+      })
+      setPipelineCounts(counts)
+
+      // Today's jobs
+      const { data: todayJobs } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('business_id', business.id)
+        .or(`scheduled_date.eq.${todayStr},site_visit_date.eq.${todayStr},and(scheduled_start.gte.${todayStart.toISOString()},scheduled_start.lte.${todayEnd.toISOString()})`)
+
+      const tjList = todayJobs || []
+      const siteVisitsToday = tjList.filter(j => j.status === 'site_visit').length
+      const jobsToday = tjList.filter(j => j.status !== 'site_visit').length
+      const completedToday = tjList.filter(j => j.status === 'completed').length
+      setTodayStats({ siteVisits: siteVisitsToday, jobs: jobsToday, completed: completedToday, total: tjList.length })
+
+      // Revenue: this month's completed work value
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
+      const [completedRes, quotesRes, invoicesRes] = await Promise.all([
+        supabase.from('quotes').select('total')
+          .eq('business_id', business.id)
+          .in('status', ['accepted'])
+          .gte('created_at', monthStart),
+        supabase.from('quotes').select('total')
+          .eq('business_id', business.id)
+          .in('status', ['sent', 'viewed', 'follow_up']),
+        supabase.from('invoices').select('total, due_date')
+          .eq('business_id', business.id)
+          .eq('status', 'sent'),
       ])
-      setStats({
-        jobsThisWeek: jobsWeek.count || 0,
-        activeJobs: activeJobs.count || 0,
-        pendingQuotes: pendingQuotes.count || 0,
-        overdueSites: overdueSites.count || 0,
+
+      const completedValue = (completedRes.data || []).reduce((sum, q) => sum + (q.total || 0), 0)
+      const pendingQuotes = (quotesRes.data || []).reduce((sum, q) => sum + (q.total || 0), 0)
+      const overdueInvoicesList = (invoicesRes.data || []).filter(inv => inv.due_date && new Date(inv.due_date) < today)
+      const overdueValue = overdueInvoicesList.reduce((sum, inv) => sum + (inv.total || 0), 0)
+
+      setRevenue({
+        completedValue,
+        pendingQuotes,
+        overdueInvoices: overdueValue,
+        overdueCount: overdueInvoicesList.length,
       })
     }
-    fetchStats()
+    fetchDashboard()
   }, [business?.id])
 
-  const kpis = [
-    { label: 'Jobs This Week', value: stats.jobsThisWeek, icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
-    { label: 'Active Jobs', value: stats.activeJobs, icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>, color: 'text-tree-600', bg: 'bg-tree-50', ring: 'ring-tree-100' },
-    { label: 'Pending Quotes', value: stats.pendingQuotes, icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>, color: 'text-amber-600', bg: 'bg-amber-50', ring: 'ring-amber-100' },
-    { label: 'Overdue Sites', value: stats.overdueSites, icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, color: 'text-red-600', bg: 'bg-red-50', ring: 'ring-red-100' },
-  ]
+  const scheduledForToday = todayStats.jobs + todayStats.siteVisits
+  const completedOfTotal = todayStats.completed
+  const progressPct = scheduledForToday > 0 ? Math.round((completedOfTotal / scheduledForToday) * 100) : 0
 
   return (
     <PageWrapper>
@@ -61,18 +114,100 @@ export default function Dashboard() {
           <p className="text-sm text-gray-400 mt-0.5">Here's your business overview</p>
         </div>
 
-        {/* KPI Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {kpis.map(kpi => (
-            <Card key={kpi.label} className="p-4 group hover:shadow-card-hover transition-all duration-300">
-              <div className={`w-9 h-9 rounded-xl ${kpi.bg} ring-1 ${kpi.ring} flex items-center justify-center mb-3 ${kpi.color} group-hover:scale-110 transition-transform duration-200`}>
-                {kpi.icon}
+        {/* Pipeline Snapshot */}
+        <Card className="p-4">
+          <h3 className="text-sm font-bold text-gray-900 mb-3">Pipeline</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {PIPELINE_STAGES.map(stage => {
+              const count = pipelineCounts[stage.key] || 0
+              const needsAttention = stage.attention && count > 0
+              return (
+                <button
+                  key={stage.key}
+                  onClick={() => navigate(`/jobs?status=${stage.key}`)}
+                  className={`rounded-xl p-3 text-center transition-all duration-200 active:scale-95 ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
+                >
+                  <p className={`text-xl font-bold ${needsAttention ? 'text-amber-700' : stage.text}`}>{count}</p>
+                  <p className={`text-[10px] font-semibold mt-0.5 ${needsAttention ? 'text-amber-600' : stage.text} opacity-70`}>{stage.label}</p>
+                </button>
+              )
+            })}
+          </div>
+        </Card>
+
+        {/* Today's Summary */}
+        <Card className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-gray-900">Today</h3>
+            <button onClick={() => navigate('/schedule')} className="text-xs font-semibold text-tree-600">View Schedule</button>
+          </div>
+
+          {/* Progress bar */}
+          {scheduledForToday > 0 ? (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-sm text-gray-600">{completedOfTotal} of {scheduledForToday} completed</p>
+                <p className="text-sm font-bold text-gray-900">{progressPct}%</p>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5 font-medium">{kpi.label}</p>
-            </Card>
-          ))}
-        </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-tree-500 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">No jobs scheduled for today</p>
+          )}
+
+          {/* Stat pills */}
+          <div className="flex gap-2">
+            <div className="flex-1 bg-sky-50 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-sky-700">{todayStats.siteVisits}</p>
+              <p className="text-[10px] font-semibold text-sky-600">Site Visits</p>
+            </div>
+            <div className="flex-1 bg-tree-50 rounded-xl p-3 text-center">
+              <p className="text-lg font-bold text-tree-700">{todayStats.jobs}</p>
+              <p className="text-[10px] font-semibold text-tree-600">Jobs</p>
+            </div>
+            <div className="flex-1 bg-emerald-50 rounded-xl p-3 text-center">
+              <div className="flex items-center justify-center gap-1">
+                <p className="text-lg font-bold text-emerald-700">{todayStats.completed}</p>
+                {todayStats.completed > 0 && (
+                  <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                )}
+              </div>
+              <p className="text-[10px] font-semibold text-emerald-600">Completed</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Revenue Snapshot */}
+        <Card className="p-4 space-y-3">
+          <h3 className="text-sm font-bold text-gray-900">Revenue This Month</h3>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-tree-500" />
+                <span className="text-sm text-gray-600">Completed Work</span>
+              </div>
+              <span className="text-sm font-bold text-gray-900">{formatCurrency(revenue.completedValue)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="text-sm text-gray-600">Pending Quotes</span>
+              </div>
+              <span className="text-sm font-bold text-amber-600">{formatCurrency(revenue.pendingQuotes)}</span>
+            </div>
+            {revenue.overdueCount > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-sm text-red-600">{revenue.overdueCount} Overdue Invoice{revenue.overdueCount > 1 ? 's' : ''}</span>
+                </div>
+                <span className="text-sm font-bold text-red-600">{formatCurrency(revenue.overdueInvoices)}</span>
+              </div>
+            )}
+          </div>
+        </Card>
 
         {/* Quick Actions */}
         <div className="flex gap-2.5">
@@ -83,8 +218,18 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <Card className="p-4">
-          <h3 className="text-sm font-bold text-gray-900 mb-3">Recent Activity</h3>
-          <ActivityPanel activities={activities.slice(0, 10)} />
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-gray-900">
+              Recent Activity
+              {unreadCount > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-tree-500 text-white rounded-full">{unreadCount}</span>
+              )}
+            </h3>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-xs font-semibold text-tree-600">Mark all read</button>
+            )}
+          </div>
+          <ActivityPanel activities={activities.slice(0, 10)} onMarkRead={markRead} />
         </Card>
       </div>
     </PageWrapper>

@@ -14,10 +14,15 @@ import { geocodeAddress, totalRouteKm, estimateTravelMinutes, getRoadRoute } fro
 import { statusLabel } from '../lib/utils'
 
 const STATUS_COLORS = {
+  enquiry: { border: '#a855f7', bg: 'bg-purple-50', text: 'text-purple-700', pin: '#a855f7' },
+  site_visit: { border: '#0ea5e9', bg: 'bg-sky-50', text: 'text-sky-700', pin: '#0ea5e9' },
+  quoted: { border: '#6366f1', bg: 'bg-indigo-50', text: 'text-indigo-700', pin: '#6366f1' },
+  approved: { border: '#14b8a6', bg: 'bg-teal-50', text: 'text-teal-700', pin: '#14b8a6' },
   scheduled: { border: '#22c55e', bg: 'bg-tree-50', text: 'text-tree-700', pin: '#22c55e' },
   in_progress: { border: '#3b82f6', bg: 'bg-blue-50', text: 'text-blue-700', pin: '#3b82f6' },
-  on_hold: { border: '#f59e0b', bg: 'bg-amber-50', text: 'text-amber-700', pin: '#f59e0b' },
   completed: { border: '#6b7280', bg: 'bg-gray-50', text: 'text-gray-700', pin: '#6b7280' },
+  invoiced: { border: '#f97316', bg: 'bg-orange-50', text: 'text-orange-700', pin: '#f97316' },
+  paid: { border: '#10b981', bg: 'bg-emerald-50', text: 'text-emerald-700', pin: '#10b981' },
 }
 
 function formatTime(d) {
@@ -31,17 +36,39 @@ function ymd(d) { return d.toISOString().split('T')[0] }
 function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x }
 function endOfDay(d) { const x = new Date(d); x.setHours(23, 59, 59, 999); return x }
 
+// Get Monday of the week containing the given date
+function startOfWeek(d) {
+  const x = new Date(d)
+  const day = x.getDay()
+  const diff = day === 0 ? -6 : 1 - day // Monday = 1
+  x.setDate(x.getDate() + diff)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
+function getWeekDays(baseDate) {
+  const mon = startOfWeek(baseDate)
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon)
+    d.setDate(d.getDate() + i)
+    return d
+  })
+}
+
 export default function Schedule() {
   const { business } = useBusiness()
   const { staff } = useStaff(business?.id)
   const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
-  const [view, setView] = useState('list') // 'list' | 'upcoming' | 'map'
+  const [view, setView] = useState('today') // 'today' | 'week' | 'upcoming' | 'map'
   const [jobs, setJobs] = useState([])
+  const [weekJobs, setWeekJobs] = useState([])
+  const [weekSites, setWeekSites] = useState({})
+  const [weekClients, setWeekClients] = useState({})
   const [upcomingJobs, setUpcomingJobs] = useState([])
   const [upcomingSites, setUpcomingSites] = useState({})
   const [upcomingClients, setUpcomingClients] = useState({})
-  const [sites, setSites] = useState({}) // id -> site (with lat/lng)
+  const [sites, setSites] = useState({})
   const [clients, setClients] = useState({})
   const [loading, setLoading] = useState(true)
   const [draggingId, setDraggingId] = useState(null)
@@ -65,7 +92,7 @@ export default function Schedule() {
     setModalUpdating(false)
   }
 
-  // Fetch jobs for selected day (uses scheduled_start, falls back to scheduled_date)
+  // Fetch jobs for selected day
   useEffect(() => {
     if (!business?.id) return
     const fetchData = async () => {
@@ -74,18 +101,16 @@ export default function Schedule() {
       const startISO = startOfDay(selectedDate).toISOString()
       const endISO = endOfDay(selectedDate).toISOString()
 
-      // Get jobs scheduled on this day (either via scheduled_start or scheduled_date)
       const { data: jobsData } = await supabase
         .from('jobs')
         .select('*')
         .eq('business_id', business.id)
-        .or(`and(scheduled_start.gte.${startISO},scheduled_start.lte.${endISO}),scheduled_date.eq.${dayStr}`)
+        .or(`and(scheduled_start.gte.${startISO},scheduled_start.lte.${endISO}),scheduled_date.eq.${dayStr},site_visit_date.eq.${dayStr}`)
         .order('scheduled_start', { ascending: true, nullsFirst: false })
 
       const jobList = jobsData || []
       setJobs(jobList)
 
-      // Fetch related sites and clients
       const siteIds = [...new Set(jobList.filter(j => j.job_site_id).map(j => j.job_site_id))]
       const clientIds = [...new Set(jobList.filter(j => j.client_id).map(j => j.client_id))]
       const [sitesRes, clientsRes] = await Promise.all([
@@ -111,7 +136,38 @@ export default function Schedule() {
     fetchData()
   }, [business?.id, selectedDate])
 
-  // Fetch all upcoming jobs (from today onward, excluding completed)
+  // Fetch week jobs
+  useEffect(() => {
+    if (!business?.id || view !== 'week') return
+    const fetchWeek = async () => {
+      const days = getWeekDays(selectedDate)
+      const weekStart = ymd(days[0])
+      const weekEndISO = endOfDay(days[6]).toISOString()
+      const weekStartISO = startOfDay(days[0]).toISOString()
+
+      const { data } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('business_id', business.id)
+        .or(`and(scheduled_start.gte.${weekStartISO},scheduled_start.lte.${weekEndISO}),and(scheduled_date.gte.${weekStart},scheduled_date.lte.${ymd(days[6])}),and(site_visit_date.gte.${weekStart},site_visit_date.lte.${ymd(days[6])})`)
+        .order('scheduled_start', { ascending: true, nullsFirst: false })
+
+      const list = data || []
+      setWeekJobs(list)
+
+      const siteIds = [...new Set(list.filter(j => j.job_site_id).map(j => j.job_site_id))]
+      const clientIds = [...new Set(list.filter(j => j.client_id).map(j => j.client_id))]
+      const [sitesRes, clientsRes] = await Promise.all([
+        siteIds.length ? supabase.from('job_sites').select('*').in('id', siteIds) : Promise.resolve({ data: [] }),
+        clientIds.length ? supabase.from('clients').select('*').in('id', clientIds) : Promise.resolve({ data: [] }),
+      ])
+      setWeekSites(Object.fromEntries((sitesRes.data || []).map(s => [s.id, s])))
+      setWeekClients(Object.fromEntries((clientsRes.data || []).map(c => [c.id, c])))
+    }
+    fetchWeek()
+  }, [business?.id, view, selectedDate])
+
+  // Fetch upcoming jobs
   useEffect(() => {
     if (!business?.id) return
     const fetchUpcoming = async () => {
@@ -139,16 +195,14 @@ export default function Schedule() {
     fetchUpcoming()
   }, [business?.id, jobs])
 
-  // Build map points in route order from current jobs
+  // Map points
   const mapPoints = jobs
     .map((job, idx) => {
       const site = sites[job.job_site_id]
       if (!site?.lat || !site?.lng) return null
       const client = clients[job.client_id]
       return {
-        id: job.id,
-        lat: site.lat,
-        lng: site.lng,
+        id: job.id, lat: site.lat, lng: site.lng,
         label: job.job_type || 'Job',
         subtitle: `${client?.name || ''} · ${site.address || ''}`.trim(),
         time: job.scheduled_start ? formatTime(job.scheduled_start) : null,
@@ -161,7 +215,6 @@ export default function Schedule() {
   const displayKm = roadRoute?.distanceKm ?? totalKm
   const displayMin = roadRoute?.durationMin ?? travelMin
 
-  // Fetch road route when ordered points change
   const routeKey = mapPoints.map(p => `${p.id}:${p.lat.toFixed(5)},${p.lng.toFixed(5)}`).join('|')
   useEffect(() => {
     let cancelled = false
@@ -174,6 +227,12 @@ export default function Schedule() {
   const goToDay = (offset) => {
     const next = new Date(selectedDate)
     next.setDate(next.getDate() + offset)
+    setSelectedDate(startOfDay(next))
+  }
+
+  const goToWeek = (offset) => {
+    const next = new Date(selectedDate)
+    next.setDate(next.getDate() + (offset * 7))
     setSelectedDate(startOfDay(next))
   }
 
@@ -192,8 +251,6 @@ export default function Schedule() {
     reordered.splice(toIdx, 0, moved)
     setJobs(reordered)
     handleDragEnd()
-    // Persist new times: spread the day starting at 8am, 1hr each (if no times)
-    // OR shift just the moved job's time to fit between neighbours
     const baseHour = 8
     for (let i = 0; i < reordered.length; i++) {
       const newStart = new Date(selectedDate)
@@ -206,7 +263,6 @@ export default function Schedule() {
         scheduled_date: ymd(newStart),
       }).eq('id', reordered[i].id)
     }
-    // Refetch to get updated timestamps
     const { data: refreshed } = await supabase
       .from('jobs')
       .select('*')
@@ -220,56 +276,224 @@ export default function Schedule() {
   const isToday = ymd(selectedDate) === ymd(new Date())
   const dayLabel = selectedDate.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
 
+  // Split jobs into site visits and scheduled work
+  const siteVisits = jobs.filter(j => j.status === 'site_visit')
+  const scheduledJobs = jobs.filter(j => j.status !== 'site_visit')
+
+  // Get the day a job falls on (for week view grouping)
+  const getJobDay = (job) => {
+    if (job.status === 'site_visit' && job.site_visit_date) return job.site_visit_date
+    if (job.scheduled_date) return job.scheduled_date
+    if (job.scheduled_start) return ymd(new Date(job.scheduled_start))
+    return null
+  }
+
+  // Render a job card (shared between today list and week view)
+  const renderJobCard = (job, site, client, index, enableDrag = false) => {
+    const sty = STATUS_COLORS[job.status] || STATUS_COLORS.scheduled
+    const isDragging = draggingId === job.id
+    const isDragOver = dragOverId === job.id
+    return (
+      <div
+        key={job.id}
+        draggable={enableDrag}
+        onDragStart={enableDrag ? () => handleDragStart(job.id) : undefined}
+        onDragOver={enableDrag ? (e) => handleDragOver(e, job.id) : undefined}
+        onDragEnd={enableDrag ? handleDragEnd : undefined}
+        onDrop={enableDrag ? (e) => handleDrop(e, job.id) : undefined}
+        className={`relative bg-white rounded-2xl shadow-card border-l-4 transition-all duration-200 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-tree-400' : ''}`}
+        style={{ borderLeftColor: sty.border }}
+      >
+        <div onClick={() => setOpenJobId(job.id)} className="p-4 cursor-pointer">
+          <div className="flex items-start gap-3">
+            {enableDrag && (
+              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${sty.bg} ${sty.text}`}>
+                  {index + 1}
+                </div>
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="touch-none p-1 text-gray-300 cursor-grab active:cursor-grabbing"
+                  aria-label="Drag to reorder"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm6-10a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2z" /></svg>
+                </button>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="font-semibold text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${sty.bg} ${sty.text}`}>
+                  {statusLabel(job.status)}
+                </span>
+              </div>
+              {client && <p className="text-sm text-gray-600 truncate">{client.name}</p>}
+              {site?.address && <p className="text-xs text-gray-400 truncate">{site.address}</p>}
+              <div className="flex items-center gap-3 mt-2">
+                {job.scheduled_start && (
+                  <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {formatTime(job.scheduled_start)}
+                    {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
+                  </span>
+                )}
+                {job.staff_id && staff?.find(s => s.id === job.staff_id) && (
+                  <span className="text-xs text-gray-500">
+                    {staff.find(s => s.id === job.staff_id).name}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render site visit card (compact, assessment style)
+  const renderSiteVisitCard = (job, site, client) => {
+    return (
+      <div
+        key={job.id}
+        onClick={() => setOpenJobId(job.id)}
+        className="bg-white rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-all duration-200 active:scale-[0.99]"
+        style={{ borderLeftColor: STATUS_COLORS.site_visit.border }}
+      >
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <p className="font-semibold text-gray-900 truncate">{client?.name || 'Client'}</p>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-sky-50 text-sky-700">
+            Site Visit
+          </span>
+        </div>
+        {site?.address && <p className="text-xs text-gray-400 truncate">{site.address}</p>}
+        <div className="flex items-center gap-3 mt-2">
+          {job.scheduled_start && (
+            <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              {formatTime(job.scheduled_start)}
+            </span>
+          )}
+          {site?.address && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(site.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs font-semibold text-tree-600 flex items-center gap-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Navigate
+            </a>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Week view
+  const renderWeekView = () => {
+    const days = getWeekDays(selectedDate)
+    const todayStr = ymd(new Date())
+
+    return (
+      <div className="space-y-4">
+        {/* Week navigation */}
+        <Card className="p-3">
+          <div className="flex items-center justify-between gap-2">
+            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <div className="text-center flex-1">
+              <p className="text-sm font-bold text-gray-900">
+                {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            </div>
+            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </Card>
+
+        {days.map(day => {
+          const dayStr = ymd(day)
+          const isDayToday = dayStr === todayStr
+          const dayJobs = weekJobs.filter(j => getJobDay(j) === dayStr)
+          const daySiteVisits = dayJobs.filter(j => j.status === 'site_visit')
+          const dayWork = dayJobs.filter(j => j.status !== 'site_visit')
+
+          if (dayJobs.length === 0) return (
+            <div key={dayStr} className="space-y-1">
+              <div className="flex items-center gap-2 px-1">
+                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-tree-600' : 'text-gray-400'}`}>
+                  {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </p>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              <p className="text-xs text-gray-400 px-1">No jobs</p>
+            </div>
+          )
+
+          return (
+            <div key={dayStr} className="space-y-2">
+              <div className="flex items-center gap-2 px-1">
+                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-tree-600' : 'text-gray-500'}`}>
+                  {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </p>
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-[10px] font-semibold text-gray-400">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
+              </div>
+              {daySiteVisits.length > 0 && daySiteVisits.map(job => renderSiteVisitCard(job, weekSites[job.job_site_id], weekClients[job.client_id]))}
+              {dayWork.map((job, i) => renderJobCard(job, weekSites[job.job_site_id], weekClients[job.client_id], i, false))}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <PageWrapper>
       <Header title="Schedule" />
 
       <div className="px-4 py-4 space-y-4">
-        {/* Day picker */}
-        <Card className="p-3">
-          <div className="flex items-center justify-between gap-2">
-            <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div className="text-center flex-1">
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
-              <p className="text-sm font-bold text-gray-900">{dayLabel}</p>
+        {/* Day picker (for today + map views) */}
+        {(view === 'today' || view === 'map') && (
+          <Card className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div className="text-center flex-1">
+                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
+                <p className="text-sm font-bold text-gray-900">{dayLabel}</p>
+              </div>
+              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
             </div>
-            <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-          {!isToday && (
-            <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-tree-600 hover:text-tree-700 py-1">
-              Jump to today
-            </button>
-          )}
-        </Card>
+            {!isToday && (
+              <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-tree-600 hover:text-tree-700 py-1">
+                Jump to today
+              </button>
+            )}
+          </Card>
+        )}
 
-        {/* View toggle */}
-        <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-          <button
-            onClick={() => setView('list')}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === 'list' ? 'bg-white text-tree-600 shadow-sm' : 'text-gray-500'}`}
-          >
-            List
-          </button>
-          <button
-            onClick={() => setView('upcoming')}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === 'upcoming' ? 'bg-white text-tree-500/80 shadow-sm' : 'text-gray-500'}`}
-          >
-            Upcoming
-          </button>
-          <button
-            onClick={() => setView('map')}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === 'map' ? 'bg-white text-tree-600 shadow-sm' : 'text-gray-500'}`}
-          >
-            Map
-          </button>
+        {/* View toggle — Today | Week | Upcoming | Map */}
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+          {['today', 'week', 'upcoming', 'map'].map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${view === v ? 'bg-white text-tree-600 shadow-sm' : 'text-gray-500'}`}
+            >
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </button>
+          ))}
         </div>
 
         {/* Travel summary */}
-        {view !== 'upcoming' && mapPoints.length > 1 && (
+        {(view === 'today' || view === 'map') && mapPoints.length > 1 && (
           <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
@@ -282,7 +506,54 @@ export default function Schedule() {
           </div>
         )}
 
-        {view === 'upcoming' ? (
+        {/* === VIEW: TODAY === */}
+        {view === 'today' && (
+          loading ? (
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+          ) : jobs.length === 0 ? (
+            <EmptyState
+              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              title="No jobs scheduled"
+              description={`Nothing on the calendar for ${isToday ? 'today' : dayLabel}`}
+              actionLabel="Create Job"
+              onAction={() => navigate('/jobs')}
+            />
+          ) : (
+            <div className="space-y-4">
+              {/* Site Visits section */}
+              {siteVisits.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 px-1">
+                    <p className="text-xs font-bold uppercase tracking-wide text-sky-600">Site Visits</p>
+                    <div className="flex-1 h-px bg-sky-200" />
+                    <span className="text-[10px] font-semibold text-sky-500">{siteVisits.length}</span>
+                  </div>
+                  {siteVisits.map(job => renderSiteVisitCard(job, sites[job.job_site_id], clients[job.client_id]))}
+                </div>
+              )}
+
+              {/* Jobs section */}
+              {scheduledJobs.length > 0 && (
+                <div className="space-y-2">
+                  {siteVisits.length > 0 && (
+                    <div className="flex items-center gap-2 px-1">
+                      <p className="text-xs font-bold uppercase tracking-wide text-tree-600">Jobs</p>
+                      <div className="flex-1 h-px bg-tree-200" />
+                      <span className="text-[10px] font-semibold text-tree-500">{scheduledJobs.length}</span>
+                    </div>
+                  )}
+                  {scheduledJobs.map((job, index) => renderJobCard(job, sites[job.job_site_id], clients[job.client_id], index, true))}
+                </div>
+              )}
+            </div>
+          )
+        )}
+
+        {/* === VIEW: WEEK === */}
+        {view === 'week' && renderWeekView()}
+
+        {/* === VIEW: UPCOMING === */}
+        {view === 'upcoming' && (
           upcomingJobs.length === 0 ? (
             <EmptyState
               icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
@@ -343,94 +614,35 @@ export default function Schedule() {
               })}
             </div>
           )
-        ) : loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
-        ) : jobs.length === 0 ? (
-          <EmptyState
-            icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-            title="No jobs scheduled"
-            description={`Nothing on the calendar for ${isToday ? 'today' : dayLabel}`}
-            actionLabel="Create Job"
-            onAction={() => navigate('/jobs')}
-          />
-        ) : view === 'map' ? (
-          <>
-            <ScheduleMap
-              points={mapPoints}
-              routeGeometry={roadRoute?.geometry}
-              height={420}
-              onMarkerClick={(p) => setOpenJobId(p.id)}
+        )}
+
+        {/* === VIEW: MAP === */}
+        {view === 'map' && (
+          loading ? (
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+          ) : jobs.length === 0 ? (
+            <EmptyState
+              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              title="No jobs scheduled"
+              description={`Nothing on the calendar for ${isToday ? 'today' : dayLabel}`}
+              actionLabel="Create Job"
+              onAction={() => navigate('/jobs')}
             />
-            {mapPoints.length < jobs.length && (
-              <p className="text-xs text-gray-500 text-center">
-                {jobs.length - mapPoints.length} job(s) without a mapped address
-              </p>
-            )}
-          </>
-        ) : (
-          <div className="space-y-2">
-            {jobs.map((job, index) => {
-              const site = sites[job.job_site_id]
-              const client = clients[job.client_id]
-              const sty = STATUS_COLORS[job.status] || STATUS_COLORS.scheduled
-              const isDragging = draggingId === job.id
-              const isDragOver = dragOverId === job.id
-              return (
-                <div
-                  key={job.id}
-                  draggable
-                  onDragStart={() => handleDragStart(job.id)}
-                  onDragOver={(e) => handleDragOver(e, job.id)}
-                  onDragEnd={handleDragEnd}
-                  onDrop={(e) => handleDrop(e, job.id)}
-                  className={`relative bg-white rounded-2xl shadow-card border-l-4 transition-all duration-200 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-tree-400' : ''}`}
-                  style={{ borderLeftColor: sty.border }}
-                >
-                  <div onClick={() => setOpenJobId(job.id)} className="p-4 cursor-pointer">
-                    <div className="flex items-start gap-3">
-                      <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                        <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${sty.bg} ${sty.text}`}>
-                          {index + 1}
-                        </div>
-                        <button
-                          onPointerDown={(e) => e.stopPropagation()}
-                          className="touch-none p-1 text-gray-300 cursor-grab active:cursor-grabbing"
-                          aria-label="Drag to reorder"
-                          title="Drag to reorder"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm6-10a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2z" /></svg>
-                        </button>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <p className="font-semibold text-gray-900 truncate">{job.job_type || 'Job'}</p>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${sty.bg} ${sty.text}`}>
-                            {statusLabel(job.status)}
-                          </span>
-                        </div>
-                        {client && <p className="text-sm text-gray-600 truncate">{client.name}</p>}
-                        {site?.address && <p className="text-xs text-gray-400 truncate">{site.address}</p>}
-                        <div className="flex items-center gap-3 mt-2">
-                          {job.scheduled_start && (
-                            <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              {formatTime(job.scheduled_start)}
-                              {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
-                            </span>
-                          )}
-                          {job.staff_id && staff?.find(s => s.id === job.staff_id) && (
-                            <span className="text-xs text-gray-500">
-                              {staff.find(s => s.id === job.staff_id).name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          ) : (
+            <>
+              <ScheduleMap
+                points={mapPoints}
+                routeGeometry={roadRoute?.geometry}
+                height={420}
+                onMarkerClick={(p) => setOpenJobId(p.id)}
+              />
+              {mapPoints.length < jobs.length && (
+                <p className="text-xs text-gray-500 text-center">
+                  {jobs.length - mapPoints.length} job(s) without a mapped address
+                </p>
+              )}
+            </>
+          )
         )}
       </div>
 
@@ -442,6 +654,7 @@ export default function Schedule() {
             job={modalJob.job}
             client={modalJob.client}
             site={modalJob.site}
+            quote={modalJob.quote}
             staff={staff}
             reports={modalJob.reports}
             updating={modalUpdating}
@@ -449,6 +662,8 @@ export default function Schedule() {
             onEdit={() => { setOpenJobId(null); navigate(`/jobs/${modalJob.job.id}`) }}
             onCreateReport={modalJob.site ? () => { setOpenJobId(null); navigate(`/sites/${modalJob.site.id}/report`) } : null}
             onOpenReport={(rid) => { setOpenJobId(null); navigate(`/reports/${rid}`) }}
+            onCreateQuote={() => { setOpenJobId(null); navigate(`/quotes/new?job_id=${modalJob.job.id}`) }}
+            onCreateInvoice={() => { setOpenJobId(null); navigate(`/invoices/new?job_id=${modalJob.job.id}`) }}
             compact
           />
         )}

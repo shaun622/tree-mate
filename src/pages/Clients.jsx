@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
 import { useJobSites } from '../hooks/useJobSites'
@@ -11,31 +12,82 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
-import { statusLabel } from '../lib/utils'
+
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active Jobs' },
+  { key: 'leads', label: 'Leads' },
+  { key: 'completed', label: 'Completed' },
+]
+
+// Compute client badge based on their jobs
+function getClientBadge(clientJobs) {
+  if (!clientJobs || clientJobs.length === 0) return { label: 'No Jobs', variant: 'neutral' }
+  const hasActive = clientJobs.some(j => ['scheduled', 'in_progress', 'approved'].includes(j.status))
+  if (hasActive) return { label: 'Active', variant: 'success' }
+  const hasQuoted = clientJobs.some(j => j.status === 'quoted')
+  if (hasQuoted) return { label: 'Quoted', variant: 'warning' }
+  const hasEnquiry = clientJobs.some(j => ['enquiry', 'site_visit'].includes(j.status))
+  if (hasEnquiry) return { label: 'Lead', variant: 'info' }
+  return { label: 'Completed', variant: 'neutral' }
+}
+
+function getClientFilter(clientJobs) {
+  if (!clientJobs || clientJobs.length === 0) return 'all'
+  const hasActive = clientJobs.some(j => !['completed', 'invoiced', 'paid'].includes(j.status))
+  if (hasActive) {
+    const onlyEarly = clientJobs.every(j => ['enquiry', 'site_visit'].includes(j.status) || ['completed', 'invoiced', 'paid'].includes(j.status))
+    if (onlyEarly) return 'leads'
+    return 'active'
+  }
+  return 'completed'
+}
 
 export default function Clients() {
   const { business } = useBusiness()
   const { clients, createClient } = useClients(business?.id)
-  const { jobSites } = useJobSites(business?.id)
   const navigate = useNavigate()
-  const [showAll, setShowAll] = useState(false)
+  const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', notes: '' })
   const [saving, setSaving] = useState(false)
+  const [clientJobs, setClientJobs] = useState({}) // clientId -> jobs[]
 
-  const clientsWithSites = useMemo(() => {
-    const siteClientIds = new Set(jobSites.map(s => s.client_id))
-    return clients.filter(c => siteClientIds.has(c.id))
-  }, [clients, jobSites])
+  // Fetch jobs for all clients to compute badges
+  useEffect(() => {
+    if (!business?.id) return
+    supabase.from('jobs').select('id, client_id, status')
+      .eq('business_id', business.id)
+      .then(({ data }) => {
+        const map = {}
+        for (const j of (data || [])) {
+          if (!j.client_id) continue
+          if (!map[j.client_id]) map[j.client_id] = []
+          map[j.client_id].push(j)
+        }
+        setClientJobs(map)
+      })
+  }, [business?.id, clients])
 
-  const displayed = (showAll ? clients : clientsWithSites)
-    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+  const displayed = useMemo(() => {
+    let list = clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+    if (filter !== 'all') {
+      list = list.filter(c => getClientFilter(clientJobs[c.id]) === filter)
+    }
+    return list
+  }, [clients, search, filter, clientJobs])
 
-  const pipelineColor = (stage) => {
-    const map = { lead: 'info', quoted: 'warning', active: 'success', on_hold: 'neutral', lost: 'danger' }
-    return map[stage] || 'neutral'
-  }
+  const filterCounts = useMemo(() => {
+    const counts = { all: clients.length, active: 0, leads: 0, completed: 0 }
+    for (const c of clients) {
+      const f = getClientFilter(clientJobs[c.id])
+      if (f === 'active') counts.active++
+      else if (f === 'leads') counts.leads++
+      else if (f === 'completed') counts.completed++
+    }
+    return counts
+  }, [clients, clientJobs])
 
   const handleAdd = async (e) => {
     e.preventDefault()
@@ -58,11 +110,20 @@ export default function Clients() {
       } />
 
       <div className="px-4 py-4 space-y-4">
-        <div className="flex gap-2">
-          <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
-          <button onClick={() => setShowAll(!showAll)} className={`px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all duration-200 ${showAll ? 'bg-tree-50 border-tree-200 text-tree-700' : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200'}`}>
-            {showAll ? 'Active Only' : 'View All'}
-          </button>
+        {/* Search */}
+        <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
+
+        {/* Filter pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          {FILTERS.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${filter === f.key ? 'bg-tree-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              {f.label} ({filterCounts[f.key] || 0})
+            </button>
+          ))}
         </div>
 
         {displayed.length === 0 ? (
@@ -75,17 +136,22 @@ export default function Clients() {
           />
         ) : (
           <div className="space-y-2">
-            {displayed.map(client => (
-              <Card key={client.id} hover onClick={() => navigate(`/clients/${client.id}`)} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 truncate">{client.name}</p>
-                    <p className="text-sm text-gray-500 truncate">{client.email || client.phone || 'No contact info'}</p>
+            {displayed.map(client => {
+              const badge = getClientBadge(clientJobs[client.id])
+              const jobCount = (clientJobs[client.id] || []).length
+              return (
+                <Card key={client.id} hover onClick={() => navigate(`/clients/${client.id}`)} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 truncate">{client.name}</p>
+                      <p className="text-sm text-gray-500 truncate">{client.email || client.phone || 'No contact info'}</p>
+                      {jobCount > 0 && <p className="text-xs text-gray-400 mt-0.5">{jobCount} job{jobCount > 1 ? 's' : ''}</p>}
+                    </div>
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
                   </div>
-                  <Badge variant={pipelineColor(client.pipeline_stage)}>{statusLabel(client.pipeline_stage)}</Badge>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
