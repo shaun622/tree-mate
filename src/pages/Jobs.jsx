@@ -80,7 +80,7 @@ export default function Jobs() {
 
   const activeFilter = LIST_FILTERS.find(f => f.key === filter) || LIST_FILTERS[0]
   const filtered = jobs.filter(j => activeFilter.statuses.includes(j.status))
-  const isCompletedView = filter === 'completed' || filter === 'invoiced'
+  const isCompletedView = filter === 'completed'
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
   const siteMap = Object.fromEntries(jobSites.map(s => [s.id, s]))
