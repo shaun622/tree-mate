@@ -27,62 +27,70 @@ function InfoRow({ icon, label, value, sub }) {
   )
 }
 
-// ── Pipeline Stepper ─────────────────────────────────────────────────────────
+// ── 4-Stage Pipeline Stepper ─────────────────────────────────────────────────
+const PIPELINE_STAGES = [
+  { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress', 'completed'] },
+  { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
+  { key: 'completed', label: 'Completed', statuses: ['paid'] },
+]
+
+function getStageIndex(status) {
+  return PIPELINE_STAGES.findIndex(s => s.statuses.includes(status))
+}
+
 function PipelineStepper({ currentStatus, onStepClick }) {
-  const stages = JOB_STATUSES
-  const currentIdx = stages.indexOf(currentStatus)
+  const currentIdx = getStageIndex(currentStatus)
 
   return (
-    <div className="overflow-x-auto -mx-1 px-1 pb-2 no-scrollbar">
-      <div className="flex items-center gap-0 min-w-max">
-        {stages.map((stage, i) => {
-          const isComplete = i < currentIdx
-          const isCurrent = i === currentIdx
-          return (
-            <div key={stage} className="flex items-center">
-              {i > 0 && (
-                <div className={`w-5 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-tree-400' : 'bg-gray-200'}`} />
-              )}
-              <button
-                type="button"
-                onClick={() => onStepClick?.(stage)}
-                className="flex flex-col items-center gap-1 cursor-pointer"
-              >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-300 ${
-                  isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
-                  isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
-                  'bg-white border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
-                }`}>
-                  {isComplete ? (
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  ) : (
-                    i + 1
-                  )}
-                </div>
-                <span className={`text-[8px] font-semibold leading-tight text-center whitespace-nowrap transition-colors duration-300 ${
-                  isCurrent ? 'text-tree-600' : isComplete ? 'text-tree-500' : 'text-gray-300'
-                }`}>
-                  {statusLabel(stage)}
-                </span>
-              </button>
-            </div>
-          )
-        })}
-      </div>
+    <div className="flex items-center justify-between px-2 pb-2">
+      {PIPELINE_STAGES.map((stage, i) => {
+        const isComplete = i < currentIdx
+        const isCurrent = i === currentIdx
+        return (
+          <div key={stage.key} className="flex items-center flex-1">
+            {i > 0 && (
+              <div className={`flex-1 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-tree-400' : 'bg-gray-200'}`} />
+            )}
+            <button
+              type="button"
+              onClick={() => onStepClick?.(stage.key)}
+              className="flex flex-col items-center gap-1.5 cursor-pointer px-1"
+            >
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
+                isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
+                isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
+                'bg-white border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
+              }`}>
+                {isComplete ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                ) : (
+                  i + 1
+                )}
+              </div>
+              <span className={`text-[10px] font-semibold leading-tight text-center whitespace-nowrap transition-colors duration-300 ${
+                isCurrent ? 'text-tree-600' : isComplete ? 'text-tree-500' : 'text-gray-300'
+              }`}>
+                {stage.label}
+              </span>
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
-// ── Status transition config ────────────────────────────────────────────────
+// ── Status transition config (maps current DB status → next action) ─────────
 const TRANSITIONS = {
-  enquiry:     { next: 'site_visit', label: 'Book Site Visit', variant: 'primary' },
-  site_visit:  { next: 'quoted',     label: 'Create Quote',    variant: 'primary', navigateTo: 'quote' },
-  quoted:      { next: 'approved',   label: 'Mark Approved',   variant: 'primary' },
-  approved:    { next: 'scheduled',  label: 'Schedule Job',    variant: 'primary' },
-  scheduled:   { next: 'in_progress', label: 'Start Job',     variant: 'primary' },
-  in_progress: { next: 'completed',  label: 'Complete Job',   variant: 'primary' },
-  completed:   { next: 'invoiced',   label: 'Create Invoice',  variant: 'primary', navigateTo: 'invoice' },
-  invoiced:    { next: 'paid',       label: 'Mark Paid',       variant: 'primary' },
+  enquiry:     { next: 'quoted',     label: 'Create Quote',    navigateTo: 'quote' },
+  site_visit:  { next: 'quoted',     label: 'Create Quote',    navigateTo: 'quote' },
+  quoted:      { next: 'scheduled',  label: 'Schedule Job' },
+  approved:    { next: 'scheduled',  label: 'Schedule Job' },
+  scheduled:   { next: 'completed',  label: 'Complete Job' },
+  in_progress: { next: 'completed',  label: 'Complete Job' },
+  completed:   { next: 'invoiced',   label: 'Create Invoice',  navigateTo: 'invoice' },
+  invoiced:    { next: 'paid',       label: 'Mark Paid' },
 }
 
 export default function JobDetailView({
@@ -145,26 +153,27 @@ export default function JobDetailView({
       onCreateQuote?.()
     } else if (transition.navigateTo === 'invoice') {
       onCreateInvoice?.()
-    } else if (transition.next === 'approved' && onDepositCapture) {
-      onDepositCapture()
     } else {
       onStatusChange?.(transition.next)
     }
   }
 
-  const handleStepClick = (stage) => {
-    if (stage === job.status) return // already on this stage
-    if (stage === 'approved' && onDepositCapture) {
-      onDepositCapture()
-    } else if (stage === 'quoted') {
-      // Need a quote to be in "quoted" — open builder if no quote exists
-      if (!quote && onCreateQuote) {
-        onCreateQuote()
-      } else {
-        onStatusChange?.(stage)
-      }
-    } else {
-      onStatusChange?.(stage)
+  // Step click maps simplified stage keys to DB status changes
+  const handleStepClick = (stageKey) => {
+    const currentStageIdx = getStageIndex(job.status)
+    const targetStageIdx = PIPELINE_STAGES.findIndex(s => s.key === stageKey)
+    if (currentStageIdx === targetStageIdx) return // already here
+
+    if (stageKey === 'quoted') {
+      if (!quote && onCreateQuote) onCreateQuote()
+      else onStatusChange?.('quoted')
+    } else if (stageKey === 'scheduled') {
+      onStatusChange?.('scheduled')
+    } else if (stageKey === 'invoiced') {
+      if (onCreateInvoice) onCreateInvoice()
+      else onStatusChange?.('invoiced')
+    } else if (stageKey === 'completed') {
+      onStatusChange?.('paid')
     }
   }
 

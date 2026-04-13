@@ -16,16 +16,14 @@ import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../lib/utils'
 
-const PIPELINE_COLUMNS = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress', 'completed']
+const PIPELINE_COLUMNS = ['quoted', 'scheduled', 'invoiced', 'completed']
 
-// Filter pills follow the pipeline: Enquiry → Quoted → Approved → Scheduled → Invoiced → Completed
+// 4 simplified pills: Quoted → Scheduled → Invoiced → Completed
 const LIST_FILTERS = [
-  { key: 'enquiry', label: 'Enquiry', statuses: ['enquiry', 'site_visit'] },
-  { key: 'quoted', label: 'Quoted', statuses: ['quoted'] },
-  { key: 'approved', label: 'Approved', statuses: ['approved'] },
-  { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
+  { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress', 'completed'] },
   { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
-  { key: 'completed', label: 'Completed', statuses: ['paid', 'completed'] },
+  { key: 'completed', label: 'Completed', statuses: ['paid'] },
 ]
 
 
@@ -41,10 +39,10 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState(() => {
     const param = searchParams.get('status')
-    if (!param) return 'enquiry'
+    if (!param) return 'quoted'
     // Map DB statuses to simplified filter keys
     const filterForStatus = LIST_FILTERS.find(f => f.statuses?.includes(param))
-    return filterForStatus ? filterForStatus.key : 'enquiry'
+    return filterForStatus ? filterForStatus.key : 'quoted'
   })
   const [viewMode, setViewMode] = useState('list') // 'list' | 'pipeline'
   const [showModal, setShowModal] = useState(!!searchParams.get('new'))
@@ -234,33 +232,32 @@ export default function Jobs() {
 
   // ── Pipeline Kanban View ──────────────────────────────────────────────────
   const PipelineView = () => {
-    const columnJobs = PIPELINE_COLUMNS.reduce((acc, col) => {
-      acc[col] = jobs.filter(j => j.status === col)
-      return acc
-    }, {})
-
+    const columns = LIST_FILTERS
     return (
       <div className="overflow-x-auto -mx-4 px-4 pb-2">
-        <div className="flex gap-3" style={{ minWidth: `${PIPELINE_COLUMNS.length * 220}px` }}>
-          {PIPELINE_COLUMNS.map(col => (
-            <div key={col} className="w-[200px] flex-shrink-0">
-              <div className="flex items-center gap-2 mb-2 px-1">
-                <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide ${statusColor(col)} px-2 py-1 rounded-lg`}>
-                  {statusLabel(col)}
-                </span>
-                <span className="text-xs text-gray-400 font-semibold">{columnJobs[col].length}</span>
+        <div className="flex gap-3" style={{ minWidth: `${columns.length * 240}px` }}>
+          {columns.map(col => {
+            const colJobs = jobs.filter(j => col.statuses.includes(j.status))
+            return (
+              <div key={col.key} className="w-[220px] flex-shrink-0">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide bg-tree-100 text-tree-700 px-2 py-1 rounded-lg">
+                    {col.label}
+                  </span>
+                  <span className="text-xs text-gray-400 font-semibold">{colJobs.length}</span>
+                </div>
+                <div className="space-y-2 min-h-[100px]">
+                  {colJobs.length === 0 ? (
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl h-20 flex items-center justify-center">
+                      <p className="text-xs text-gray-300">No jobs</p>
+                    </div>
+                  ) : (
+                    colJobs.map(job => <JobCard key={job.id} job={job} compact />)
+                  )}
+                </div>
               </div>
-              <div className="space-y-2 min-h-[100px]">
-                {columnJobs[col].length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-200 rounded-2xl h-20 flex items-center justify-center">
-                    <p className="text-xs text-gray-300">No jobs</p>
-                  </div>
-                ) : (
-                  columnJobs[col].map(job => <JobCard key={job.id} job={job} compact />)
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
