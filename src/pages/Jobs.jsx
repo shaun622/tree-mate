@@ -16,13 +16,11 @@ import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../lib/utils'
 
-const PIPELINE_COLUMNS = ['quoted', 'scheduled', 'invoiced', 'completed']
-
-// 4 simplified pills: Quoted → Scheduled → Invoiced → Completed
+// 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
 const LIST_FILTERS = [
   { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted'] },
-  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress', 'completed'] },
-  { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress'] },
+  { key: 'invoice', label: 'Invoice', statuses: ['completed', 'invoiced'] },
   { key: 'completed', label: 'Completed', statuses: ['paid'] },
 ]
 
@@ -132,7 +130,7 @@ export default function Jobs() {
   }
 
   // ── Job Card (shared between list and pipeline) ────────────────────────────
-  const JobCard = ({ job, compact = false, done = false }) => {
+  const JobCard = ({ job, compact = false, done = false, invoiceView = false }) => {
     const jc = clientMap[job.client_id]
     const js = siteMap[job.job_site_id]
     const quote = quotes[job.quote_id]
@@ -194,9 +192,15 @@ export default function Jobs() {
                     </span>
                   )}
                 </div>
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
-                  {statusLabel(job.status)}
-                </span>
+                {invoiceView ? (
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${job.status === 'invoiced' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {job.status === 'invoiced' ? 'Invoice Sent' : 'Not Sent'}
+                  </span>
+                ) : (
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
+                    {statusLabel(job.status)}
+                  </span>
+                )}
               </div>
               {jc && (
                 <p className="text-sm text-gray-700 truncate flex items-center gap-1.5">
@@ -318,7 +322,7 @@ export default function Jobs() {
           </div>
         ) : (
           <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
-            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} />)}
+            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} invoiceView={filter === 'invoice'} />)}
           </div>
         )}
       </div>

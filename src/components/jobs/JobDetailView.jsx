@@ -30,8 +30,8 @@ function InfoRow({ icon, label, value, sub }) {
 // ── 4-Stage Pipeline Stepper ─────────────────────────────────────────────────
 const PIPELINE_STAGES = [
   { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted'] },
-  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress', 'completed'] },
-  { key: 'invoiced', label: 'Invoiced', statuses: ['invoiced'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress'] },
+  { key: 'invoiced', label: 'Invoiced', statuses: ['completed', 'invoiced'] },
   { key: 'completed', label: 'Completed', statuses: ['paid'] },
 ]
 
