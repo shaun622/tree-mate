@@ -156,6 +156,13 @@ export default function JobDetailView({
     if (stage === job.status) return // already on this stage
     if (stage === 'approved' && onDepositCapture) {
       onDepositCapture()
+    } else if (stage === 'quoted') {
+      // Need a quote to be in "quoted" — open builder if no quote exists
+      if (!quote && onCreateQuote) {
+        onCreateQuote()
+      } else {
+        onStatusChange?.(stage)
+      }
     } else {
       onStatusChange?.(stage)
     }
