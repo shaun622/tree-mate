@@ -11,6 +11,7 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, TextArea, Select } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
+import AddressAutocomplete from '../components/ui/AddressAutocomplete'
 import { statusLabel, SITE_TYPES, SITE_ACCESS, HAZARDS, MAINTENANCE_FREQUENCIES, formatCurrency } from '../lib/utils'
 
 export default function ClientDetail() {
@@ -237,7 +238,7 @@ export default function ClientDetail() {
       {/* Add Job Site Modal */}
       <Modal open={showSiteModal} onClose={() => setShowSiteModal(false)} title="Add Job Site" size="lg">
         <form onSubmit={handleAddSite} className="space-y-4">
-          <Input label="Address" placeholder="123 Main St, Sydney NSW" value={siteForm.address} onChange={e => setSiteForm(p => ({ ...p, address: e.target.value }))} required />
+          <AddressAutocomplete label="Address" placeholder="123 Main St, Sydney NSW" value={siteForm.address} onChange={(addr) => setSiteForm(p => ({ ...p, address: addr }))} />
           <Select label="Site Type" options={SITE_TYPES.map(t => ({ value: t, label: statusLabel(t) }))} value={siteForm.site_type} onChange={e => setSiteForm(p => ({ ...p, site_type: e.target.value }))} />
           <Select label="Site Access" options={SITE_ACCESS.map(a => ({ value: a, label: statusLabel(a) }))} value={siteForm.site_access} onChange={e => setSiteForm(p => ({ ...p, site_access: e.target.value }))} />
           <div>
@@ -278,7 +279,7 @@ export default function ClientDetail() {
             <Input label="Name" value={client.name} onChange={e => setClient(p => ({ ...p, name: e.target.value }))} required />
             <Input label="Email" type="email" value={client.email || ''} onChange={e => setClient(p => ({ ...p, email: e.target.value }))} />
             <Input label="Phone" type="tel" value={client.phone || ''} onChange={e => setClient(p => ({ ...p, phone: e.target.value }))} />
-            <Input label="Address" value={client.address || ''} onChange={e => setClient(p => ({ ...p, address: e.target.value }))} />
+            <AddressAutocomplete label="Address" value={client.address || ''} onChange={(addr) => setClient(p => ({ ...p, address: addr }))} />
             <Select label="Pipeline Stage" value={client.pipeline_stage} onChange={e => setClient(p => ({ ...p, pipeline_stage: e.target.value }))} options={[{ value: 'lead', label: 'Lead' }, { value: 'quoted', label: 'Quoted' }, { value: 'active', label: 'Active' }, { value: 'on_hold', label: 'On Hold' }, { value: 'lost', label: 'Lost' }]} />
             <TextArea label="Notes" value={client.notes || ''} onChange={e => setClient(p => ({ ...p, notes: e.target.value }))} />
             <Button type="submit" loading={saving} className="w-full">Save Changes</Button>

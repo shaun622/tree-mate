@@ -10,6 +10,7 @@ import Button from '../components/ui/Button'
 import { Input, TextArea } from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import ClientPicker from '../components/pickers/ClientPicker'
+import AddressAutocomplete from '../components/ui/AddressAutocomplete'
 import { calculateGST, formatCurrency } from '../lib/utils'
 
 export default function InvoiceBuilder() {
@@ -225,7 +226,7 @@ export default function InvoiceBuilder() {
           <Input label="Name" value={editClientForm.name} onChange={e => setEditClientForm(p => ({ ...p, name: e.target.value }))} required />
           <Input label="Phone" type="tel" value={editClientForm.phone} onChange={e => setEditClientForm(p => ({ ...p, phone: e.target.value }))} />
           <Input label="Email" type="email" value={editClientForm.email} onChange={e => setEditClientForm(p => ({ ...p, email: e.target.value }))} />
-          <Input label="Address" value={editClientForm.address} onChange={e => setEditClientForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete label="Address" value={editClientForm.address} onChange={(addr) => setEditClientForm(p => ({ ...p, address: addr }))} />
           <Button type="submit" className="w-full">Save</Button>
         </form>
       </Modal>

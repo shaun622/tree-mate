@@ -12,6 +12,7 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
+import AddressAutocomplete from '../components/ui/AddressAutocomplete'
 
 // Compute client badge based on their jobs
 function getClientBadge(clientJobs) {
@@ -122,7 +123,7 @@ export default function Clients() {
           <Input label="Name" placeholder="Client name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
           <Input label="Email" type="email" placeholder="client@email.com" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
           <Input label="Phone" type="tel" placeholder="04XX XXX XXX" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
-          <Input label="Address" placeholder="Street address" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} />
+          <AddressAutocomplete label="Address" placeholder="Street address" value={form.address} onChange={(addr) => setForm(p => ({ ...p, address: addr }))} />
           <TextArea label="Notes" placeholder="Any notes..." value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           <Button type="submit" loading={saving} className="w-full">Add Client</Button>
         </form>
