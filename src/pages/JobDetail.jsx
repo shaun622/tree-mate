@@ -29,6 +29,12 @@ export default function JobDetail() {
   const [savingEdit, setSavingEdit] = useState(false)
   const [editForm, setEditForm] = useState(null)
   const [jobTypes, setJobTypes] = useState([])
+  const [showDeposit, setShowDeposit] = useState(false)
+  const [depositForm, setDepositForm] = useState({
+    type: 'percentage', percentage: 50, amount: 0,
+    noDeposit: false, paymentMethod: 'bank_transfer',
+    date: new Date().toISOString().split('T')[0],
+  })
 
   useEffect(() => {
     if (!business?.id) return
@@ -44,6 +50,49 @@ export default function JobDetail() {
     const { data } = await supabase.from('jobs').update(updates).eq('id', id).select().single()
     if (data) setJob(data)
     setUpdating(false)
+  }
+
+  const quoteTotal = quote?.total || 0
+
+  const openDepositCapture = () => {
+    const defaultAmount = Math.round(quoteTotal * 0.5 * 100) / 100
+    setDepositForm({
+      type: 'percentage', percentage: 50, amount: defaultAmount,
+      noDeposit: false, paymentMethod: 'bank_transfer',
+      date: new Date().toISOString().split('T')[0],
+    })
+    setShowDeposit(true)
+  }
+
+  const handleDepositConfirm = async () => {
+    setUpdating(true)
+    const depositAmount = depositForm.noDeposit ? 0 : depositForm.amount
+    const { data } = await supabase.from('jobs').update({
+      status: 'approved',
+      deposit_amount: depositAmount,
+      deposit_type: depositForm.noDeposit ? null : depositForm.type,
+      deposit_percentage: depositForm.type === 'percentage' ? depositForm.percentage : null,
+      deposit_payment_method: depositForm.noDeposit ? null : depositForm.paymentMethod,
+      deposit_date: depositForm.noDeposit ? null : depositForm.date,
+      deposit_received: !depositForm.noDeposit && depositAmount > 0,
+    }).eq('id', id).select().single()
+    if (data) setJob(data)
+    setShowDeposit(false)
+    setUpdating(false)
+  }
+
+  const handleDepositTypeChange = (type) => {
+    if (type === 'percentage') {
+      const amt = Math.round(quoteTotal * (depositForm.percentage / 100) * 100) / 100
+      setDepositForm(p => ({ ...p, type, amount: amt }))
+    } else {
+      setDepositForm(p => ({ ...p, type }))
+    }
+  }
+
+  const handlePercentageChange = (pct) => {
+    const amt = Math.round(quoteTotal * (pct / 100) * 100) / 100
+    setDepositForm(p => ({ ...p, percentage: pct, amount: amt }))
   }
 
   const openEdit = () => {
@@ -137,6 +186,7 @@ export default function JobDetail() {
           onDelete={handleDelete}
           onCreateReport={site ? () => navigate(`/sites/${site.id}/report`) : null}
           onOpenReport={(rid) => navigate(`/reports/${rid}`)}
+          onDepositCapture={openDepositCapture}
           onCreateQuote={() => navigate(`/quotes/new?job_id=${id}`)}
           onCreateInvoice={() => navigate(`/invoices/new?job_id=${id}`)}
         />
@@ -184,6 +234,107 @@ export default function JobDetail() {
             </div>
           </form>
         )}
+      </Modal>
+
+      {/* Deposit Capture Modal */}
+      <Modal open={showDeposit} onClose={() => setShowDeposit(false)} title="Deposit & Approval">
+        <div className="space-y-4">
+          {quoteTotal > 0 && (
+            <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center justify-between">
+              <span className="text-sm font-semibold text-tree-700">Quote Total</span>
+              <span className="text-lg font-bold text-tree-600">${quoteTotal.toFixed(2)}</span>
+            </div>
+          )}
+
+          {/* No deposit checkbox */}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={depositForm.noDeposit}
+              onChange={e => setDepositForm(p => ({ ...p, noDeposit: e.target.checked, amount: e.target.checked ? 0 : Math.round(quoteTotal * (p.percentage / 100) * 100) / 100 }))}
+              className="w-5 h-5 rounded border-gray-300 text-tree-600 focus:ring-tree-500"
+            />
+            <span className="text-sm font-medium text-gray-700">No deposit required</span>
+          </label>
+
+          {!depositForm.noDeposit && (
+            <>
+              {/* Deposit type toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Deposit Type</label>
+                <div className="flex gap-2">
+                  {[{ key: 'percentage', label: '% of Quote' }, { key: 'fixed', label: '$ Amount' }].map(opt => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => handleDepositTypeChange(opt.key)}
+                      className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold border-2 transition-all ${
+                        depositForm.type === opt.key
+                          ? 'border-tree-500 bg-tree-50 text-tree-700'
+                          : 'border-gray-100 text-gray-500 hover:border-gray-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amount input */}
+              {depositForm.type === 'percentage' ? (
+                <div>
+                  <Input
+                    label="Percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={depositForm.percentage}
+                    onChange={e => handlePercentageChange(Number(e.target.value) || 0)}
+                  />
+                  {quoteTotal > 0 && (
+                    <p className="text-xs text-tree-600 font-semibold mt-1">
+                      {depositForm.percentage}% = ${(Math.round(quoteTotal * (depositForm.percentage / 100) * 100) / 100).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <Input
+                  label="Deposit Amount ($)"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={depositForm.amount}
+                  onChange={e => setDepositForm(p => ({ ...p, amount: Number(e.target.value) || 0 }))}
+                />
+              )}
+
+              {/* Payment method */}
+              <Select
+                label="Payment Method"
+                value={depositForm.paymentMethod}
+                onChange={e => setDepositForm(p => ({ ...p, paymentMethod: e.target.value }))}
+                options={[
+                  { value: 'bank_transfer', label: 'Bank Transfer' },
+                  { value: 'cash', label: 'Cash' },
+                  { value: 'card', label: 'Card' },
+                ]}
+              />
+
+              {/* Date received */}
+              <Input
+                label="Date Received"
+                type="date"
+                value={depositForm.date}
+                onChange={e => setDepositForm(p => ({ ...p, date: e.target.value }))}
+              />
+            </>
+          )}
+
+          <Button onClick={handleDepositConfirm} loading={updating} className="w-full">
+            Confirm Approval
+          </Button>
+        </div>
       </Modal>
     </PageWrapper>
   )
