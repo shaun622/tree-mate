@@ -100,126 +100,138 @@ export default function ClientDetail() {
         </button>
       } />
 
-      <div className="px-4 py-4 space-y-4">
-        {/* Client Info */}
-        <Card className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">{client?.name}</h2>
-            <Badge variant={pipelineColor[client?.pipeline_stage] || 'neutral'}>{statusLabel(client?.pipeline_stage)}</Badge>
-          </div>
-          {client?.email && <p className="text-sm text-gray-500">{client.email}</p>}
-          {client?.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
-          {client?.address && <p className="text-sm text-gray-500">{client.address}</p>}
-          {client?.notes && <p className="text-sm text-gray-400 italic mt-2">{client.notes}</p>}
-        </Card>
+      <div className="px-4 md:px-0 py-4 space-y-6">
+        {/* Two-column desktop layout */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left column — Client info */}
+          <div className="lg:w-2/5 space-y-4">
+            <Card className="p-4 md:p-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900">{client?.name}</h2>
+                <Badge variant={pipelineColor[client?.pipeline_stage] || 'neutral'}>{statusLabel(client?.pipeline_stage)}</Badge>
+              </div>
+              {client?.email && (
+                <a href={`mailto:${client.email}`} className="text-sm text-gray-500 hover:text-tree-600 transition-colors block">{client.email}</a>
+              )}
+              {client?.phone && (
+                <a href={`tel:${client.phone}`} className="text-sm text-gray-500 hover:text-tree-600 transition-colors block">{client.phone}</a>
+              )}
+              {client?.address && <p className="text-sm text-gray-500">{client.address}</p>}
+              {client?.notes && <p className="text-sm text-gray-400 italic mt-2">{client.notes}</p>}
+            </Card>
 
-        {/* Add Job Site Button */}
-        <button onClick={() => setShowSiteModal(true)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-tree-50 border-2 border-dashed border-tree-200 text-tree-700 font-medium hover:bg-tree-100 hover:border-tree-300 transition-all duration-200 active:scale-[0.99]">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Job Site
-        </button>
+            {/* Add Job Site Button */}
+            <button onClick={() => setShowSiteModal(true)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-tree-50 border-2 border-dashed border-tree-200 text-tree-700 font-medium hover:bg-tree-100 hover:border-tree-300 transition-all duration-200 active:scale-[0.99]">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add Job Site
+            </button>
 
-        {/* Job Sites List */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Sites ({sites.length})</h3>
-          {sites.length === 0 ? (
-            <EmptyState title="No job sites" description="Add a job site to start tracking work" />
-          ) : (
-            <div className="space-y-2">
-              {sites.map(site => (
-                <Card key={site.id} hover onClick={() => navigate(`/sites/${site.id}`)} className="p-4">
-                  <p className="font-medium text-gray-900">{site.address}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <Badge variant="neutral">{statusLabel(site.site_type)}</Badge>
-                    <Badge variant={site.site_access === 'easy' ? 'success' : site.site_access === 'difficult' ? 'warning' : site.site_access === 'crane_required' ? 'danger' : 'neutral'}>
-                      {statusLabel(site.site_access)}
-                    </Badge>
-                    {site.regular_maintenance && <Badge variant="primary">Maintenance</Badge>}
-                  </div>
-                </Card>
-              ))}
+            {/* Job Sites */}
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Job Sites ({sites.length})</h3>
+              {sites.length === 0 ? (
+                <EmptyState title="No job sites" description="Add a job site to start tracking work" />
+              ) : (
+                <div className="space-y-2">
+                  {sites.map(site => (
+                    <Card key={site.id} hover onClick={() => navigate(`/sites/${site.id}`)} className="p-4">
+                      <p className="font-medium text-gray-900">{site.address}</p>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <Badge variant="neutral">{statusLabel(site.site_type)}</Badge>
+                        <Badge variant={site.site_access === 'easy' ? 'success' : site.site_access === 'difficult' ? 'warning' : site.site_access === 'crane_required' ? 'danger' : 'neutral'}>
+                          {statusLabel(site.site_access)}
+                        </Badge>
+                        {site.regular_maintenance && <Badge variant="primary">Maintenance</Badge>}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Right column — Jobs, Quotes, Invoices */}
+          <div className="flex-1 lg:w-3/5 space-y-6">
+            {/* Jobs */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Jobs ({clientJobs.length})</h3>
+                <button onClick={() => navigate('/jobs')} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">+ New Job</button>
+              </div>
+              {clientJobs.length === 0 ? (
+                <p className="text-sm text-gray-400">No jobs yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {clientJobs.slice(0, 5).map(job => (
+                      <Card key={job.id} hover onClick={() => navigate(`/jobs/${job.id}`)} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                            <p className="text-xs text-gray-400">{job.scheduled_date || new Date(job.created_at).toLocaleDateString('en-AU')}</p>
+                          </div>
+                          <Badge variant={['completed', 'paid'].includes(job.status) ? 'neutral' : ['in_progress', 'scheduled', 'approved'].includes(job.status) ? 'success' : job.status === 'quoted' ? 'warning' : 'info'}>
+                            {statusLabel(job.status)}
+                          </Badge>
+                        </div>
+                      </Card>
+                  ))}
+                  {clientJobs.length > 5 && <p className="text-xs text-gray-400 text-center">+{clientJobs.length - 5} more</p>}
+                </div>
+              )}
+            </div>
+
+            {/* Quotes */}
+            {clientQuotes.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Quotes ({clientQuotes.length})</h3>
+                <div className="space-y-2">
+                  {clientQuotes.slice(0, 5).map(q => (
+                    <Card key={q.id} hover onClick={() => navigate(`/quotes/${q.id}`)} className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">{q.scope?.split('\n')[0] || 'Quote'}</p>
+                          <p className="text-xs text-gray-400">{new Date(q.created_at).toLocaleDateString('en-AU')}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-gray-900">{formatCurrency(q.total)}</p>
+                          <p className="text-xs text-gray-400">{statusLabel(q.status)}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Invoices */}
+            {clientInvoices.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Invoices ({clientInvoices.length})</h3>
+                <div className="space-y-2">
+                  {clientInvoices.slice(0, 5).map(inv => {
+                    const isOverdue = inv.status === 'sent' && inv.due_date && new Date(inv.due_date) < new Date()
+                    return (
+                      <Card key={inv.id} hover onClick={() => navigate(`/invoices/${inv.id}`)} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">{inv.invoice_number || 'Invoice'}</p>
+                            <p className="text-xs text-gray-400">{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-AU')}` : ''}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-gray-900">{formatCurrency(inv.total)}</p>
+                            <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-400'}`}>
+                              {isOverdue ? 'Overdue' : statusLabel(inv.status)}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Jobs */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-900">Jobs ({clientJobs.length})</h3>
-            <button onClick={() => navigate('/jobs')} className="text-xs font-semibold text-tree-600">+ New Job</button>
-          </div>
-          {clientJobs.length === 0 ? (
-            <p className="text-sm text-gray-400">No jobs yet</p>
-          ) : (
-            <div className="space-y-2">
-              {clientJobs.slice(0, 5).map(job => (
-                  <Card key={job.id} hover onClick={() => navigate(`/jobs/${job.id}`)} className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{job.job_type || 'Job'}</p>
-                        <p className="text-xs text-gray-400">{job.scheduled_date || new Date(job.created_at).toLocaleDateString('en-AU')}</p>
-                      </div>
-                      <Badge variant={['completed', 'paid'].includes(job.status) ? 'neutral' : ['in_progress', 'scheduled', 'approved'].includes(job.status) ? 'success' : job.status === 'quoted' ? 'warning' : 'info'}>
-                        {statusLabel(job.status)}
-                      </Badge>
-                    </div>
-                  </Card>
-              ))}
-              {clientJobs.length > 5 && <p className="text-xs text-gray-400 text-center">+{clientJobs.length - 5} more</p>}
-            </div>
-          )}
-        </div>
-
-        {/* Quotes */}
-        {clientQuotes.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Quotes ({clientQuotes.length})</h3>
-            <div className="space-y-2">
-              {clientQuotes.slice(0, 5).map(q => (
-                <Card key={q.id} hover onClick={() => navigate(`/quotes/${q.id}`)} className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">{q.scope?.split('\n')[0] || 'Quote'}</p>
-                      <p className="text-xs text-gray-400">{new Date(q.created_at).toLocaleDateString('en-AU')}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">{formatCurrency(q.total)}</p>
-                      <p className="text-xs text-gray-400">{statusLabel(q.status)}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Invoices */}
-        {clientInvoices.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Invoices ({clientInvoices.length})</h3>
-            <div className="space-y-2">
-              {clientInvoices.slice(0, 5).map(inv => {
-                const isOverdue = inv.status === 'sent' && inv.due_date && new Date(inv.due_date) < new Date()
-                return (
-                  <Card key={inv.id} hover onClick={() => navigate(`/invoices/${inv.id}`)} className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{inv.invoice_number || 'Invoice'}</p>
-                        <p className="text-xs text-gray-400">{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-AU')}` : ''}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-gray-900">{formatCurrency(inv.total)}</p>
-                        <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-400'}`}>
-                          {isOverdue ? 'Overdue' : statusLabel(inv.status)}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Add Job Site Modal */}

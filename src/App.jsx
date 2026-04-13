@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
 import BottomNav from './components/layout/BottomNav'
+import TopNav from './components/layout/TopNav'
 import { isTrialExpired, trialDaysLeft } from './lib/plans'
 
 // Lazy load all pages
@@ -65,7 +66,7 @@ function ProtectedRoute() {
 function TrialExpiredBanner() {
   const navigate = useNavigate()
   return (
-    <div className="max-w-app mx-auto px-4 pt-2">
+    <div className="max-w-lg md:max-w-5xl mx-auto px-4 md:px-8 pt-2">
       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
@@ -86,7 +87,7 @@ function TrialWarningBanner({ daysLeft }) {
   const navigate = useNavigate()
   if (daysLeft > 3) return null
   return (
-    <div className="max-w-app mx-auto px-4 pt-2">
+    <div className="max-w-lg md:max-w-5xl mx-auto px-4 md:px-8 pt-2">
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3">
         <p className="text-xs text-amber-700 flex-1"><strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> left in your trial.</p>
         <button onClick={() => navigate('/subscription')} className="px-3 py-1 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors flex-shrink-0">
@@ -109,6 +110,7 @@ function BusinessGuard() {
 
   return (
     <>
+      <TopNav />
       {expired && <TrialExpiredBanner />}
       {!expired && daysLeft !== null && <TrialWarningBanner daysLeft={daysLeft} />}
       <Outlet />

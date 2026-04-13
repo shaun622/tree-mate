@@ -102,8 +102,8 @@ export default function Clients() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Clients" rightAction={
+    <PageWrapper width="wide">
+      <Header title="Clients" subtitle={`${clients.length} customer${clients.length !== 1 ? 's' : ''}`} rightAction={
         <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-all duration-200 active:scale-95">
           <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
@@ -114,12 +114,12 @@ export default function Clients() {
         <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
 
         {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 no-scrollbar">
+        <div className="flex flex-wrap gap-2">
           {FILTERS.map(f => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-gray-200'}`}
             >
               {f.label} ({filterCounts[f.key] || 0})
             </button>
@@ -135,19 +135,27 @@ export default function Clients() {
             onAction={() => setShowModal(true)}
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
             {displayed.map(client => {
               const badge = getClientBadge(clientJobs[client.id])
               const jobCount = (clientJobs[client.id] || []).length
+              const initials = client.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+              const hue = client.name.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0) % 360
               return (
                 <Card key={client.id} hover onClick={() => navigate(`/clients/${client.id}`)} className="p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: `hsl(${hue}, 55%, 50%)` }}>
+                      {initials}
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 truncate">{client.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-gray-900 truncate">{client.name}</p>
+                        <Badge variant={badge.variant}>{badge.label}</Badge>
+                      </div>
                       <p className="text-sm text-gray-500 truncate">{client.email || client.phone || 'No contact info'}</p>
                       {jobCount > 0 && <p className="text-xs text-gray-400 mt-0.5">{jobCount} job{jobCount > 1 ? 's' : ''}</p>}
                     </div>
-                    <Badge variant={badge.variant}>{badge.label}</Badge>
+                    <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                   </div>
                 </Card>
               )

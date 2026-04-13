@@ -262,8 +262,8 @@ export default function Jobs() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Jobs" rightAction={
+    <PageWrapper width="wide">
+      <Header title="Jobs" subtitle="Track every job from enquiry to completion" rightAction={
         <div className="flex items-center gap-1">
           {/* View toggle */}
           <button
@@ -286,9 +286,9 @@ export default function Jobs() {
 
       <div className="px-4 py-4 space-y-4">
         {viewMode === 'list' && (
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex flex-wrap gap-2">
             {LIST_FILTERS.map(s => (
-              <button key={s} onClick={() => setFilter(s)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === s ? 'bg-gradient-brand text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
+              <button key={s} onClick={() => setFilter(s)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === s ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
                 {s === 'all' ? `All (${jobs.length})` : `${statusLabel(s)} (${jobs.filter(j => j.status === s).length})`}
               </button>
             ))}
@@ -310,7 +310,7 @@ export default function Jobs() {
             <p className="text-sm text-gray-400">No jobs with status "{statusLabel(filter)}"</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
             {filtered.map(job => <JobCard key={job.id} job={job} />)}
           </div>
         )}

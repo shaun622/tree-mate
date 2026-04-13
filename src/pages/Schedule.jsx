@@ -452,8 +452,8 @@ export default function Schedule() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Schedule" />
+    <PageWrapper width="wide">
+      <Header title="Schedule" subtitle="Your daily site visits and jobs" />
 
       <div className="px-4 py-4 space-y-4">
         {/* Day picker (for today + map views) */}
