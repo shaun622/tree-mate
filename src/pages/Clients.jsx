@@ -13,13 +13,6 @@ import Modal from '../components/ui/Modal'
 import { Input, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
 
-const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active Jobs' },
-  { key: 'leads', label: 'Leads' },
-  { key: 'completed', label: 'Completed' },
-]
-
 // Compute client badge based on their jobs
 function getClientBadge(clientJobs) {
   if (!clientJobs || clientJobs.length === 0) return { label: 'No Jobs', variant: 'neutral' }
@@ -32,22 +25,10 @@ function getClientBadge(clientJobs) {
   return { label: 'Completed', variant: 'neutral' }
 }
 
-function getClientFilter(clientJobs) {
-  if (!clientJobs || clientJobs.length === 0) return 'all'
-  const hasActive = clientJobs.some(j => !['completed', 'invoiced', 'paid'].includes(j.status))
-  if (hasActive) {
-    const onlyEarly = clientJobs.every(j => ['enquiry', 'site_visit'].includes(j.status) || ['completed', 'invoiced', 'paid'].includes(j.status))
-    if (onlyEarly) return 'leads'
-    return 'active'
-  }
-  return 'completed'
-}
-
 export default function Clients() {
   const { business } = useBusiness()
   const { clients, createClient } = useClients(business?.id)
   const navigate = useNavigate()
-  const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', notes: '' })
@@ -71,23 +52,8 @@ export default function Clients() {
   }, [business?.id, clients])
 
   const displayed = useMemo(() => {
-    let list = clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
-    if (filter !== 'all') {
-      list = list.filter(c => getClientFilter(clientJobs[c.id]) === filter)
-    }
-    return list
-  }, [clients, search, filter, clientJobs])
-
-  const filterCounts = useMemo(() => {
-    const counts = { all: clients.length, active: 0, leads: 0, completed: 0 }
-    for (const c of clients) {
-      const f = getClientFilter(clientJobs[c.id])
-      if (f === 'active') counts.active++
-      else if (f === 'leads') counts.leads++
-      else if (f === 'completed') counts.completed++
-    }
-    return counts
-  }, [clients, clientJobs])
+    return clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+  }, [clients, search])
 
   const handleAdd = async (e) => {
     e.preventDefault()
@@ -112,19 +78,6 @@ export default function Clients() {
       <div className="px-4 py-4 space-y-4">
         {/* Search */}
         <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
-
-        {/* Filter pills */}
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map(f => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-600 hover:border-gray-200'}`}
-            >
-              {f.label} ({filterCounts[f.key] || 0})
-            </button>
-          ))}
-        </div>
 
         {displayed.length === 0 ? (
           <EmptyState
