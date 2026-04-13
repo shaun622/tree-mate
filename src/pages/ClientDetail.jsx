@@ -121,10 +121,10 @@ export default function ClientDetail() {
               {client?.notes && <p className="text-sm text-gray-400 italic mt-2">{client.notes}</p>}
             </Card>
 
-            {/* Add Job Site Button */}
-            <button onClick={() => setShowSiteModal(true)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-tree-50 border-2 border-dashed border-tree-200 text-tree-700 font-medium hover:bg-tree-100 hover:border-tree-300 transition-all duration-200 active:scale-[0.99]">
+            {/* Add Job Button */}
+            <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-tree-50 border-2 border-dashed border-tree-200 text-tree-700 font-medium hover:bg-tree-100 hover:border-tree-300 transition-all duration-200 active:scale-[0.99]">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Job Site
+              Add Job
             </button>
 
             {/* Job Sites */}
@@ -157,7 +157,7 @@ export default function ClientDetail() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Jobs ({clientJobs.length})</h3>
-                <button onClick={() => navigate('/jobs')} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">+ New Job</button>
+                <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">+ New Job</button>
               </div>
               {clientJobs.length === 0 ? (
                 <p className="text-sm text-gray-400">No jobs yet</p>

@@ -47,10 +47,10 @@ export default function Jobs() {
     return filterForStatus ? filterForStatus.key : 'enquiry'
   })
   const [viewMode, setViewMode] = useState('list') // 'list' | 'pipeline'
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(!!searchParams.get('new'))
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
-    client_id: '', job_site_id: '', job_type: '',
+    client_id: searchParams.get('client_id') || '', job_site_id: '', job_type: '',
     scheduled_date: '', scheduled_time: '09:00', notes: '',
   })
   const [jobTypes, setJobTypes] = useState([])
