@@ -23,7 +23,7 @@ export default function JobDetail() {
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
-  const { job, client, site, quote, reports, loading, setJob, setClient, setSite } = useJobDetail(id)
+  const { job, client, site, quote, reports, loading, setJob, setClient, setSite, setQuote } = useJobDetail(id)
   const [updating, setUpdating] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
@@ -93,6 +93,18 @@ export default function JobDetail() {
   const handlePercentageChange = (pct) => {
     const amt = Math.round(quoteTotal * (pct / 100) * 100) / 100
     setDepositForm(p => ({ ...p, percentage: pct, amount: amt }))
+  }
+
+  const handleAcceptQuote = async () => {
+    if (!quote?.id) return
+    setUpdating(true)
+    const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id).select().single()
+    if (updatedQuote) setQuote(updatedQuote)
+    // Move job to approved and open deposit capture
+    const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', id).select().single()
+    if (updatedJob) setJob(updatedJob)
+    setUpdating(false)
+    openDepositCapture()
   }
 
   const openEdit = () => {
@@ -189,6 +201,8 @@ export default function JobDetail() {
           onOpenReport={(rid) => navigate(`/reports/${rid}`)}
           onDepositCapture={openDepositCapture}
           onCreateQuote={() => navigate(`/quotes/new?job_id=${id}`)}
+          onEditQuote={quote ? () => navigate(`/quotes/${quote.id}`) : null}
+          onAcceptQuote={quote ? handleAcceptQuote : null}
           onCreateInvoice={() => navigate(`/invoices/new?job_id=${id}`)}
         />
       </div>

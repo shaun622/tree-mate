@@ -96,7 +96,7 @@ const TRANSITIONS = {
 export default function JobDetailView({
   job, client, site, quote, staff = [], reports = [],
   onEdit, onDelete, onStatusChange, onCreateReport, onOpenReport,
-  onCreateQuote, onCreateInvoice, onDepositCapture,
+  onCreateQuote, onCreateInvoice, onDepositCapture, onEditQuote, onAcceptQuote,
   updating = false, compact = false,
 }) {
   const [photos, setPhotos] = useState([])
@@ -306,6 +306,26 @@ export default function JobDetailView({
           {quote.line_items?.length > 0 && (
             <p className="text-xs text-gray-400 mt-1">{quote.line_items.length} line item{quote.line_items.length !== 1 ? 's' : ''}</p>
           )}
+          <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+            {onEditQuote && (
+              <button
+                onClick={onEditQuote}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-2 rounded-xl transition-all duration-200"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                Edit Quote
+              </button>
+            )}
+            {onAcceptQuote && quote.status !== 'accepted' && (
+              <button
+                onClick={onAcceptQuote}
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-tree-600 hover:text-white hover:bg-tree-600 border-2 border-tree-200 hover:border-tree-600 py-2 rounded-xl transition-all duration-200"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                Accept Quote
+              </button>
+            )}
+          </div>
         </Card>
       )}
       {!quote && onCreateQuote && ['enquiry', 'site_visit', 'quoted'].includes(job.status) && (
