@@ -171,7 +171,7 @@ export default function JobDetail() {
 
   return (
     <PageWrapper>
-      <Header title={job?.job_type || 'Job'} back="/jobs" />
+      <Header title={job?.job_type || 'Job'} />
 
       <div className="px-4 py-4">
         <JobDetailView

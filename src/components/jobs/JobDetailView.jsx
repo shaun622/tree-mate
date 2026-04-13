@@ -156,10 +156,6 @@ export default function JobDetailView({
     if (stage === job.status) return // already on this stage
     if (stage === 'approved' && onDepositCapture) {
       onDepositCapture()
-    } else if (stage === 'quoted' && onCreateQuote) {
-      onCreateQuote()
-    } else if (stage === 'invoiced' && onCreateInvoice) {
-      onCreateInvoice()
     } else {
       onStatusChange?.(stage)
     }
