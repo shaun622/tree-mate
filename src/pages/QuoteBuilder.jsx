@@ -154,7 +154,7 @@ export default function QuoteBuilder() {
     setSaving(true)
     await save('draft')
     setSaving(false)
-    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/quotes')
+    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/jobs')
   }
 
   const handleSend = async () => {
@@ -169,12 +169,12 @@ export default function QuoteBuilder() {
       await supabase.functions.invoke('send-quote', { body: { quote_id: quote.id || id } })
     }
     setSending(false)
-    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/quotes')
+    navigate(linkedJobId ? `/jobs/${linkedJobId}` : '/jobs')
   }
 
   return (
     <PageWrapper>
-      <Header title={id ? 'Edit Quote' : 'New Quote'} back={linkedJobId ? `/jobs/${linkedJobId}` : '/quotes'} />
+      <Header title={id ? 'Edit Quote' : 'New Quote'} back={linkedJobId ? `/jobs/${linkedJobId}` : '/jobs'} />
 
       <div className="px-4 py-4 space-y-4">
         {/* Job link banner */}

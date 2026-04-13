@@ -20,7 +20,6 @@ const JobReportDetail = React.lazy(() => import('./pages/JobReportDetail'))
 const Jobs = React.lazy(() => import('./pages/Jobs'))
 const JobDetail = React.lazy(() => import('./pages/JobDetail'))
 const RecurringJobs = React.lazy(() => import('./pages/RecurringJobs'))
-const Quotes = React.lazy(() => import('./pages/Quotes'))
 const QuoteBuilder = React.lazy(() => import('./pages/QuoteBuilder'))
 const Invoices = React.lazy(() => import('./pages/Invoices'))
 const InvoiceBuilder = React.lazy(() => import('./pages/InvoiceBuilder'))
@@ -150,7 +149,7 @@ export default function App() {
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/recurring-jobs" element={<RecurringJobs />} />
-                <Route path="/quotes" element={<Quotes />} />
+                <Route path="/quotes" element={<Navigate to="/jobs?status=quoted" replace />} />
                 <Route path="/quotes/new" element={<QuoteBuilder />} />
                 <Route path="/quotes/:id" element={<QuoteBuilder />} />
                 <Route path="/settings" element={<Settings />} />
