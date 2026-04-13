@@ -18,14 +18,17 @@ import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../li
 
 const PIPELINE_COLUMNS = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress', 'completed']
 
+const ACTIVE_STATUSES = ['enquiry', 'site_visit', 'quoted', 'approved', 'scheduled', 'in_progress']
+const COMPLETED_STATUSES = ['completed', 'invoiced', 'paid']
+
 // Simplified filter pills — merge related statuses
 const LIST_FILTERS = [
-  { key: 'all', label: 'All', statuses: null },
+  { key: 'all', label: 'Active', statuses: ACTIVE_STATUSES },
   { key: 'enquiry', label: 'Enquiry', statuses: ['enquiry', 'site_visit'] },
   { key: 'quoted', label: 'Quoted', statuses: ['quoted'] },
   { key: 'approved', label: 'Approved', statuses: ['approved'] },
   { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
-  { key: 'completed', label: 'Completed', statuses: ['completed', 'invoiced', 'paid'] },
+  { key: 'completed', label: 'Completed', statuses: COMPLETED_STATUSES },
 ]
 
 
@@ -79,7 +82,8 @@ export default function Jobs() {
   }, [business?.id])
 
   const activeFilter = LIST_FILTERS.find(f => f.key === filter) || LIST_FILTERS[0]
-  const filtered = activeFilter.statuses ? jobs.filter(j => activeFilter.statuses.includes(j.status)) : jobs
+  const filtered = jobs.filter(j => activeFilter.statuses.includes(j.status))
+  const isCompletedView = filter === 'completed'
 
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
   const siteMap = Object.fromEntries(jobSites.map(s => [s.id, s]))
@@ -133,7 +137,7 @@ export default function Jobs() {
   }
 
   // ── Job Card (shared between list and pipeline) ────────────────────────────
-  const JobCard = ({ job, compact = false }) => {
+  const JobCard = ({ job, compact = false, done = false }) => {
     const jc = clientMap[job.client_id]
     const js = siteMap[job.job_site_id]
     const quote = quotes[job.quote_id]
@@ -145,7 +149,7 @@ export default function Jobs() {
       <button
         type="button"
         onClick={() => navigate(`/jobs/${job.id}`)}
-        className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-tree-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.995]`}
+        className={`w-full text-left bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-tree-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.995] ${done ? 'opacity-60' : ''}`}
       >
         {compact ? (
           /* Pipeline compact card */
@@ -177,7 +181,7 @@ export default function Jobs() {
         ) : (
           /* List full card */
           <div className="flex">
-            <div className="w-16 bg-gradient-to-br from-tree-500 to-tree-700 flex flex-col items-center justify-center text-white flex-shrink-0">
+            <div className={`w-16 ${done ? 'bg-gray-300' : 'bg-gradient-to-br from-tree-500 to-tree-700'} flex flex-col items-center justify-center text-white flex-shrink-0`}>
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               {job.scheduled_date && (
                 <p className="text-[10px] font-bold mt-1 leading-tight text-center px-1">
@@ -188,7 +192,7 @@ export default function Jobs() {
             <div className="flex-1 p-3 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 min-w-0">
-                  <p className="font-bold text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                  <p className={`font-bold truncate ${done ? 'text-gray-400' : 'text-gray-900'}`}>{job.job_type || 'Job'}</p>
                   {showPriority && (
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${pStyle.bg} ${pStyle.text}`}>
                       {statusLabel(job.priority)}
@@ -294,7 +298,7 @@ export default function Jobs() {
         {viewMode === 'list' && (
           <div className="flex flex-wrap gap-2">
             {LIST_FILTERS.map(f => {
-              const count = f.statuses ? jobs.filter(j => f.statuses.includes(j.status)).length : jobs.length
+              const count = jobs.filter(j => f.statuses.includes(j.status)).length
               return (
                 <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
                   {f.label} ({count})
@@ -320,7 +324,7 @@ export default function Jobs() {
           </div>
         ) : (
           <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
-            {filtered.map(job => <JobCard key={job.id} job={job} />)}
+            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} />)}
           </div>
         )}
       </div>
