@@ -329,10 +329,6 @@ export default function JobDetailView({
           </div>
         </Card>
       )}
-      {!quote && onCreateQuote && ['enquiry', 'site_visit', 'quoted'].includes(job.status) && (
-        <Button variant="secondary" onClick={onCreateQuote} className="w-full">Create Quote</Button>
-      )}
-
       {/* Primary action button (pipeline transition) */}
       {transition && onStatusChange && job.status !== 'paid' && (
         <Button onClick={handleTransition} loading={updating} className="w-full">
