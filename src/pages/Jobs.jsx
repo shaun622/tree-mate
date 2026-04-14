@@ -272,6 +272,7 @@ export default function Jobs() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
+    if (!form.client_id) return
     setSaving(true)
     const hasDate = !!form.scheduled_date
     let scheduled_start = null
@@ -301,6 +302,8 @@ export default function Jobs() {
   }
 
   const handleCreateWithQuote = async (send = false) => {
+    if (!form.client_id) return
+    if (send && !newJobQuoteForm.line_items.some(item => item.description?.trim() && Number(item.unit_price) > 0)) return
     setSaving(true)
     const hasDate = !!form.scheduled_date
     let scheduled_start = null
@@ -825,18 +828,26 @@ export default function Jobs() {
               <p className="text-xs text-gray-400 -mt-2">Leave blank to start as an enquiry</p>
             )}
             <TextArea label="Notes" placeholder="Job notes, access instructions..." value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
+            {!form.client_id && (
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">Please select or create a client before continuing.</p>
+            )}
             <button
               type="button"
+              disabled={!form.client_id}
               onClick={() => {
                 setNewJobQuoteForm(p => ({ ...p, scope: form.job_type ? `${form.job_type}${form.notes ? ` - ${form.notes}` : ''}` : p.scope }))
                 setNewJobStep(2)
               }}
-              className="w-full py-2.5 text-sm font-semibold text-tree-600 border-2 border-tree-200 rounded-2xl hover:bg-tree-50 transition-all duration-200 flex items-center justify-center gap-2"
+              className={`w-full py-2.5 text-sm font-semibold border-2 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                form.client_id
+                  ? 'text-tree-600 border-tree-200 hover:bg-tree-50'
+                  : 'text-gray-400 border-gray-200 cursor-not-allowed opacity-50'
+              }`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               Add Quote
             </button>
-            <Button type="submit" loading={saving} className="w-full">Create Job</Button>
+            <Button type="submit" loading={saving} disabled={!form.client_id} className="w-full">Create Job</Button>
           </form>
         ) : (
           <div className="space-y-4">
@@ -896,10 +907,20 @@ export default function Jobs() {
               <TextArea label="Terms & Conditions" value={newJobQuoteForm.terms} onChange={e => setNewJobQuoteForm(p => ({ ...p, terms: e.target.value }))} />
             </Card>
 
-            <div className="flex gap-3">
-              <Button variant="secondary" onClick={() => handleCreateWithQuote(false)} loading={saving} className="flex-1">Save Draft</Button>
-              <Button onClick={() => handleCreateWithQuote(true)} loading={saving} className="flex-1">Create Job + Send Quote</Button>
-            </div>
+            {(() => {
+              const hasValidItem = newJobQuoteForm.line_items.some(item => item.description?.trim() && Number(item.unit_price) > 0)
+              return (
+                <>
+                  {!hasValidItem && (
+                    <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">Add at least 1 line item with a description and price to send the quote.</p>
+                  )}
+                  <div className="flex gap-3">
+                    <Button variant="secondary" onClick={() => handleCreateWithQuote(false)} loading={saving} className="flex-1">Save Draft</Button>
+                    <Button onClick={() => handleCreateWithQuote(true)} loading={saving} disabled={!hasValidItem} className="flex-1">Create Job + Send Quote</Button>
+                  </div>
+                </>
+              )
+            })()}
           </div>
         )}
       </Modal>
