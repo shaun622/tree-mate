@@ -27,6 +27,7 @@ export default function BottomNav() {
                 <Link
                   key={tab.path}
                   to={tab.path}
+                  onClick={() => window.scrollTo(0, 0)}
                   className="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 relative no-underline"
                 >
                   <div className={active ? 'text-tree-600 scale-110' : 'text-gray-400'}>
