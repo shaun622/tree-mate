@@ -57,27 +57,19 @@ function LoadingSpinner() {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  // Disable browser's automatic scroll restoration
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
     }
   }, [])
   useLayoutEffect(() => {
-    // Clear any modal body lock before scrolling
-    document.body.style.position = ''
-    document.body.style.top = ''
-    document.body.style.left = ''
-    document.body.style.right = ''
+    // Clear any modal body lock
+    document.documentElement.style.overflow = ''
+    document.body.style.overflow = ''
+    document.body.style.touchAction = ''
     document.body.classList.remove('modal-open')
-    // Force scroll to top immediately
+    // Scroll to top
     window.scrollTo(0, 0)
-    document.documentElement.scrollTop = 0
-    document.body.scrollTop = 0
-    // Also scroll after lazy content loads
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0)
-    })
   }, [pathname])
   return null
 }
