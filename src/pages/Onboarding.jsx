@@ -9,7 +9,7 @@ import { Input } from '../components/ui/Input'
 export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({ name: '', abn: '', phone: '', email: '', logo_url: '', brand_colour: '#22c55e' })
+  const [form, setForm] = useState({ name: '', abn: '', phone: '', email: '', logo_url: '', brand_colour: '#22c55e', timezone: 'Australia/Brisbane' })
   const { createBusiness, business, loading: bizLoading } = useBusiness()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -66,6 +66,27 @@ export default function Onboarding() {
                 <Input label="ABN" placeholder="XX XXX XXX XXX" value={form.abn} onChange={e => update('abn', e.target.value)} />
                 <Input label="Phone" type="tel" placeholder="04XX XXX XXX" value={form.phone} onChange={e => update('phone', e.target.value)} />
                 <Input label="Email" type="email" placeholder="info@yourbusiness.com.au" value={form.email} onChange={e => update('email', e.target.value)} />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Timezone</label>
+                  <select
+                    value={form.timezone}
+                    onChange={e => update('timezone', e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 text-sm font-medium text-gray-900 bg-white focus:border-tree-400 focus:ring-2 focus:ring-tree-100 outline-none transition-all duration-200 appearance-none"
+                  >
+                    <option value="Australia/Brisbane">Brisbane (AEST)</option>
+                    <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                    <option value="Australia/Melbourne">Melbourne (AEST/AEDT)</option>
+                    <option value="Australia/Adelaide">Adelaide (ACST/ACDT)</option>
+                    <option value="Australia/Perth">Perth (AWST)</option>
+                    <option value="Australia/Darwin">Darwin (ACST)</option>
+                    <option value="Australia/Hobart">Hobart (AEST/AEDT)</option>
+                    <option value="Pacific/Auckland">Auckland (NZST)</option>
+                    <option value="Asia/Singapore">Singapore (SGT)</option>
+                    <option value="America/New_York">New York (EST)</option>
+                    <option value="America/Los_Angeles">Los Angeles (PST)</option>
+                    <option value="Europe/London">London (GMT)</option>
+                  </select>
+                </div>
                 <Button onClick={() => setStep(2)} className="w-full" disabled={!form.name}>Next</Button>
               </>
             ) : (

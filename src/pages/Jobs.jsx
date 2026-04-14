@@ -821,8 +821,8 @@ export default function Jobs() {
               onCreateTemplate={createJobTypeTemplate}
             />
             <div className="flex gap-2">
-              <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
-              <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />
+              <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} placeholder={new Date().toISOString().split('T')[0]} className="flex-[2]" />
+              <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="w-28" />
             </div>
             {!form.scheduled_date && (
               <p className="text-xs text-gray-400 -mt-2">Leave blank to start as an enquiry</p>
