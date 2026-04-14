@@ -51,7 +51,7 @@ export default function Signup() {
   return (
     <div className="min-h-screen bg-gradient-page flex flex-col">
       <div className="max-w-app mx-auto w-full flex-1 flex flex-col">
-        <div className="bg-gradient-hero px-6 pt-20 pb-16 text-center relative overflow-hidden">
+        <div className="bg-gradient-hero px-6 pt-20 pb-16 text-center relative overflow-hidden safe-top">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/20" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10" />

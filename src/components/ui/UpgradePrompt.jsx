@@ -17,7 +17,7 @@ export default function UpgradePrompt({ message, onClose }) {
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => navigate('/subscription')}
-              className="px-4 py-2 bg-gradient-brand text-white text-xs font-semibold rounded-xl shadow-button hover:shadow-button-hover transition-all duration-200"
+              className="px-4 py-2 bg-gradient-brand text-white text-xs font-semibold rounded-xl shadow-button hover:shadow-button-hover transition-colors duration-150"
             >
               View Plans
             </button>

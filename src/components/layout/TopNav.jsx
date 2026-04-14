@@ -39,7 +39,7 @@ export default function TopNav() {
                 <button
                   key={tab.path}
                   onClick={() => navigate(tab.path)}
-                  className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-colors duration-150 ${
                     active
                       ? 'text-tree-700 bg-tree-50'
                       : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'

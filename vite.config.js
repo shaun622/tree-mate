@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'TreePro',
@@ -32,12 +32,12 @@ export default defineConfig({
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
-            options: { cacheName: 'pages', expiration: { maxEntries: 10, maxAgeSeconds: 300 } }
+            options: { cacheName: 'pages', networkTimeoutSeconds: 3, expiration: { maxEntries: 10, maxAgeSeconds: 300 } }
           },
           {
             urlPattern: /\.(?:js|css)$/,
             handler: 'NetworkFirst',
-            options: { cacheName: 'assets', expiration: { maxEntries: 60, maxAgeSeconds: 86400 } }
+            options: { cacheName: 'assets', networkTimeoutSeconds: 5, expiration: { maxEntries: 60, maxAgeSeconds: 86400 } }
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

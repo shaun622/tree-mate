@@ -71,14 +71,14 @@ export default function Clients() {
   return (
     <PageWrapper width="wide">
       <Header title="Clients" subtitle={`${clients.length} customer${clients.length !== 1 ? 's' : ''}`} rightAction={
-        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-all duration-200 active:scale-95">
+        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150 active:scale-95">
           <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
       } />
 
       <div className="px-4 py-4 space-y-4">
         {/* Search */}
-        <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-all duration-200" />
+        <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-colors duration-150" />
 
         {displayed.length === 0 ? (
           <EmptyState

@@ -69,7 +69,7 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
           <div
             key={a.id}
             onClick={isClickable ? () => handleClick(a) : undefined}
-            className={`flex items-start gap-3 animate-fade-in ${isClickable ? 'cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 py-1.5 rounded-2xl transition-all duration-200' : ''} ${!a.is_read ? '' : 'opacity-60'}`}
+            className={`flex items-start gap-3 animate-fade-in ${isClickable ? 'cursor-pointer hover:bg-gray-50/80 -mx-2 px-2 py-1.5 rounded-2xl transition-colors duration-150' : ''} ${!a.is_read ? '' : 'opacity-60'}`}
           >
             <div className="relative flex-shrink-0">
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${color}`}>

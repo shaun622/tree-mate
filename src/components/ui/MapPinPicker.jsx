@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { reverseGeocode, searchAddresses } from '../../lib/geocode'
@@ -38,20 +38,23 @@ function Recenter({ center }) {
 }
 
 export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) {
-  const [marker, setMarker] = useState(null) // { lat, lng }
+  const [marker, setMarker] = useState(null)
   const [label, setLabel] = useState('')
   const [busy, setBusy] = useState(false)
-  const [center, setCenter] = useState(null) // start from initial label if possible
+  const [center, setCenter] = useState(null)
   const [searching, setSearching] = useState(false)
+  const debounceRef = useRef(null)
+  const initialLabelRef = useRef(initialLabel)
 
-  // Try to seed with the typed text so the map opens near it
+  // Seed map position from initial label — only on mount
   useEffect(() => {
-    if (!initialLabel || initialLabel.trim().length < 3) {
-      setCenter([-33.8688, 151.2093]) // Sydney default
+    const text = initialLabelRef.current
+    if (!text || text.trim().length < 3) {
+      setCenter([-33.8688, 151.2093])
       return
     }
     setSearching(true)
-    searchAddresses(initialLabel, { limit: 1 }).then(r => {
+    searchAddresses(text, { limit: 1 }).then(r => {
       if (r?.[0]) {
         setCenter([r[0].lat, r[0].lng])
         setMarker({ lat: r[0].lat, lng: r[0].lng })
@@ -61,11 +64,22 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
       }
       setSearching(false)
     })
-  }, [initialLabel])
+  }, [])
 
+  // Lock scroll — use same pattern as Modal (position:fixed on html)
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    const scrollY = window.scrollY
+    document.documentElement.style.position = 'fixed'
+    document.documentElement.style.top = `-${scrollY}px`
+    document.documentElement.style.width = '100%'
+    document.body.classList.add('modal-open')
+    return () => {
+      document.documentElement.style.position = ''
+      document.documentElement.style.top = ''
+      document.documentElement.style.width = ''
+      document.body.classList.remove('modal-open')
+      window.scrollTo(0, scrollY)
+    }
   }, [])
 
   const handleMapClick = async (latlng) => {
@@ -84,14 +98,14 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 bg-black/60" />
       <div className="relative bg-white w-full max-w-2xl rounded-3xl shadow-elevated overflow-hidden animate-slide-up max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Pin location on map</h2>
             <p className="text-xs text-gray-500">Tap anywhere on the map to drop a pin</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150">
             <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -114,7 +128,7 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
             </div>
           )}
           {searching && (
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-xs text-gray-600 shadow-card">
+            <div className="absolute top-3 left-3 bg-white px-3 py-1.5 rounded-lg text-xs text-gray-600 shadow-card">
               Locating...
             </div>
           )}

@@ -43,7 +43,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-gradient-page flex flex-col">
       <div className="max-w-app mx-auto w-full flex-1 flex flex-col">
-        <div className="bg-gradient-hero px-6 pt-20 pb-14 text-center relative overflow-hidden">
+        <div className="bg-gradient-hero px-6 pt-20 pb-14 text-center relative overflow-hidden safe-top">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/20" />
           </div>
@@ -51,8 +51,8 @@ export default function Onboarding() {
             <h1 className="text-2xl font-bold text-white mb-1">Set Up Your Business</h1>
             <p className="text-white/70 text-sm font-medium">Step {step} of 2</p>
             <div className="flex gap-2 justify-center mt-4">
-              <div className={`h-1.5 w-12 rounded-full transition-all duration-300 ${step >= 1 ? 'bg-white' : 'bg-white/30'}`} />
-              <div className={`h-1.5 w-12 rounded-full transition-all duration-300 ${step >= 2 ? 'bg-white' : 'bg-white/30'}`} />
+              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 1 ? 'bg-white' : 'bg-white/30'}`} />
+              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 2 ? 'bg-white' : 'bg-white/30'}`} />
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function Onboarding() {
                   <select
                     value={form.timezone}
                     onChange={e => update('timezone', e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 text-sm font-medium text-gray-900 bg-white focus:border-tree-400 focus:ring-2 focus:ring-tree-100 outline-none transition-all duration-200 appearance-none"
+                    className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 text-sm font-medium text-gray-900 bg-white focus:border-tree-400 focus:ring-2 focus:ring-tree-100 outline-none transition-colors duration-150 appearance-none"
                   >
                     <option value="Australia/Brisbane">Brisbane (AEST)</option>
                     <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>

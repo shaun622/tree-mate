@@ -58,7 +58,7 @@ function PipelineStepper({ currentStatus, onStepClick }) {
               className={`flex flex-col items-center gap-1.5 px-1 ${onStepClick ? 'cursor-pointer' : 'cursor-default'}`}
               disabled={!onStepClick}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors duration-150 ${
                 isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
                 isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
                 'bg-white border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
@@ -311,7 +311,7 @@ export default function JobDetailView({
             {onEditQuote && (
               <button
                 onClick={onEditQuote}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-2 rounded-xl transition-all duration-200"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-2 rounded-xl transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 Edit Quote
@@ -320,7 +320,7 @@ export default function JobDetailView({
             {onAcceptQuote && quote.status !== 'accepted' && (
               <button
                 onClick={onAcceptQuote}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-tree-600 hover:text-white hover:bg-tree-600 border-2 border-tree-200 hover:border-tree-600 py-2 rounded-xl transition-all duration-200"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-tree-600 hover:text-white hover:bg-tree-600 border-2 border-tree-200 hover:border-tree-600 py-2 rounded-xl transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 Accept Quote
@@ -371,7 +371,7 @@ export default function JobDetailView({
           {photos.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {photos.map(p => (
-                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-2xl overflow-hidden bg-gray-100 transition-all duration-200 hover:shadow-card-hover hover:scale-[1.02]">
+                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-2xl overflow-hidden bg-gray-100 transition-colors duration-150 hover:shadow-card-hover hover:scale-[1.02]">
                   <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                 </a>
               ))}
@@ -386,7 +386,7 @@ export default function JobDetailView({
           <Button variant="secondary" onClick={onEdit} className="flex-1">Edit Job</Button>
         )}
         {onDelete && (
-          <button onClick={onDelete} className="flex-1 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-2xl font-semibold transition-all duration-200">
+          <button onClick={onDelete} className="flex-1 text-xs text-red-400 hover:text-red-600 hover:bg-red-50 py-2.5 rounded-2xl font-semibold transition-colors duration-150">
             Delete Job
           </button>
         )}

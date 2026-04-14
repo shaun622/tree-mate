@@ -85,7 +85,7 @@ export default function Settings() {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-gray-50/80 transition-all duration-200 active:bg-gray-100 group"
+                  className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 active:bg-gray-100 group"
                 >
                   <div className={`w-10 h-10 rounded-xl ${item.bg} ring-1 ${item.ring} flex items-center justify-center ${item.color} flex-shrink-0 group-hover:scale-110 transition-transform duration-200`}>
                     {item.icon}
@@ -94,7 +94,7 @@ export default function Settings() {
                     <p className="font-semibold text-gray-900 text-sm">{item.label}</p>
                     <p className="text-xs text-gray-400 truncate">{item.desc}</p>
                   </div>
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all duration-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-colors duration-150 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </button>
               ))}
             </Card>

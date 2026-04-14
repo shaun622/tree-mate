@@ -71,13 +71,13 @@ export default function Subscription() {
           <div className="inline-flex bg-gray-100 rounded-xl p-1">
             <button
               onClick={() => setBilling('monthly')}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${billing === 'monthly' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 ${billing === 'monthly' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBilling('yearly')}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${billing === 'yearly' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 flex items-center gap-1.5 ${billing === 'yearly' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
             >
               Yearly
               <span className="text-[10px] font-bold text-tree-600 uppercase">Save</span>
@@ -138,7 +138,7 @@ export default function Subscription() {
               {/* CTA */}
               <button
                 disabled
-                className={`w-full py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                className={`w-full py-3.5 rounded-2xl text-sm font-semibold transition-colors duration-150 ${
                   plan.popular
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'

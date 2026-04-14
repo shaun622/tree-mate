@@ -107,7 +107,7 @@ export default function Dashboard() {
     <PageWrapper width="wide">
       <div className="md:hidden">
       <Header title="TreePro" rightAction={
-        <button onClick={() => navigate('/settings')} className="p-2 hover:bg-black/5 rounded-xl transition-all duration-200 active:scale-95">
+        <button onClick={() => navigate('/settings')} className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150 active:scale-95">
           <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         </button>
       } />
@@ -148,7 +148,7 @@ export default function Dashboard() {
                     <button
                       key={stage.key}
                       onClick={() => navigate(`/jobs?status=${stage.key}`)}
-                      className={`rounded-2xl p-3 text-center transition-all duration-200 active:scale-95 hover:shadow-card-hover ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
+                      className={`rounded-2xl p-3 text-center transition-colors duration-150 active:scale-95 hover:shadow-card-hover ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
                     >
                       <p className={`text-2xl font-bold ${needsAttention ? 'text-amber-700' : stage.text}`}>{count}</p>
                       <p className={`text-[10px] font-semibold mt-0.5 ${needsAttention ? 'text-amber-600' : stage.text} opacity-70`}>{stage.label}</p>
@@ -185,15 +185,15 @@ export default function Dashboard() {
 
               {/* Stat pills */}
               <div className="flex gap-2">
-                <div className="flex-1 bg-sky-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
+                <div className="flex-1 bg-sky-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
                   <p className="text-lg font-bold text-sky-700">{todayStats.siteVisits}</p>
                   <p className="text-[10px] font-semibold text-sky-600">Site Visits</p>
                 </div>
-                <div className="flex-1 bg-tree-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
+                <div className="flex-1 bg-tree-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
                   <p className="text-lg font-bold text-tree-700">{todayStats.jobs}</p>
                   <p className="text-[10px] font-semibold text-tree-600">Jobs</p>
                 </div>
-                <div className="flex-1 bg-emerald-50 rounded-2xl p-3 text-center transition-all duration-200 hover:shadow-card">
+                <div className="flex-1 bg-emerald-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
                   <div className="flex items-center justify-center gap-1">
                     <p className="text-lg font-bold text-emerald-700">{todayStats.completed}</p>
                     {todayStats.completed > 0 && (

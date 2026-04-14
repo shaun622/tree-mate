@@ -77,7 +77,7 @@ export default function AddressAutocomplete({ value, onChange, label, placeholde
           onChange={handleInput}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-100 focus:border-tree-400 focus:outline-none focus:ring-4 focus:ring-tree-50 bg-gray-50/50 focus:bg-white text-gray-900 placeholder-gray-400 transition-all duration-200"
+          className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-100 focus:border-tree-400 focus:outline-none focus:ring-4 focus:ring-tree-50 bg-gray-50/50 focus:bg-white text-gray-900 placeholder-gray-400 transition-colors duration-150"
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
