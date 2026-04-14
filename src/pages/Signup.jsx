@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Button from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -11,7 +11,8 @@ export default function Signup() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signUp } = useAuth()
+  const { signUp, signIn } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,9 +26,25 @@ export default function Signup() {
       return
     }
     setLoading(true)
-    const { error: err } = await signUp(email, password)
-    if (err) setError(err.message)
-    else setSuccess(true)
+    const { data, error: err } = await signUp(email, password)
+    if (err) {
+      setError(err.message)
+      setLoading(false)
+      return
+    }
+    // If session returned (email confirmation disabled), go straight in
+    if (data?.session) {
+      navigate('/')
+      return
+    }
+    // Otherwise try auto-sign-in
+    const { error: signInErr } = await signIn(email, password)
+    if (!signInErr) {
+      navigate('/')
+      return
+    }
+    // Fall back to confirmation screen
+    setSuccess(true)
     setLoading(false)
   }
 
