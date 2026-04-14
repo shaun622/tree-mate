@@ -633,7 +633,7 @@ export default function Jobs() {
             onAcceptQuote={previewData.quote ? previewAcceptQuote : null}
             onCreateQuote={() => { closePreview(); openQuoteModal(null, previewJob.id) }}
             onCreateInvoice={() => { closePreview(); navigate(`/invoices/new?job_id=${previewJob.id}`) }}
-            onEdit={() => closePreview()}
+            onEdit={() => { closePreview(); navigate(`/jobs/${previewJob.id}`) }}
           />
         )}
       </Modal>
