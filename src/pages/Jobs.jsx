@@ -19,8 +19,8 @@ import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../li
 
 // 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
 const LIST_FILTERS = [
-  { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted'] },
-  { key: 'scheduled', label: 'Scheduled', statuses: ['approved', 'scheduled', 'in_progress'] },
+  { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted', 'approved'] },
+  { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
   { key: 'invoice', label: 'Invoice', statuses: ['completed', 'invoiced'] },
   { key: 'completed', label: 'Completed', statuses: ['paid'] },
 ]
@@ -265,6 +265,10 @@ export default function Jobs() {
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${job.status === 'invoiced' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                     {job.status === 'invoiced' ? 'Invoice Sent' : 'Not Sent'}
                   </span>
+                ) : quotedView ? (
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${job.status === 'approved' ? 'bg-green-100 text-green-700' : job.status === 'quoted' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {job.status === 'approved' ? 'Quote Accepted' : job.status === 'quoted' ? 'Quote Sent' : statusLabel(job.status)}
+                  </span>
                 ) : (
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
                     {statusLabel(job.status)}
@@ -319,6 +323,18 @@ export default function Jobs() {
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   Accept
+                </button>
+              </>
+            )}
+            {job.status === 'approved' && (
+              <>
+                <div className="w-px bg-gray-100" />
+                <button
+                  onClick={(e) => { e.stopPropagation(); navigate(`/jobs/${job.id}`) }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-tree-600 hover:text-white hover:bg-tree-600 transition-all duration-200"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  Schedule
                 </button>
               </>
             )}
