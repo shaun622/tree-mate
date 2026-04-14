@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 
 const WIDTH_CLASSES = {
   default: 'max-w-lg md:max-w-5xl',
@@ -7,8 +8,11 @@ const WIDTH_CLASSES = {
 }
 
 export default function PageWrapper({ children, className = '', width = 'default' }) {
-  useEffect(() => {
-    // Disable browser scroll restoration
+  const { pathname } = useLocation()
+
+  // useLayoutEffect fires synchronously before browser paint
+  // pathname dependency ensures it fires on every route change
+  useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
     }
@@ -21,7 +25,7 @@ export default function PageWrapper({ children, className = '', width = 'default
     document.body.classList.remove('modal-open')
     // Scroll to top
     window.scrollTo(0, 0)
-  }, [])
+  }, [pathname])
 
   return (
     <div className={`min-h-screen bg-gradient-page pb-24 md:pb-8 ${className}`}>
