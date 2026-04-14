@@ -300,7 +300,7 @@ export default function Jobs() {
     setSaving(false)
   }
 
-  const handleCreateWithQuote = async () => {
+  const handleCreateWithQuote = async (send = false) => {
     setSaving(true)
     const hasDate = !!form.scheduled_date
     let scheduled_start = null
@@ -310,7 +310,6 @@ export default function Jobs() {
       scheduled_start = startDt.toISOString()
       scheduled_end = new Date(startDt.getTime() + 60 * 60000).toISOString()
     }
-    // Create the job
     const { data: jobData, error } = await supabase.from('jobs').insert({
       business_id: business.id,
       client_id: form.client_id || null,
@@ -324,7 +323,6 @@ export default function Jobs() {
       priority: 'normal',
     }).select().single()
     if (!error && jobData) {
-      // Create the quote linked to the job
       const njqSubtotal = newJobQuoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
       const { gst: njqGst, total: njqTotal } = calculateGST(njqSubtotal)
       const { data: quoteData } = await supabase.from('quotes').insert({
@@ -338,10 +336,13 @@ export default function Jobs() {
         subtotal: njqSubtotal, gst: njqGst, total: njqTotal,
         inclusions: newJobQuoteForm.inclusions || null,
         exclusions: newJobQuoteForm.exclusions || null,
-        status: 'draft',
+        status: send ? 'sent' : 'draft',
       }).select().single()
       if (quoteData) {
         await supabase.from('jobs').update({ quote_id: quoteData.id }).eq('id', jobData.id)
+        if (send) {
+          await supabase.functions.invoke('send-quote', { body: { quote_id: quoteData.id } })
+        }
         jobData.quote_id = quoteData.id
       }
       setJobs(prev => [jobData, ...prev])
@@ -895,7 +896,10 @@ export default function Jobs() {
               <TextArea label="Terms & Conditions" value={newJobQuoteForm.terms} onChange={e => setNewJobQuoteForm(p => ({ ...p, terms: e.target.value }))} />
             </Card>
 
-            <Button onClick={handleCreateWithQuote} loading={saving} className="w-full">Create Job + Quote</Button>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={() => handleCreateWithQuote(false)} loading={saving} className="flex-1">Save Draft</Button>
+              <Button onClick={() => handleCreateWithQuote(true)} loading={saving} className="flex-1">Create Job + Send Quote</Button>
+            </div>
           </div>
         )}
       </Modal>
