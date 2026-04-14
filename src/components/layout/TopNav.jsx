@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 const tabs = [
   { path: '/', label: 'Home' },
   { path: '/schedule', label: 'Schedule' },
-  { path: '/clients', label: 'Clients' },
   { path: '/jobs', label: 'Jobs' },
+  { path: '/clients', label: 'Clients' },
   { path: '/settings', label: 'Settings' },
 ]
 
