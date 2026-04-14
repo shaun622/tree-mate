@@ -22,7 +22,7 @@ export default function TopNav() {
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <button onClick={() => { navigate('/'); window.scrollTo(0, 0) }} className="flex items-center gap-2.5 group">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-tree-500 to-tree-700 flex items-center justify-center shadow-button">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-3-3-7-6.5-7-10.5C5 6.5 8 3 12 3s7 3.5 7 7.5c0 4-4 7.5-7 10.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M9 7l3-4 3 4M8 12l4-2 4 2" /></svg>
             </div>
@@ -38,7 +38,7 @@ export default function TopNav() {
               return (
                 <button
                   key={tab.path}
-                  onClick={() => { navigate(tab.path); window.scrollTo(0, 0) }}
+                  onClick={() => navigate(tab.path)}
                   className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                     active
                       ? 'text-tree-700 bg-tree-50'

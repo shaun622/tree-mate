@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useLayoutEffect } from 'react'
+import React, { Suspense } from 'react'
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
@@ -55,26 +55,6 @@ function LoadingSpinner() {
   )
 }
 
-function ScrollToTop() {
-  const { pathname } = useLocation()
-  useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual'
-    }
-  }, [])
-  useLayoutEffect(() => {
-    // Clear any modal body lock
-    document.documentElement.style.overflow = ''
-    document.documentElement.style.position = ''
-    document.documentElement.style.width = ''
-    document.documentElement.style.top = ''
-    document.body.style.overflow = ''
-    document.body.classList.remove('modal-open')
-    // Scroll to top
-    window.scrollTo(0, 0)
-  }, [pathname])
-  return null
-}
 
 function ProtectedRoute() {
   const { user, loading } = useAuth()
@@ -144,7 +124,6 @@ export default function App() {
     <AuthProvider>
       <BusinessProvider>
         <Suspense fallback={<LoadingSpinner />}>
-          <ScrollToTop />
           <Routes>
             {/* Public */}
             <Route path="/portal/login" element={<PortalLogin />} />
