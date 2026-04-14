@@ -25,11 +25,11 @@ export default function BottomNav() {
             {tabs.map(tab => {
               const active = isActive(tab.path)
               return (
-                <button key={tab.path} onClick={() => navigate(tab.path)} className="flex flex-col items-center justify-center min-w-[56px] min-h-tap gap-0.5 relative group">
-                  <div className={`transition-all duration-300 ${active ? 'text-tree-600 scale-110' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                <button key={tab.path} onClick={() => navigate(tab.path)} className="flex flex-col items-center justify-center min-w-[56px] min-h-tap gap-0.5 relative" style={{ touchAction: 'manipulation' }}>
+                  <div className={active ? 'text-tree-600 scale-110' : 'text-gray-400'}>
                     {tab.icon(active)}
                   </div>
-                  <span className={`text-[10px] font-semibold transition-colors duration-200 ${active ? 'text-tree-600' : 'text-gray-400 group-hover:text-gray-600'}`}>{tab.label}</span>
+                  <span className={`text-[10px] font-semibold ${active ? 'text-tree-600' : 'text-gray-400'}`}>{tab.label}</span>
                   {active && <div className="absolute -bottom-1 w-5 h-0.5 rounded-full bg-tree-500" />}
                 </button>
               )
