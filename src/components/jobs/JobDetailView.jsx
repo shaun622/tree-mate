@@ -55,7 +55,8 @@ function PipelineStepper({ currentStatus, onStepClick }) {
             <button
               type="button"
               onClick={() => onStepClick?.(stage.key)}
-              className="flex flex-col items-center gap-1.5 cursor-pointer px-1"
+              className={`flex flex-col items-center gap-1.5 px-1 ${onStepClick ? 'cursor-pointer' : 'cursor-default'}`}
+              disabled={!onStepClick}
             >
               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
                 isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
@@ -97,7 +98,7 @@ export default function JobDetailView({
   job, client, site, quote, staff = [], reports = [],
   onEdit, onDelete, onStatusChange, onCreateReport, onOpenReport,
   onCreateQuote, onCreateInvoice, onDepositCapture, onEditQuote, onAcceptQuote,
-  updating = false, compact = false,
+  updating = false, compact = false, readOnly = false,
 }) {
   const [photos, setPhotos] = useState([])
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
@@ -180,7 +181,7 @@ export default function JobDetailView({
   return (
     <div className="space-y-4">
       {/* Pipeline stepper */}
-      <PipelineStepper currentStatus={job.status} onStepClick={handleStepClick} />
+      <PipelineStepper currentStatus={job.status} onStepClick={readOnly ? undefined : handleStepClick} />
 
       {/* Hero: Map or gradient banner */}
       {hasCoords ? (

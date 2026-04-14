@@ -457,6 +457,7 @@ export default function Jobs() {
             reports={previewData.reports}
             updating={previewUpdating}
             compact
+            readOnly
             onStatusChange={previewStatusChange}
             onEditQuote={previewData.quote ? () => { closePreview(); navigate(`/quotes/${previewData.quote.id}`) } : null}
             onAcceptQuote={previewData.quote ? previewAcceptQuote : null}
