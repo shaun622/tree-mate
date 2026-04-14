@@ -26,13 +26,18 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,ico,png,svg}'],
+        globPatterns: ['**/*.{ico,png,svg}'],
         navigateFallback: null,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
             options: { cacheName: 'pages', expiration: { maxEntries: 10, maxAgeSeconds: 300 } }
+          },
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'assets', expiration: { maxEntries: 60, maxAgeSeconds: 86400 } }
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
