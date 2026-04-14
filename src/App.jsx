@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
@@ -57,7 +57,8 @@ function LoadingSpinner() {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => {
+  // useLayoutEffect fires before browser paint — prevents flash at wrong scroll position
+  useLayoutEffect(() => {
     // Clear any modal body lock before scrolling
     document.body.style.position = ''
     document.body.style.top = ''
