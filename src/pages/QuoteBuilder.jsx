@@ -177,7 +177,7 @@ export default function QuoteBuilder() {
 
   return (
     <PageWrapper>
-      <Header title={id ? 'Edit Quote' : 'New Quote'} back={linkedJobId ? `/jobs/${linkedJobId}` : '/jobs'} />
+      <Header title={id ? 'Edit Quote' : 'New Quote'} back="/jobs" />
 
       <div className="px-4 py-4 space-y-4">
         {/* Job link banner */}

@@ -193,8 +193,7 @@ export default function Jobs() {
 
     const handleQuickEdit = (e) => {
       e.stopPropagation()
-      if (job.quote_id) navigate(`/quotes/${job.quote_id}`)
-      else navigate(`/quotes/new?job_id=${job.id}`)
+      openPreview(job)
     }
 
     const handleQuickAccept = async (e) => {
