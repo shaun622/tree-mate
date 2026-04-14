@@ -120,10 +120,10 @@ export default function Jobs() {
     if (status === 'paid') updates.completed_at = updates.completed_at || new Date().toISOString()
     const { data } = await supabase.from('jobs').update(updates).eq('id', previewJob.id).select().single()
     if (data) {
-      setPreviewJob(data)
       setJobs(prev => prev.map(j => j.id === data.id ? data : j))
     }
     setPreviewUpdating(false)
+    closePreview()
   }
 
   const previewAcceptQuote = async () => {
@@ -463,7 +463,7 @@ export default function Jobs() {
             onAcceptQuote={previewData.quote ? previewAcceptQuote : null}
             onCreateQuote={() => { closePreview(); navigate(`/quotes/new?job_id=${previewJob.id}`) }}
             onCreateInvoice={() => { closePreview(); navigate(`/invoices/new?job_id=${previewJob.id}`) }}
-            onEdit={() => { closePreview(); navigate(`/jobs/${previewJob.id}`) }}
+            onEdit={() => closePreview()}
           />
         )}
       </Modal>
