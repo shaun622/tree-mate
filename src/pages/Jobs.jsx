@@ -244,6 +244,9 @@ export default function Jobs() {
   }
 
   const handleQuoteSend = async () => {
+    const hasValidItem = quoteForm.line_items.some(item => item.description?.trim() && Number(item.unit_price) > 0)
+    const clientEmail = clients.find(c => c.id === quoteForm.client_id)?.email
+    if (!hasValidItem || !clientEmail) return
     if (quoteStatus === 'accepted') {
       if (!confirm('Quote already accepted. Send an amended quote?')) return
     } else if (quoteStatus === 'sent' || quoteStatus === 'viewed') {
@@ -784,10 +787,28 @@ export default function Jobs() {
             <TextArea label="Terms & Conditions" value={quoteForm.terms} onChange={e => setQuoteForm(p => ({ ...p, terms: e.target.value }))} />
           </Card>
 
-          <div className="flex gap-3">
-            <Button variant="secondary" onClick={handleQuoteSave} loading={quoteSaving} className="flex-1">Save Draft</Button>
-            <Button onClick={handleQuoteSend} loading={quoteSending} className="flex-1">Send Quote</Button>
-          </div>
+          {(() => {
+            const hasValidItem = quoteForm.line_items.some(item => item.description?.trim() && Number(item.unit_price) > 0)
+            const selectedClient = clients.find(c => c.id === quoteForm.client_id)
+            const clientEmail = selectedClient?.email
+            return (
+              <>
+                {clientEmail && (
+                  <p className="text-xs text-gray-500 text-center">Sending to: <span className="font-medium text-gray-700">{clientEmail}</span></p>
+                )}
+                {quoteForm.client_id && !clientEmail && (
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">No email on file for this client. Quote cannot be sent.</p>
+                )}
+                {!hasValidItem && (
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">Add at least 1 line item with a description and price to send the quote.</p>
+                )}
+                <div className="flex gap-3">
+                  <Button variant="secondary" onClick={handleQuoteSave} loading={quoteSaving} className="flex-1">Save Draft</Button>
+                  <Button onClick={handleQuoteSend} loading={quoteSending} disabled={!hasValidItem || !clientEmail} className="flex-1">Send Quote</Button>
+                </div>
+              </>
+            )
+          })()}
         </div>
       </Modal>
 
