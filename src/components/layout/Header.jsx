@@ -4,7 +4,7 @@ export default function Header({ title, subtitle, back, rightAction }) {
   const navigate = useNavigate()
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-200/60 safe-top">
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-200/60 safe-top" style={{ position: '-webkit-sticky' }}>
       <div className="max-w-lg md:max-w-6xl mx-auto flex items-center justify-between px-4 md:px-8 h-14">
         <div className="flex items-center gap-2 min-w-0">
           {back && (
