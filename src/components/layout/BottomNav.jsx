@@ -25,7 +25,7 @@ export default function BottomNav() {
             {tabs.map(tab => {
               const active = isActive(tab.path)
               return (
-                <button key={tab.path} onClick={() => { navigate(tab.path); requestAnimationFrame(() => { const header = document.querySelector('header'); if (header) { window.scrollTo(0, header.offsetHeight) } else { window.scrollTo(0, 0) } }) }} className="flex flex-col items-center justify-center min-w-[56px] min-h-tap gap-0.5 relative group">
+                <button key={tab.path} onClick={() => { navigate(tab.path); window.scrollTo(0, 0); requestAnimationFrame(() => window.scrollTo(0, 0)) }} className="flex flex-col items-center justify-center min-w-[56px] min-h-tap gap-0.5 relative group">
                   <div className={`transition-all duration-300 ${active ? 'text-tree-600 scale-110' : 'text-gray-400 group-hover:text-gray-600'}`}>
                     {tab.icon(active)}
                   </div>

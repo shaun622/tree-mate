@@ -70,15 +70,8 @@ function ScrollToTop() {
     document.documentElement.style.top = ''
     document.body.style.overflow = ''
     document.body.classList.remove('modal-open')
-    // Scroll past the header so content (pills, search, etc.) is at the top
-    requestAnimationFrame(() => {
-      const header = document.querySelector('header')
-      if (header) {
-        window.scrollTo(0, header.offsetHeight)
-      } else {
-        window.scrollTo(0, 0)
-      }
-    })
+    // Scroll to top
+    window.scrollTo(0, 0)
   }, [pathname])
   return null
 }
