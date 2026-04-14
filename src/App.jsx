@@ -65,8 +65,10 @@ function ScrollToTop() {
   useLayoutEffect(() => {
     // Clear any modal body lock
     document.documentElement.style.overflow = ''
+    document.documentElement.style.position = ''
+    document.documentElement.style.width = ''
+    document.documentElement.style.top = ''
     document.body.style.overflow = ''
-    document.body.style.touchAction = ''
     document.body.classList.remove('modal-open')
     // Scroll to top
     window.scrollTo(0, 0)
