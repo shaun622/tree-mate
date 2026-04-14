@@ -66,6 +66,13 @@ export default function Jobs() {
   const [quoteStatus, setQuoteStatus] = useState(null)
   const [quoteSaving, setQuoteSaving] = useState(false)
   const [quoteSending, setQuoteSending] = useState(false)
+  // New Job modal step (1 = job form, 2 = add quote)
+  const [newJobStep, setNewJobStep] = useState(1)
+  const [newJobQuoteForm, setNewJobQuoteForm] = useState({
+    line_items: [{ description: '', quantity: 1, unit_price: 0 }],
+    scope: '', inclusions: '', exclusions: '',
+    terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
+  })
 
   useEffect(() => {
     if (!business?.id) return
@@ -288,10 +295,71 @@ export default function Jobs() {
     }).select().single()
     if (!error) {
       setJobs(prev => [data, ...prev])
-      setShowModal(false)
-      setForm({ client_id: '', job_site_id: '', job_type: '', scheduled_date: '', scheduled_time: '09:00', notes: '' })
+      closeNewJobModal()
     }
     setSaving(false)
+  }
+
+  const handleCreateWithQuote = async () => {
+    setSaving(true)
+    const hasDate = !!form.scheduled_date
+    let scheduled_start = null
+    let scheduled_end = null
+    if (hasDate && form.scheduled_time) {
+      const startDt = new Date(`${form.scheduled_date}T${form.scheduled_time}`)
+      scheduled_start = startDt.toISOString()
+      scheduled_end = new Date(startDt.getTime() + 60 * 60000).toISOString()
+    }
+    // Create the job
+    const { data: jobData, error } = await supabase.from('jobs').insert({
+      business_id: business.id,
+      client_id: form.client_id || null,
+      job_site_id: form.job_site_id || null,
+      job_type: form.job_type || null,
+      scheduled_date: hasDate ? form.scheduled_date : null,
+      scheduled_start: hasDate ? scheduled_start : null,
+      scheduled_end: hasDate ? scheduled_end : null,
+      notes: form.notes || null,
+      status: 'quoted',
+      priority: 'normal',
+    }).select().single()
+    if (!error && jobData) {
+      // Create the quote linked to the job
+      const njqSubtotal = newJobQuoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
+      const { gst: njqGst, total: njqTotal } = calculateGST(njqSubtotal)
+      const { data: quoteData } = await supabase.from('quotes').insert({
+        business_id: business.id,
+        client_id: form.client_id || null,
+        job_site_id: form.job_site_id || null,
+        job_id: jobData.id,
+        scope: newJobQuoteForm.scope || null,
+        terms: newJobQuoteForm.terms || null,
+        line_items: newJobQuoteForm.line_items,
+        subtotal: njqSubtotal, gst: njqGst, total: njqTotal,
+        inclusions: newJobQuoteForm.inclusions || null,
+        exclusions: newJobQuoteForm.exclusions || null,
+        status: 'draft',
+      }).select().single()
+      if (quoteData) {
+        await supabase.from('jobs').update({ quote_id: quoteData.id }).eq('id', jobData.id)
+        jobData.quote_id = quoteData.id
+      }
+      setJobs(prev => [jobData, ...prev])
+      closeNewJobModal()
+      await refreshJobs()
+    }
+    setSaving(false)
+  }
+
+  const closeNewJobModal = () => {
+    setShowModal(false)
+    setNewJobStep(1)
+    setForm({ client_id: '', job_site_id: '', job_type: '', scheduled_date: '', scheduled_time: '09:00', notes: '' })
+    setNewJobQuoteForm({
+      line_items: [{ description: '', quantity: 1, unit_price: 0 }],
+      scope: '', inclusions: '', exclusions: '',
+      terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
+    })
   }
 
   // Extract suburb from full address
@@ -719,44 +787,117 @@ export default function Jobs() {
         </div>
       </Modal>
 
-      {/* Create Job Modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="New Job">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <ClientPicker
-            clients={clients}
-            value={form.client_id}
-            onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
-            onCreate={createClient}
-            onUpdate={updateClient}
-            required
-          />
-          {form.client_id && (
-            <JobSitePicker
-              sites={clientSites}
-              client={clients.find(c => c.id === form.client_id)}
-              clientId={form.client_id}
-              value={form.job_site_id}
-              onChange={(id) => setForm(p => ({ ...p, job_site_id: id }))}
-              onCreate={createJobSite}
-              onUpdate={updateJobSite}
+      {/* Create Job Modal (2-step: Job → Quote) */}
+      <Modal open={showModal} onClose={closeNewJobModal} title={newJobStep === 1 ? 'New Job' : 'Add Quote'} size={newJobStep === 2 ? 'lg' : 'md'}>
+        {newJobStep === 1 ? (
+          <form onSubmit={handleCreate} className="space-y-4">
+            <ClientPicker
+              clients={clients}
+              value={form.client_id}
+              onChange={(id) => setForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+              onCreate={createClient}
+              onUpdate={updateClient}
+              required
             />
-          )}
-          <JobTypePicker
-            templates={jobTypes}
-            value={form.job_type}
-            onChange={(v) => setForm(p => ({ ...p, job_type: v }))}
-            onCreateTemplate={createJobTypeTemplate}
-          />
-          <div className="flex gap-2">
-            <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
-            <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />
+            {form.client_id && (
+              <JobSitePicker
+                sites={clientSites}
+                client={clients.find(c => c.id === form.client_id)}
+                clientId={form.client_id}
+                value={form.job_site_id}
+                onChange={(id) => setForm(p => ({ ...p, job_site_id: id }))}
+                onCreate={createJobSite}
+                onUpdate={updateJobSite}
+              />
+            )}
+            <JobTypePicker
+              templates={jobTypes}
+              value={form.job_type}
+              onChange={(v) => setForm(p => ({ ...p, job_type: v }))}
+              onCreateTemplate={createJobTypeTemplate}
+            />
+            <div className="flex gap-2">
+              <Input label="Date" type="date" value={form.scheduled_date} onChange={e => setForm(p => ({ ...p, scheduled_date: e.target.value }))} className="flex-1" />
+              <Input label="Time" type="time" value={form.scheduled_time} onChange={e => setForm(p => ({ ...p, scheduled_time: e.target.value }))} className="flex-1" />
+            </div>
+            {!form.scheduled_date && (
+              <p className="text-xs text-gray-400 -mt-2">Leave blank to start as an enquiry</p>
+            )}
+            <TextArea label="Notes" placeholder="Job notes, access instructions..." value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
+            <button
+              type="button"
+              onClick={() => {
+                setNewJobQuoteForm(p => ({ ...p, scope: form.job_type ? `${form.job_type}${form.notes ? ` - ${form.notes}` : ''}` : p.scope }))
+                setNewJobStep(2)
+              }}
+              className="w-full py-2.5 text-sm font-semibold text-tree-600 border-2 border-tree-200 rounded-2xl hover:bg-tree-50 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Add Quote
+            </button>
+            <Button type="submit" loading={saving} className="w-full">Create Job</Button>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={() => setNewJobStep(1)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              Back to Job Details
+            </button>
+
+            <Card className="p-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Line Items</h3>
+              {newJobQuoteForm.line_items.map((item, i) => (
+                <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 last:mb-0">
+                  <Input placeholder="Description" value={item.description} onChange={e => {
+                    const items = [...newJobQuoteForm.line_items]; items[i] = { ...items[i], description: e.target.value }
+                    setNewJobQuoteForm(p => ({ ...p, line_items: items }))
+                  }} />
+                  <div className="flex gap-2 items-end">
+                    <Input label="Qty" type="number" min="1" value={item.quantity} onChange={e => {
+                      const items = [...newJobQuoteForm.line_items]; items[i] = { ...items[i], quantity: e.target.value }
+                      setNewJobQuoteForm(p => ({ ...p, line_items: items }))
+                    }} className="w-20" />
+                    <Input label="Unit Price" type="number" min="0" step="0.01" value={item.unit_price} onChange={e => {
+                      const items = [...newJobQuoteForm.line_items]; items[i] = { ...items[i], unit_price: e.target.value }
+                      setNewJobQuoteForm(p => ({ ...p, line_items: items }))
+                    }} className="flex-1" />
+                    <p className="text-sm font-medium text-gray-900 pb-3 w-24 text-right">{formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}</p>
+                    {newJobQuoteForm.line_items.length > 1 && (
+                      <button type="button" onClick={() => setNewJobQuoteForm(p => ({ ...p, line_items: p.line_items.filter((_, idx) => idx !== i) }))} className="pb-3 text-red-400 hover:text-red-600">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => setNewJobQuoteForm(p => ({ ...p, line_items: [...p.line_items, { description: '', quantity: 1, unit_price: 0 }] }))} className="w-full py-2 text-sm text-tree-600 font-medium hover:bg-tree-50 rounded-lg transition-colors">+ Add Line Item</button>
+              {(() => {
+                const njSub = newJobQuoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
+                const { gst: njGst, total: njTotal } = calculateGST(njSub)
+                return (
+                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
+                    <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(njSub)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-500">GST (10%)</span><span>{formatCurrency(njGst)}</span></div>
+                    <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(njTotal)}</span></div>
+                  </div>
+                )
+              })()}
+            </Card>
+
+            <Card className="p-4 space-y-3">
+              <TextArea label="Scope of Work" placeholder="Describe the work to be performed..." value={newJobQuoteForm.scope} onChange={e => setNewJobQuoteForm(p => ({ ...p, scope: e.target.value }))} />
+              <TextArea label="Inclusions" placeholder="What's included..." value={newJobQuoteForm.inclusions} onChange={e => setNewJobQuoteForm(p => ({ ...p, inclusions: e.target.value }))} rows={3} />
+              <TextArea label="Exclusions" placeholder="What's NOT included..." value={newJobQuoteForm.exclusions} onChange={e => setNewJobQuoteForm(p => ({ ...p, exclusions: e.target.value }))} rows={3} />
+              <TextArea label="Terms & Conditions" value={newJobQuoteForm.terms} onChange={e => setNewJobQuoteForm(p => ({ ...p, terms: e.target.value }))} />
+            </Card>
+
+            <Button onClick={handleCreateWithQuote} loading={saving} className="w-full">Create Job + Quote</Button>
           </div>
-          {!form.scheduled_date && (
-            <p className="text-xs text-gray-400 -mt-2">Leave blank to start as an enquiry</p>
-          )}
-          <TextArea label="Notes" placeholder="Job notes, access instructions..." value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
-          <Button type="submit" loading={saving} className="w-full">Create Job</Button>
-        </form>
+        )}
       </Modal>
     </PageWrapper>
   )
