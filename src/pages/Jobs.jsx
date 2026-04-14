@@ -302,7 +302,7 @@ export default function Jobs() {
   }
 
   // ── Job Card (shared between list and pipeline) ────────────────────────────
-  const JobCard = ({ job, compact = false, done = false, invoiceView = false, quotedView = false }) => {
+  const JobCard = ({ job, compact = false, done = false, invoiceView = false, quotedView = false, scheduledView = false }) => {
     const jc = clientMap[job.client_id]
     const js = siteMap[job.job_site_id]
     const quote = quotes[job.quote_id]
@@ -325,6 +325,12 @@ export default function Jobs() {
       const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', job.quote_id).select().single()
       if (updatedQuote) setQuotes(prev => ({ ...prev, [updatedQuote.id]: updatedQuote }))
       const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', job.id).select().single()
+      if (updatedJob) setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+    }
+
+    const handleQuickComplete = async (e) => {
+      e.stopPropagation()
+      const { data: updatedJob } = await supabase.from('jobs').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', job.id).select().single()
       if (updatedJob) setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
     }
 
@@ -472,6 +478,46 @@ export default function Jobs() {
             )}
           </div>
         )}
+        {/* Quick actions for Scheduled view */}
+        {scheduledView && !compact && (
+          <div className="flex border-t border-gray-100">
+            <button
+              onClick={handleQuickEdit}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all duration-200"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              Edit Job
+            </button>
+            <div className="w-px bg-gray-100" />
+            <button
+              onClick={handleQuickComplete}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-tree-600 hover:text-white hover:bg-tree-600 transition-all duration-200"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              Complete Job
+            </button>
+          </div>
+        )}
+        {/* Quick actions for Invoice view */}
+        {invoiceView && !compact && (
+          <div className="flex border-t border-gray-100">
+            <button
+              onClick={handleQuickEdit}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all duration-200"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              Edit Job
+            </button>
+            <div className="w-px bg-gray-100" />
+            <button
+              onClick={(e) => { e.stopPropagation(); job.status === 'invoiced' ? openPreview(job) : navigate(`/invoices/new?job_id=${job.id}`) }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-tree-600 hover:text-white hover:bg-tree-600 transition-all duration-200"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              {job.status === 'invoiced' ? 'Mark Paid' : 'Create Invoice'}
+            </button>
+          </div>
+        )}
       </div>
     )
   }
@@ -564,7 +610,7 @@ export default function Jobs() {
           </div>
         ) : (
           <div className="space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3">
-            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} invoiceView={filter === 'invoice'} quotedView={filter === 'quoted'} />)}
+            {filtered.map(job => <JobCard key={job.id} job={job} done={isCompletedView} invoiceView={filter === 'invoice'} quotedView={filter === 'quoted'} scheduledView={filter === 'scheduled'} />)}
           </div>
         )}
       </div>
