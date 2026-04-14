@@ -909,14 +909,22 @@ export default function Jobs() {
 
             {(() => {
               const hasValidItem = newJobQuoteForm.line_items.some(item => item.description?.trim() && Number(item.unit_price) > 0)
+              const selectedClient = clients.find(c => c.id === form.client_id)
+              const clientEmail = selectedClient?.email
               return (
                 <>
+                  {clientEmail && (
+                    <p className="text-xs text-gray-500 text-center">Sending to: <span className="font-medium text-gray-700">{clientEmail}</span></p>
+                  )}
+                  {!clientEmail && form.client_id && (
+                    <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">No email on file for this client. Quote cannot be sent.</p>
+                  )}
                   {!hasValidItem && (
                     <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">Add at least 1 line item with a description and price to send the quote.</p>
                   )}
                   <div className="flex gap-3">
                     <Button variant="secondary" onClick={() => handleCreateWithQuote(false)} loading={saving} className="flex-1">Save Draft</Button>
-                    <Button onClick={() => handleCreateWithQuote(true)} loading={saving} disabled={!hasValidItem} className="flex-1">Create Job + Send Quote</Button>
+                    <Button onClick={() => handleCreateWithQuote(true)} loading={saving} disabled={!hasValidItem || !clientEmail} className="flex-1">Create Job + Send Quote</Button>
                   </div>
                 </>
               )
