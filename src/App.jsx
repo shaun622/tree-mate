@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
@@ -53,6 +53,14 @@ function LoadingSpinner() {
       <div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
 }
 
 function ProtectedRoute() {
@@ -123,6 +131,7 @@ export default function App() {
     <AuthProvider>
       <BusinessProvider>
         <Suspense fallback={<LoadingSpinner />}>
+          <ScrollToTop />
           <Routes>
             {/* Public */}
             <Route path="/portal/login" element={<PortalLogin />} />
