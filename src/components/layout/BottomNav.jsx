@@ -20,7 +20,7 @@ export default function BottomNav() {
   return (
     <nav className="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 safe-bottom md:hidden">
       <div className="max-w-lg mx-auto">
-        <div className="mx-3 mb-2 bg-white/90 backdrop-blur-xl rounded-2xl shadow-elevated border border-white/50">
+        <div className="mx-3 mb-2 bg-white rounded-2xl shadow-elevated border border-gray-100">
           <div className="flex items-center justify-around h-16">
             {tabs.map(tab => {
               const active = isActive(tab.path)

@@ -18,7 +18,7 @@ export default function TopNav() {
   }
 
   return (
-    <nav className="hidden md:block sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200/60">
+    <nav className="hidden md:block sticky top-0 z-50 bg-white border-b border-gray-200/60" style={{ position: '-webkit-sticky' }}>
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
