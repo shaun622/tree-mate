@@ -57,7 +57,12 @@ function LoadingSpinner() {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  // useLayoutEffect fires before browser paint — prevents flash at wrong scroll position
+  // Disable browser's automatic scroll restoration
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+  }, [])
   useLayoutEffect(() => {
     // Clear any modal body lock before scrolling
     document.body.style.position = ''
@@ -65,10 +70,14 @@ function ScrollToTop() {
     document.body.style.left = ''
     document.body.style.right = ''
     document.body.classList.remove('modal-open')
-    // Force scroll to top
+    // Force scroll to top immediately
     window.scrollTo(0, 0)
     document.documentElement.scrollTop = 0
     document.body.scrollTop = 0
+    // Also scroll after lazy content loads
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0)
+    })
   }, [pathname])
   return null
 }
