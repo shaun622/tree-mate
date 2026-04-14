@@ -187,8 +187,7 @@ export default function Jobs() {
     const pStyle = PRIORITY_STYLES[job.priority] || {}
 
     const handleClick = () => {
-      if (quotedView) openPreview(job)
-      else navigate(`/jobs/${job.id}`)
+      openPreview(job)
     }
 
     const handleQuickEdit = (e) => {
