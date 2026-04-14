@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
@@ -46,6 +46,16 @@ const PortalTokenLanding = React.lazy(() => import('./pages/portal/PortalTokenLa
 // Public
 const PublicQuote = React.lazy(() => import('./pages/PublicQuote'))
 const PublicSurvey = React.lazy(() => import('./pages/PublicSurvey'))
+
+// Top-level scroll reset — fires immediately on route change,
+// before any lazy page component loads or renders
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 function LoadingSpinner() {
   return (
@@ -123,6 +133,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BusinessProvider>
+        <ScrollToTop />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Public */}

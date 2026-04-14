@@ -1,3 +1,5 @@
+import { Link, useLocation } from 'react-router-dom'
+
 const tabs = [
   { path: '/', label: 'Home', icon: (active) => <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg> },
   { path: '/schedule', label: 'Schedule', icon: (active) => <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 0 : 1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> },
@@ -7,11 +9,11 @@ const tabs = [
 ]
 
 export default function BottomNav() {
-  const current = window.location.pathname
+  const { pathname } = useLocation()
 
   const isActive = (path) => {
-    if (path === '/') return current === '/'
-    return current.startsWith(path)
+    if (path === '/') return pathname === '/'
+    return pathname.startsWith(path)
   }
 
   return (
@@ -22,9 +24,9 @@ export default function BottomNav() {
             {tabs.map(tab => {
               const active = isActive(tab.path)
               return (
-                <a
+                <Link
                   key={tab.path}
-                  href={tab.path}
+                  to={tab.path}
                   className="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 relative no-underline"
                 >
                   <div className={active ? 'text-tree-600 scale-110' : 'text-gray-400'}>
@@ -32,7 +34,7 @@ export default function BottomNav() {
                   </div>
                   <span className={`text-[10px] font-semibold ${active ? 'text-tree-600' : 'text-gray-400'}`}>{tab.label}</span>
                   {active && <div className="absolute -bottom-1 w-5 h-0.5 rounded-full bg-tree-500" />}
-                </a>
+                </Link>
               )
             })}
           </div>
