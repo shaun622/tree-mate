@@ -15,7 +15,8 @@ import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import JobDetailView from '../components/jobs/JobDetailView'
-import { statusLabel, statusColor, formatCurrency, PRIORITY_STYLES } from '../lib/utils'
+import Card from '../components/ui/Card'
+import { statusLabel, statusColor, formatCurrency, calculateGST, PRIORITY_STYLES } from '../lib/utils'
 
 // 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
 const LIST_FILTERS = [
@@ -54,6 +55,17 @@ export default function Jobs() {
   const [previewJob, setPreviewJob] = useState(null) // job detail modal
   const [previewData, setPreviewData] = useState({ client: null, site: null, quote: null, reports: [] })
   const [previewUpdating, setPreviewUpdating] = useState(false)
+  // Quote editor modal
+  const [showQuoteModal, setShowQuoteModal] = useState(false)
+  const [quoteEditId, setQuoteEditId] = useState(null)
+  const [quoteLinkedJobId, setQuoteLinkedJobId] = useState(null)
+  const [quoteForm, setQuoteForm] = useState({
+    client_id: '', job_site_id: '', scope: '', terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
+    line_items: [{ description: '', quantity: 1, unit_price: 0 }], inclusions: '', exclusions: '',
+  })
+  const [quoteStatus, setQuoteStatus] = useState(null)
+  const [quoteSaving, setQuoteSaving] = useState(false)
+  const [quoteSending, setQuoteSending] = useState(false)
 
   useEffect(() => {
     if (!business?.id) return
@@ -137,6 +149,118 @@ export default function Jobs() {
       setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
     }
     setPreviewUpdating(false)
+  }
+
+  // ── Quote Editor Modal ─────────────────────────────────────────────────────
+  const openQuoteModal = async (quoteId, jobId) => {
+    setQuoteEditId(quoteId || null)
+    setQuoteLinkedJobId(jobId || null)
+    setQuoteStatus(null)
+    if (quoteId) {
+      const { data } = await supabase.from('quotes').select('*').eq('id', quoteId).single()
+      if (data) {
+        setQuoteForm({
+          client_id: data.client_id || '', job_site_id: data.job_site_id || '',
+          scope: data.scope || '', terms: data.terms || 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
+          line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
+          inclusions: data.inclusions || '', exclusions: data.exclusions || '',
+        })
+        setQuoteStatus(data.status)
+        if (data.job_id) setQuoteLinkedJobId(data.job_id)
+      }
+    } else if (jobId) {
+      const { data: job } = await supabase.from('jobs').select('*').eq('id', jobId).single()
+      if (job) {
+        setQuoteForm(prev => ({
+          ...prev, client_id: job.client_id || '', job_site_id: job.job_site_id || '',
+          scope: job.job_type ? `${job.job_type}${job.notes ? ` - ${job.notes}` : ''}` : '',
+          line_items: [{ description: '', quantity: 1, unit_price: 0 }],
+          inclusions: '', exclusions: '',
+        }))
+      }
+    } else {
+      setQuoteForm({
+        client_id: '', job_site_id: '', scope: '', terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
+        line_items: [{ description: '', quantity: 1, unit_price: 0 }], inclusions: '', exclusions: '',
+      })
+    }
+    setShowQuoteModal(true)
+  }
+
+  const closeQuoteModal = () => {
+    setShowQuoteModal(false)
+    setQuoteEditId(null)
+    setQuoteLinkedJobId(null)
+  }
+
+  const quoteSubtotal = quoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
+  const { gst: quoteGst, total: quoteTotal } = calculateGST(quoteSubtotal)
+
+  const saveQuote = async (status = 'draft') => {
+    const payload = {
+      business_id: business.id, client_id: quoteForm.client_id || null, job_site_id: quoteForm.job_site_id || null,
+      scope: quoteForm.scope, terms: quoteForm.terms, line_items: quoteForm.line_items,
+      subtotal: quoteSubtotal, gst: quoteGst, total: quoteTotal, status,
+      inclusions: quoteForm.inclusions || null, exclusions: quoteForm.exclusions || null,
+      job_id: quoteLinkedJobId || null,
+    }
+    if (quoteEditId) {
+      await supabase.from('quotes').update(payload).eq('id', quoteEditId)
+      return { id: quoteEditId }
+    } else {
+      const { data } = await supabase.from('quotes').insert(payload).select().single()
+      if (data) {
+        if (quoteLinkedJobId) {
+          await supabase.from('jobs').update({ quote_id: data.id, status: 'quoted' }).eq('id', quoteLinkedJobId)
+        } else {
+          const { data: newJob } = await supabase.from('jobs').insert({
+            business_id: business.id, client_id: quoteForm.client_id || null, job_site_id: quoteForm.job_site_id || null,
+            quote_id: data.id, status: 'quoted', job_type: quoteForm.scope?.split('\n')[0]?.substring(0, 50) || 'Quote',
+          }).select().single()
+          if (newJob) {
+            await supabase.from('quotes').update({ job_id: newJob.id }).eq('id', data.id)
+            setQuoteLinkedJobId(newJob.id)
+          }
+        }
+        return data
+      }
+    }
+    return { id: quoteEditId }
+  }
+
+  const handleQuoteSave = async () => {
+    setQuoteSaving(true)
+    await saveQuote('draft')
+    setQuoteSaving(false)
+    closeQuoteModal()
+    refreshJobs()
+  }
+
+  const handleQuoteSend = async () => {
+    if (quoteStatus === 'accepted') {
+      if (!confirm('Quote already accepted. Send an amended quote?')) return
+    } else if (quoteStatus === 'sent' || quoteStatus === 'viewed') {
+      if (!confirm('Quote already sent. Send it again?')) return
+    }
+    setQuoteSending(true)
+    const quote = await saveQuote('sent')
+    if (quote?.id) {
+      await supabase.functions.invoke('send-quote', { body: { quote_id: quote.id } })
+    }
+    setQuoteSending(false)
+    closeQuoteModal()
+    refreshJobs()
+  }
+
+  const refreshJobs = async () => {
+    const { data } = await supabase.from('jobs').select('*').eq('business_id', business.id).order('created_at', { ascending: false })
+    const jobList = data || []
+    setJobs(jobList)
+    const quoteIds = [...new Set(jobList.filter(j => j.quote_id).map(j => j.quote_id))]
+    if (quoteIds.length) {
+      const { data: quotesData } = await supabase.from('quotes').select('id,total,status').in('id', quoteIds)
+      setQuotes(Object.fromEntries((quotesData || []).map(q => [q.id, q])))
+    }
   }
 
   const handleCreate = async (e) => {
@@ -400,7 +524,7 @@ export default function Jobs() {
               <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
             )}
           </button>
-          <button onClick={() => navigate('/quotes/new')} className="px-3 py-1.5 text-xs font-semibold text-tree-600 border-2 border-tree-200 rounded-xl hover:bg-tree-50 transition-all duration-200 active:scale-95">
+          <button onClick={() => openQuoteModal(null, null)} className="px-3 py-1.5 text-xs font-semibold text-tree-600 border-2 border-tree-200 rounded-xl hover:bg-tree-50 transition-all duration-200 active:scale-95">
             Quick Quote
           </button>
           <button onClick={() => setShowModal(true)} className="px-3 py-1.5 text-xs font-semibold text-white bg-tree-600 rounded-xl hover:bg-tree-700 shadow-button transition-all duration-200 active:scale-95 flex items-center gap-1">
@@ -459,13 +583,83 @@ export default function Jobs() {
             compact
             readOnly
             onStatusChange={previewStatusChange}
-            onEditQuote={previewData.quote ? () => { closePreview(); navigate(`/quotes/${previewData.quote.id}`) } : null}
+            onEditQuote={previewData.quote ? () => { closePreview(); openQuoteModal(previewData.quote.id, previewJob.id) } : null}
             onAcceptQuote={previewData.quote ? previewAcceptQuote : null}
-            onCreateQuote={() => { closePreview(); navigate(`/quotes/new?job_id=${previewJob.id}`) }}
+            onCreateQuote={() => { closePreview(); openQuoteModal(null, previewJob.id) }}
             onCreateInvoice={() => { closePreview(); navigate(`/invoices/new?job_id=${previewJob.id}`) }}
             onEdit={() => closePreview()}
           />
         )}
+      </Modal>
+
+      {/* Quote Editor Modal */}
+      <Modal open={showQuoteModal} onClose={closeQuoteModal} title={quoteEditId ? 'Edit Quote' : 'New Quote'} size="lg">
+        <div className="space-y-4">
+          <Card className="p-4 space-y-3">
+            <ClientPicker
+              clients={clients}
+              value={quoteForm.client_id}
+              onChange={(id) => setQuoteForm(p => ({ ...p, client_id: id, job_site_id: '' }))}
+              onCreate={createClient}
+              onUpdate={updateClient}
+            />
+            <JobSitePicker
+              sites={quoteForm.client_id ? getJobSitesByClient(quoteForm.client_id) : []}
+              client={clients.find(c => c.id === quoteForm.client_id)}
+              clientId={quoteForm.client_id}
+              value={quoteForm.job_site_id}
+              onChange={(id) => setQuoteForm(p => ({ ...p, job_site_id: id }))}
+              onCreate={createJobSite}
+              onUpdate={updateJobSite}
+            />
+          </Card>
+
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Line Items</h3>
+            {quoteForm.line_items.map((item, i) => (
+              <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 last:mb-0">
+                <Input placeholder="Description" value={item.description} onChange={e => {
+                  const items = [...quoteForm.line_items]; items[i] = { ...items[i], description: e.target.value }
+                  setQuoteForm(p => ({ ...p, line_items: items }))
+                }} />
+                <div className="flex gap-2 items-end">
+                  <Input label="Qty" type="number" min="1" value={item.quantity} onChange={e => {
+                    const items = [...quoteForm.line_items]; items[i] = { ...items[i], quantity: e.target.value }
+                    setQuoteForm(p => ({ ...p, line_items: items }))
+                  }} className="w-20" />
+                  <Input label="Unit Price" type="number" min="0" step="0.01" value={item.unit_price} onChange={e => {
+                    const items = [...quoteForm.line_items]; items[i] = { ...items[i], unit_price: e.target.value }
+                    setQuoteForm(p => ({ ...p, line_items: items }))
+                  }} className="flex-1" />
+                  <p className="text-sm font-medium text-gray-900 pb-3 w-24 text-right">{formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}</p>
+                  {quoteForm.line_items.length > 1 && (
+                    <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: p.line_items.filter((_, idx) => idx !== i) }))} className="pb-3 text-red-400 hover:text-red-600">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: [...p.line_items, { description: '', quantity: 1, unit_price: 0 }] }))} className="w-full py-2 text-sm text-tree-600 font-medium hover:bg-tree-50 rounded-lg transition-colors">+ Add Line Item</button>
+            <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
+              <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(quoteSubtotal)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">GST (10%)</span><span>{formatCurrency(quoteGst)}</span></div>
+              <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(quoteTotal)}</span></div>
+            </div>
+          </Card>
+
+          <Card className="p-4 space-y-3">
+            <TextArea label="Scope of Work" placeholder="Describe the work to be performed..." value={quoteForm.scope} onChange={e => setQuoteForm(p => ({ ...p, scope: e.target.value }))} />
+            <TextArea label="Inclusions" placeholder="What's included..." value={quoteForm.inclusions} onChange={e => setQuoteForm(p => ({ ...p, inclusions: e.target.value }))} rows={3} />
+            <TextArea label="Exclusions" placeholder="What's NOT included..." value={quoteForm.exclusions} onChange={e => setQuoteForm(p => ({ ...p, exclusions: e.target.value }))} rows={3} />
+            <TextArea label="Terms & Conditions" value={quoteForm.terms} onChange={e => setQuoteForm(p => ({ ...p, terms: e.target.value }))} />
+          </Card>
+
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={handleQuoteSave} loading={quoteSaving} className="flex-1">Save Draft</Button>
+            <Button onClick={handleQuoteSend} loading={quoteSending} className="flex-1">Send Quote</Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Create Job Modal */}
