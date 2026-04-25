@@ -59,7 +59,7 @@ export default function PortalDashboard() {
     navigate('/portal/login')
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="min-h-screen bg-gradient-page">
@@ -77,19 +77,19 @@ export default function PortalDashboard() {
         {/* Job Sites */}
         {sites.map(site => (
           <Card key={site.id} className="p-4">
-            <h3 className="font-medium text-gray-900 mb-2">{site.address}</h3>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">{site.address}</h3>
             <Badge variant="neutral">{statusLabel(site.site_type)}</Badge>
 
             {/* Reports for this site */}
             {reports.filter(r => r.job_site_id === site.id).map(r => {
               const reportPhotos = photos.filter(p => p.job_report_id === r.id)
               return (
-                <div key={r.id} className="mt-3 pt-3 border-t border-gray-100">
+                <div key={r.id} className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium">{formatDate(r.created_at)}</p>
                     <Badge variant={r.status === 'completed' ? 'success' : 'warning'}>{statusLabel(r.status)}</Badge>
                   </div>
-                  {r.notes && <p className="text-sm text-gray-600 mb-2">{r.notes}</p>}
+                  {r.notes && <p className="text-sm text-gray-600 dark:text-gray-500 mb-2">{r.notes}</p>}
                   {reportPhotos.length > 0 && (
                     <div className="grid grid-cols-3 gap-1.5">
                       {reportPhotos.map(p => (
@@ -109,7 +109,7 @@ export default function PortalDashboard() {
         {/* Survey */}
         {!surveySubmitted ? (
           <Card className="p-4">
-            <h3 className="font-medium text-gray-900 mb-3">How was our service?</h3>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">How was our service?</h3>
             <div className="flex gap-2 mb-3">
               {[1, 2, 3, 4, 5].map(i => (
                 <button key={i} onClick={() => setSurveyForm(p => ({ ...p, rating: i }))} className="p-1">
@@ -122,7 +122,7 @@ export default function PortalDashboard() {
           </Card>
         ) : (
           <Card className="p-4 text-center">
-            <p className="text-tree-600 font-medium">Thank you for your feedback!</p>
+            <p className="text-brand-600 font-medium">Thank you for your feedback!</p>
           </Card>
         )}
       </div>

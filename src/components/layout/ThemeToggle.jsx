@@ -17,7 +17,7 @@ export function ThemeToggleCompact({ className, onBrand = false }) {
         'min-h-tap min-w-tap flex items-center justify-center rounded-xl p-2 transition-colors',
         onBrand
           ? 'bg-white/15 border border-white/25 hover:bg-white/25 text-white backdrop-blur'
-          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
+          : 'text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-800',
         className,
       )}
     >
@@ -54,7 +54,7 @@ export function ThemeToggleFull({ className }) {
               'min-h-[36px] px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors',
               active
                 ? 'bg-brand-500 text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-200',
             )}
           >
             <Icon className="w-3.5 h-3.5" strokeWidth={2.5} />

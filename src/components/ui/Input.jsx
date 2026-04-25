@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
-const FIELD_BASE = 'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 min-h-tap shadow-inner-soft placeholder:text-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 disabled:bg-gray-50 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500'
+const FIELD_BASE = 'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 min-h-tap shadow-inner-soft placeholder:text-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 disabled:bg-gray-50 dark:bg-gray-900 dark:border-gray-800 dark:placeholder:text-gray-500 dark:text-gray-500'
 
 // font-size: 16px enforced inline so iOS Safari does not auto-zoom on focus.
 const INPUT_STYLE = { fontSize: '16px' }
 
 function Label({ children }) {
   return (
-    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+    <label className="block text-sm font-medium text-gray-600 dark:text-gray-500 mb-1.5">
       {children}
     </label>
   )

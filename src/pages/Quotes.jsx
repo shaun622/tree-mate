@@ -41,7 +41,7 @@ export default function Quotes() {
     <PageWrapper>
       <div className="md:hidden">
         <Header title="Quotes" rightAction={
-          <button onClick={() => navigate('/quotes/new')} className="p-2 hover:bg-gray-100 rounded-full">
+          <button onClick={() => navigate('/quotes/new')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
             <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           </button>
         } />
@@ -56,14 +56,14 @@ export default function Quotes() {
       <div className="px-4 py-4 space-y-4">
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {FILTERS.map(s => (
-            <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${filter === s ? 'bg-tree-500 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
+            <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${filter === s ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-500'}`}>
               {s === 'all' ? 'All' : statusLabel(s)}
             </button>
           ))}
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : filtered.length === 0 ? (
           <EmptyState title="No quotes" description="Create your first quote" actionLabel="New Quote" onAction={() => navigate('/quotes/new')} />
         ) : (
@@ -71,12 +71,12 @@ export default function Quotes() {
             {filtered.map(q => (
               <Card key={q.id} hover onClick={() => navigate(`/quotes/${q.id}`)} className="p-4">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-gray-900">{clientMap[q.client_id]?.name || 'Unknown'}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{clientMap[q.client_id]?.name || 'Unknown'}</p>
                   <Badge variant={badgeVariant(q.status)}>{statusLabel(q.status)}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-500">{formatDate(q.created_at)}</p>
-                  <p className="font-semibold text-gray-900">{formatCurrency(q.total || 0)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">{formatDate(q.created_at)}</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(q.total || 0)}</p>
                 </div>
               </Card>
             ))}

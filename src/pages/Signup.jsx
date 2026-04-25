@@ -69,19 +69,19 @@ export default function Signup() {
 
         <div className="px-5 -mt-8 pb-8 relative">
           {success ? (
-            <div className="bg-white rounded-3xl shadow-elevated p-6 text-center ring-1 ring-black/[0.03]">
-              <div className="w-16 h-16 bg-tree-50 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-tree-100">
-                <svg className="w-8 h-8 text-tree-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-elevated p-6 text-center ring-1 ring-black/[0.03]">
+              <div className="w-16 h-16 bg-brand-50 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-brand-100">
+                <svg className="w-8 h-8 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email</h2>
-              <p className="text-sm text-gray-500 mb-6">We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.</p>
-              <Link to="/login" className="text-tree-600 font-semibold text-sm hover:text-tree-700 transition-colors">Back to sign in</Link>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Check your email</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.</p>
+              <Link to="/login" className="text-brand-600 font-semibold text-sm hover:text-brand-700 transition-colors">Back to sign in</Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
-              <h2 className="text-xl font-bold text-gray-900">Create Account</h2>
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Create Account</h2>
 
               {error && (
                 <div className="bg-red-50 text-red-600 text-sm rounded-xl p-3 ring-1 ring-red-100">{error}</div>
@@ -93,9 +93,9 @@ export default function Signup() {
 
               <Button type="submit" loading={loading} className="w-full">Create Account</Button>
 
-              <p className="text-center text-sm text-gray-400">
+              <p className="text-center text-sm text-gray-400 dark:text-gray-500">
                 Already have an account?{' '}
-                <Link to="/login" className="text-tree-600 font-semibold hover:text-tree-700 transition-colors">Sign in</Link>
+                <Link to="/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">Sign in</Link>
               </p>
             </form>
           )}

@@ -71,26 +71,26 @@ export default function Reports() {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-            <p className="text-xs text-gray-500">Total Jobs</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalJobs}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Total Jobs</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
-            <p className="text-xs text-gray-500">Total Revenue</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalRevenue)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Total Revenue</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.avgJobValue)}</p>
-            <p className="text-xs text-gray-500">Avg Job Value</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.avgJobValue)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Avg Job Value</p>
           </Card>
           <Card className="p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.completionRate}%</p>
-            <p className="text-xs text-gray-500">Completion Rate</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.completionRate}%</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Completion Rate</p>
           </Card>
         </div>
 
         {/* Jobs Per Week */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Jobs Completed Per Week</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Jobs Completed Per Week</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={jobsByWeek}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -105,7 +105,7 @@ export default function Reports() {
         {/* Job Types */}
         {jobsByType.length > 0 && (
           <Card className="p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Jobs by Type</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Jobs by Type</h3>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={jobsByType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>

@@ -39,7 +39,7 @@ export default function JobSiteDetail() {
     fetch()
   }, [id])
 
-  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
+  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
 
   const hazards = site?.hazards || []
 
@@ -50,7 +50,7 @@ export default function JobSiteDetail() {
       <div className="px-4 py-4 space-y-4">
         {/* Site Info */}
         <Card className="p-4 space-y-3">
-          <h2 className="text-lg font-bold text-gray-900">{site?.address}</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{site?.address}</h2>
           <div className="flex flex-wrap gap-2">
             <Badge variant="neutral">{statusLabel(site?.site_type)}</Badge>
             <Badge variant={site?.site_access === 'easy' ? 'success' : site?.site_access === 'difficult' ? 'warning' : 'danger'}>{statusLabel(site?.site_access)}</Badge>
@@ -58,19 +58,19 @@ export default function JobSiteDetail() {
           </div>
           {hazards.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">Hazards</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-500 mb-1.5">Hazards</p>
               <div className="flex flex-wrap gap-1.5">
                 {hazards.map(h => <Badge key={h} variant="danger">{statusLabel(h)}</Badge>)}
               </div>
             </div>
           )}
           {site?.regular_maintenance && (
-            <div className="pt-2 border-t border-gray-100">
-              <p className="text-sm text-gray-600">Frequency: <strong>{site.maintenance_frequency}</strong></p>
-              {site.next_due_at && <p className="text-sm text-gray-600">Next visit: <strong>{formatDate(site.next_due_at)}</strong></p>}
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+              <p className="text-sm text-gray-600 dark:text-gray-500">Frequency: <strong>{site.maintenance_frequency}</strong></p>
+              {site.next_due_at && <p className="text-sm text-gray-600 dark:text-gray-500">Next visit: <strong>{formatDate(site.next_due_at)}</strong></p>}
             </div>
           )}
-          {site?.notes && <p className="text-sm text-gray-500 italic">{site.notes}</p>}
+          {site?.notes && <p className="text-sm text-gray-500 dark:text-gray-500 italic">{site.notes}</p>}
         </Card>
 
         {/* Start Job Report */}
@@ -81,7 +81,7 @@ export default function JobSiteDetail() {
         {/* Photos */}
         {photos.length > 0 && (
           <Card className="p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Photos ({photos.length})</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Photos ({photos.length})</h3>
             <div className="grid grid-cols-3 gap-2">
               {photos.slice(0, 9).map(p => (
                 <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden">
@@ -95,7 +95,7 @@ export default function JobSiteDetail() {
 
         {/* Job Reports History */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Reports ({reports.length})</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Job Reports ({reports.length})</h3>
           {reports.length === 0 ? (
             <EmptyState title="No reports yet" description="Complete a job report to see it here" />
           ) : (
@@ -104,8 +104,8 @@ export default function JobSiteDetail() {
                 <Card key={r.id} hover onClick={() => navigate(`/reports/${r.id}`)} className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">{formatDate(r.created_at)}</p>
-                      <p className="text-sm text-gray-500">{r.technician_name || 'No tech assigned'}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{formatDate(r.created_at)}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500">{r.technician_name || 'No tech assigned'}</p>
                     </div>
                     <Badge variant={r.status === 'completed' ? 'success' : 'warning'}>{statusLabel(r.status)}</Badge>
                   </div>

@@ -46,7 +46,7 @@ export default function FilterChips({ options, value, onChange, ariaLabel, class
               'shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-all min-h-[36px] snap-center flex items-center gap-1.5',
               active
                 ? 'bg-brand-500 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
+                : 'bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-500 dark:hover:text-gray-200',
             )}
           >
             {opt.label}
@@ -56,7 +56,7 @@ export default function FilterChips({ options, value, onChange, ariaLabel, class
                   'inline-flex items-center justify-center rounded-full min-w-[18px] h-[18px] px-1 text-[10px] tabular-nums font-bold',
                   active
                     ? 'bg-white/25 text-white'
-                    : 'bg-white text-gray-600 dark:bg-gray-900 dark:text-gray-400',
+                    : 'bg-white text-gray-600 dark:bg-gray-900 dark:text-gray-500',
                 )}
               >
                 {opt.count}

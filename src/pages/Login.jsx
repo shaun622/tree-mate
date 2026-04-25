@@ -44,8 +44,8 @@ export default function Login() {
 
         {/* Form */}
         <div className="px-5 -mt-8 pb-8 relative">
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
-            <h2 className="text-xl font-bold text-gray-900">Sign In</h2>
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Sign In</h2>
 
             {error && (
               <div className="bg-red-50 text-red-600 text-sm rounded-xl p-3 ring-1 ring-red-100">{error}</div>
@@ -73,9 +73,9 @@ export default function Login() {
               Sign In
             </Button>
 
-            <p className="text-center text-sm text-gray-400">
+            <p className="text-center text-sm text-gray-400 dark:text-gray-500">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-tree-600 font-semibold hover:text-tree-700 transition-colors">Sign up</Link>
+              <Link to="/signup" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">Sign up</Link>
             </p>
           </form>
         </div>

@@ -51,27 +51,27 @@ export default function Onboarding() {
             <h1 className="text-2xl font-bold text-white mb-1">Set Up Your Business</h1>
             <p className="text-white/70 text-sm font-medium">Step {step} of 2</p>
             <div className="flex gap-2 justify-center mt-4">
-              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 1 ? 'bg-white' : 'bg-white/30'}`} />
-              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 2 ? 'bg-white' : 'bg-white/30'}`} />
+              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 1 ? 'bg-white dark:bg-gray-900' : 'bg-white/30'}`} />
+              <div className={`h-1.5 w-12 rounded-full transition-colors duration-150 ${step >= 2 ? 'bg-white dark:bg-gray-900' : 'bg-white/30'}`} />
             </div>
           </div>
         </div>
 
         <div className="px-5 -mt-8 pb-8 relative">
-          <div className="bg-white rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-elevated p-6 space-y-5 ring-1 ring-black/[0.03]">
             {step === 1 ? (
               <>
-                <h2 className="text-xl font-bold text-gray-900">Business Details</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Business Details</h2>
                 <Input label="Business Name" placeholder="e.g. Smith Tree Services" value={form.name} onChange={e => update('name', e.target.value)} required />
                 <Input label="ABN" placeholder="XX XXX XXX XXX" value={form.abn} onChange={e => update('abn', e.target.value)} />
                 <Input label="Phone" type="tel" placeholder="04XX XXX XXX" value={form.phone} onChange={e => update('phone', e.target.value)} />
                 <Input label="Email" type="email" placeholder="info@yourbusiness.com.au" value={form.email} onChange={e => update('email', e.target.value)} />
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Timezone</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Timezone</label>
                   <select
                     value={form.timezone}
                     onChange={e => update('timezone', e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 text-sm font-medium text-gray-900 bg-white focus:border-tree-400 focus:ring-2 focus:ring-tree-100 outline-none transition-colors duration-150 appearance-none"
+                    className="w-full px-4 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-800 text-sm font-medium text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 outline-none transition-colors duration-150 appearance-none"
                   >
                     <option value="Australia/Brisbane">Brisbane (AEST)</option>
                     <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
@@ -91,23 +91,23 @@ export default function Onboarding() {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold text-gray-900">Branding</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Branding</h2>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Logo</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Logo</label>
                   {form.logo_url ? (
                     <div className="flex items-center gap-4">
                       <img src={form.logo_url} alt="Logo" className="w-16 h-16 rounded-2xl object-cover ring-2 ring-gray-100" />
                       <button onClick={() => update('logo_url', '')} className="text-sm text-red-500 font-medium">Remove</button>
                     </div>
                   ) : (
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-tree-50 file:text-tree-700 hover:file:bg-tree-100 file:transition-colors" />
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm text-gray-500 dark:text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 file:transition-colors" />
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Brand Colour</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Brand Colour</label>
                   <div className="flex items-center gap-3">
-                    <input type="color" value={form.brand_colour} onChange={e => update('brand_colour', e.target.value)} className="w-12 h-12 rounded-xl border-2 border-gray-100 cursor-pointer" />
-                    <span className="text-sm text-gray-400 font-mono">{form.brand_colour}</span>
+                    <input type="color" value={form.brand_colour} onChange={e => update('brand_colour', e.target.value)} className="w-12 h-12 rounded-xl border-2 border-gray-100 dark:border-gray-800 cursor-pointer" />
+                    <span className="text-sm text-gray-400 dark:text-gray-500 font-mono">{form.brand_colour}</span>
                   </div>
                 </div>
                 <div className="flex gap-3">

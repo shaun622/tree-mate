@@ -21,7 +21,7 @@ export default function PageHero({ title, subtitle, action, className }) {
           {title}
         </h1>
         {subtitle && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}

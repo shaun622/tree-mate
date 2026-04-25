@@ -37,21 +37,21 @@ export default function PortalSetup() {
     setSaving(false)
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="min-h-screen bg-gradient-page flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-gray-900">Set Up Your Portal</h1>
-          <p className="text-sm text-gray-500">Create a password to access your portal</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Set Up Your Portal</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-500">Create a password to access your portal</p>
         </div>
 
         {error && !client ? (
           <div className="bg-red-50 text-red-600 text-sm rounded-xl p-4 text-center">{error}</div>
         ) : (
-          <form onSubmit={handleSetup} className="bg-white rounded-2xl shadow-elevated p-6 space-y-4">
-            {client && <p className="text-sm text-gray-600">Welcome, <strong>{client.name}</strong></p>}
+          <form onSubmit={handleSetup} className="bg-white dark:bg-gray-900 rounded-2xl shadow-elevated p-6 space-y-4">
+            {client && <p className="text-sm text-gray-600 dark:text-gray-500">Welcome, <strong>{client.name}</strong></p>}
             {error && <div className="bg-red-50 text-red-600 text-sm rounded-xl p-3">{error}</div>}
             <Input label="Create Password" type="password" placeholder="Min 6 characters" value={password} onChange={e => setPassword(e.target.value)} required />
             <Button type="submit" loading={saving} className="w-full">Create Account</Button>

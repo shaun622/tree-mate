@@ -48,7 +48,7 @@ export default function StatCard({
     <Card onClick={onClick}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">{label}</p>
           <p className="mt-2 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100">
             {prefix}{formatted}{suffix}
           </p>
@@ -58,7 +58,7 @@ export default function StatCard({
                 'mt-1.5 flex items-center gap-1 text-xs font-medium',
                 trend > 0 && 'text-emerald-600 dark:text-emerald-400',
                 trend < 0 && 'text-red-600 dark:text-red-400',
-                (!trend || trend === 0) && 'text-gray-500 dark:text-gray-400',
+                (!trend || trend === 0) && 'text-gray-500 dark:text-gray-500',
               )}
             >
               {trend > 0 && <TrendingUp className="w-3.5 h-3.5" strokeWidth={2.5} />}

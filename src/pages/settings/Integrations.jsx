@@ -20,8 +20,8 @@ export default function Integrations() {
           <Card key={int.name} className="p-4 flex items-center gap-4">
             <span className="text-2xl">{int.icon}</span>
             <div className="flex-1">
-              <p className="font-medium text-gray-900">{int.name}</p>
-              <p className="text-xs text-gray-500">{int.description}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">{int.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">{int.description}</p>
             </div>
             <Badge variant={int.status === 'connected' ? 'success' : int.status === 'configure' ? 'warning' : 'neutral'}>
               {int.status === 'connected' ? 'Connected' : int.status === 'configure' ? 'Configure' : 'Coming Soon'}

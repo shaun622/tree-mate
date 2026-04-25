@@ -53,7 +53,7 @@ export default function BottomNav() {
                 <Icon
                   className={cn(
                     'w-5 h-5',
-                    active ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300',
+                    active ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300',
                   )}
                   strokeWidth={active ? 2.5 : 2}
                 />

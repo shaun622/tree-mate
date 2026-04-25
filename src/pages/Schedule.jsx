@@ -19,9 +19,9 @@ const STATUS_COLORS = {
   site_visit: { border: '#0ea5e9', bg: 'bg-sky-50', text: 'text-sky-700', pin: '#0ea5e9' },
   quoted: { border: '#6366f1', bg: 'bg-indigo-50', text: 'text-indigo-700', pin: '#6366f1' },
   approved: { border: '#14b8a6', bg: 'bg-teal-50', text: 'text-teal-700', pin: '#14b8a6' },
-  scheduled: { border: '#22c55e', bg: 'bg-tree-50', text: 'text-tree-700', pin: '#22c55e' },
+  scheduled: { border: '#22c55e', bg: 'bg-brand-50', text: 'text-brand-700', pin: '#22c55e' },
   in_progress: { border: '#3b82f6', bg: 'bg-blue-50', text: 'text-blue-700', pin: '#3b82f6' },
-  completed: { border: '#6b7280', bg: 'bg-gray-50', text: 'text-gray-700', pin: '#6b7280' },
+  completed: { border: '#6b7280', bg: 'bg-gray-50 dark:bg-gray-900/50', text: 'text-gray-700 dark:text-gray-300', pin: '#6b7280' },
   invoiced: { border: '#f97316', bg: 'bg-orange-50', text: 'text-orange-700', pin: '#f97316' },
   paid: { border: '#10b981', bg: 'bg-emerald-50', text: 'text-emerald-700', pin: '#10b981' },
 }
@@ -302,7 +302,7 @@ export default function Schedule() {
         onDragOver={enableDrag ? (e) => handleDragOver(e, job.id) : undefined}
         onDragEnd={enableDrag ? handleDragEnd : undefined}
         onDrop={enableDrag ? (e) => handleDrop(e, job.id) : undefined}
-        className={`relative bg-white rounded-2xl shadow-card border-l-4 transition-colors duration-150 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-tree-400' : ''}`}
+        className={`relative bg-white dark:bg-gray-900 rounded-2xl shadow-card border-l-4 transition-colors duration-150 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-brand-400' : ''}`}
         style={{ borderLeftColor: sty.border }}
       >
         <div onClick={() => setOpenJobId(job.id)} className="p-4 cursor-pointer">
@@ -323,23 +323,23 @@ export default function Schedule() {
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="font-semibold text-gray-900 truncate">{job.job_type || 'Job'}</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${sty.bg} ${sty.text}`}>
                   {statusLabel(job.status)}
                 </span>
               </div>
-              {client && <p className="text-sm text-gray-600 truncate">{client.name}</p>}
-              {site?.address && <p className="text-xs text-gray-400 truncate">{site.address}</p>}
+              {client && <p className="text-sm text-gray-600 dark:text-gray-500 truncate">{client.name}</p>}
+              {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{site.address}</p>}
               <div className="flex items-center gap-3 mt-2">
                 {job.scheduled_start && (
-                  <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     {formatTime(job.scheduled_start)}
                     {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
                   </span>
                 )}
                 {job.staff_id && staff?.find(s => s.id === job.staff_id) && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
                     {staff.find(s => s.id === job.staff_id).name}
                   </span>
                 )}
@@ -357,19 +357,19 @@ export default function Schedule() {
       <div
         key={job.id}
         onClick={() => setOpenJobId(job.id)}
-        className="bg-white rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
         style={{ borderLeftColor: STATUS_COLORS.site_visit.border }}
       >
         <div className="flex items-start justify-between gap-2 mb-1">
-          <p className="font-semibold text-gray-900 truncate">{client?.name || 'Client'}</p>
+          <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{client?.name || 'Client'}</p>
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-xl whitespace-nowrap bg-sky-50 text-sky-700 ring-1 ring-sky-200/50">
             Site Visit
           </span>
         </div>
-        {site?.address && <p className="text-xs text-gray-400 truncate mt-0.5">{site.address}</p>}
+        {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{site.address}</p>}
         <div className="flex items-center gap-3 mt-2.5">
           {job.scheduled_start && (
-            <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {formatTime(job.scheduled_start)}
             </span>
@@ -380,7 +380,7 @@ export default function Schedule() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-xs font-semibold text-tree-600 hover:text-tree-700 flex items-center gap-1 transition-colors"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               Navigate
@@ -401,16 +401,16 @@ export default function Schedule() {
         {/* Week navigation */}
         <Card className="p-3">
           <div className="flex items-center justify-between gap-2">
-            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150 active:scale-95">
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <div className="text-center flex-1">
-              <p className="text-sm font-bold text-gray-900">
+              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                 {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
               </p>
             </div>
-            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150 active:scale-95">
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>
         </Card>
@@ -425,23 +425,23 @@ export default function Schedule() {
           if (dayJobs.length === 0) return (
             <div key={dayStr} className="space-y-1">
               <div className="flex items-center gap-2 px-1">
-                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-tree-600' : 'text-gray-400'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-brand-600' : 'text-gray-400 dark:text-gray-500'}`}>
                   {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
                 </p>
-                <div className="flex-1 h-px bg-gray-200" />
+                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
               </div>
-              <p className="text-xs text-gray-400 px-1">No jobs</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 px-1">No jobs</p>
             </div>
           )
 
           return (
             <div key={dayStr} className="space-y-2">
               <div className="flex items-center gap-2 px-1">
-                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-tree-600' : 'text-gray-500'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-brand-600' : 'text-gray-500 dark:text-gray-500'}`}>
                   {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
                 </p>
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-[10px] font-semibold text-gray-400">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
+                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
               </div>
               {daySiteVisits.length > 0 && daySiteVisits.map(job => renderSiteVisitCard(job, weekSites[job.job_site_id], weekClients[job.client_id]))}
               {dayWork.map((job, i) => renderJobCard(job, weekSites[job.job_site_id], weekClients[job.client_id], i, false))}
@@ -466,19 +466,19 @@ export default function Schedule() {
         {(view === 'today' || view === 'map') && (
           <Card className="p-3">
             <div className="flex items-center justify-between gap-2">
-              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150 active:scale-95">
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="text-center flex-1">
-                <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
-                <p className="text-sm font-bold text-gray-900">{dayLabel}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{dayLabel}</p>
               </div>
-              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150 active:scale-95">
-                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
             {!isToday && (
-              <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-tree-600 hover:text-tree-700 py-1">
+              <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700 py-1">
                 Jump to today
               </button>
             )}
@@ -486,12 +486,12 @@ export default function Schedule() {
         )}
 
         {/* View toggle — Today | Week | Upcoming | Map */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
           {['today', 'week', 'upcoming', 'map'].map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-150 ${view === v ? 'bg-white text-tree-600 shadow-card' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-150 ${view === v ? 'bg-white dark:bg-gray-900 text-brand-600 shadow-card' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'}`}
             >
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
@@ -500,7 +500,7 @@ export default function Schedule() {
 
         {/* Travel summary */}
         {(view === 'today' || view === 'map') && mapPoints.length > 1 && (
-          <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
+          <div className="bg-gradient-to-r from-brand-500 to-brand-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
             </div>
@@ -515,7 +515,7 @@ export default function Schedule() {
         {/* === VIEW: TODAY === */}
         {view === 'today' && (
           loading ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
           ) : jobs.length === 0 ? (
             <EmptyState
               icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
@@ -543,9 +543,9 @@ export default function Schedule() {
                 <div className="space-y-2">
                   {siteVisits.length > 0 && (
                     <div className="flex items-center gap-2 px-1">
-                      <p className="text-xs font-bold uppercase tracking-wide text-tree-600">Jobs</p>
-                      <div className="flex-1 h-px bg-tree-200" />
-                      <span className="text-[10px] font-semibold text-tree-500">{scheduledJobs.length}</span>
+                      <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Jobs</p>
+                      <div className="flex-1 h-px bg-brand-200" />
+                      <span className="text-[10px] font-semibold text-brand-500">{scheduledJobs.length}</span>
                     </div>
                   )}
                   {scheduledJobs.map((job, index) => renderJobCard(job, sites[job.job_site_id], clients[job.client_id], index, true))}
@@ -584,9 +584,9 @@ export default function Schedule() {
                 return (
                   <div key={dateKey} className="space-y-2">
                     <div className="flex items-center gap-2 px-1">
-                      <p className="text-xs font-bold uppercase tracking-wide text-tree-500/80">{isDayToday ? 'Today' : dayLbl}</p>
-                      <div className="flex-1 h-px bg-tree-200/60" />
-                      <span className="text-[10px] font-semibold text-tree-500/70">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
+                      <p className="text-xs font-bold uppercase tracking-wide text-brand-500/80">{isDayToday ? 'Today' : dayLbl}</p>
+                      <div className="flex-1 h-px bg-brand-200/60" />
+                      <span className="text-[10px] font-semibold text-brand-500/70">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
                     </div>
                     {dayJobs.map(job => {
                       const site = upcomingSites[job.job_site_id]
@@ -595,18 +595,18 @@ export default function Schedule() {
                         <div
                           key={job.id}
                           onClick={() => setOpenJobId(job.id)}
-                          className="bg-white border border-gray-100/80 rounded-2xl shadow-card p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
+                          className="bg-white dark:bg-gray-900 border border-gray-100/80 rounded-2xl shadow-card p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="font-semibold text-tree-800/90 truncate">{job.job_type || 'Job'}</p>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-white/70 text-tree-600/80">
+                            <p className="font-semibold text-brand-800/90 truncate">{job.job_type || 'Job'}</p>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-white/70 text-brand-600/80">
                               {statusLabel(job.status)}
                             </span>
                           </div>
-                          {client && <p className="text-sm text-tree-700/70 truncate">{client.name}</p>}
-                          {site?.address && <p className="text-xs text-tree-600/60 truncate">{site.address}</p>}
+                          {client && <p className="text-sm text-brand-700/70 truncate">{client.name}</p>}
+                          {site?.address && <p className="text-xs text-brand-600/60 truncate">{site.address}</p>}
                           {job.scheduled_start && (
-                            <p className="text-xs font-semibold text-tree-600/80 mt-1.5 flex items-center gap-1">
+                            <p className="text-xs font-semibold text-brand-600/80 mt-1.5 flex items-center gap-1">
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               {formatTime(job.scheduled_start)}
                               {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
@@ -625,7 +625,7 @@ export default function Schedule() {
         {/* === VIEW: MAP === */}
         {view === 'map' && (
           loading ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
           ) : jobs.length === 0 ? (
             <EmptyState
               icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
@@ -643,7 +643,7 @@ export default function Schedule() {
                 onMarkerClick={(p) => setOpenJobId(p.id)}
               />
               {mapPoints.length < jobs.length && (
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
                   {jobs.length - mapPoints.length} job(s) without a mapped address
                 </p>
               )}
@@ -654,7 +654,7 @@ export default function Schedule() {
 
       <Modal open={!!openJobId} onClose={() => setOpenJobId(null)} title="Job Details" size="lg">
         {modalJob.loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : (
           <JobDetailView
             job={modalJob.job}

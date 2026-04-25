@@ -98,8 +98,8 @@ export default function Settings() {
           </div>
           <div className="relative min-w-0">
             <h2 className="font-bold text-gray-900 dark:text-gray-100 text-base truncate">{business?.name}</h2>
-            {business?.abn && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">ABN: {business.abn}</p>}
-            {business?.email && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{business.email}</p>}
+            {business?.abn && <p className="text-sm text-gray-500 dark:text-gray-500 truncate">ABN: {business.abn}</p>}
+            {business?.email && <p className="text-sm text-gray-500 dark:text-gray-500 truncate">{business.email}</p>}
           </div>
         </Card>
 
@@ -114,16 +114,16 @@ export default function Settings() {
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:active:bg-gray-800 transition-colors duration-150 group text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/60 active:bg-gray-100 dark:bg-gray-800 dark:active:bg-gray-800 transition-colors duration-150 group text-left"
                   >
                     <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', COLOR_CLASSES[item.color] || COLOR_CLASSES.brand)}>
                       <Icon className="w-5 h-5" strokeWidth={2} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{item.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.desc}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{item.desc}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:group-hover:text-gray-400 dark:text-gray-500 group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
                   </button>
                 )
               })}
@@ -137,7 +137,7 @@ export default function Settings() {
           <Card className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Theme</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Choose light, dark, or match your system</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">Choose light, dark, or match your system</p>
             </div>
             <ThemeToggleFull />
           </Card>
@@ -147,14 +147,14 @@ export default function Settings() {
         <div className="pt-2">
           <button
             onClick={handleSignOut}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-card hover:bg-gray-50 dark:hover:bg-gray-800 min-h-tap transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white border border-gray-200 dark:border-gray-700 shadow-card hover:bg-gray-50 dark:bg-gray-900/50 dark:hover:bg-gray-800 min-h-tap transition-colors"
           >
             <LogOut className="w-4 h-4" strokeWidth={2} />
             Sign out
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-300 dark:text-gray-700 pb-2">TreePro v1.0.0</p>
+        <p className="text-center text-xs text-gray-300 dark:text-gray-300 pb-2">TreePro v1.0.0</p>
       </div>
     </PageWrapper>
   )

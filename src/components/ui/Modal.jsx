@@ -66,7 +66,7 @@ export default function Modal({ open, onClose, title, children, size = 'md', zLa
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</h2>
             <button
               onClick={onClose}
-              className="p-2 -m-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 -m-2 rounded-xl text-gray-400 hover:text-gray-600 dark:text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
               aria-label="Close"
             >
               <X className="w-5 h-5" strokeWidth={2} />

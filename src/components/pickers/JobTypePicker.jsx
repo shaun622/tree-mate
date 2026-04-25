@@ -51,8 +51,8 @@ export default function JobTypePicker({ templates = [], value, onChange, onCreat
       <Select label={label} value={value} onChange={e => handleSelect(e.target.value)} options={options} required={required} />
 
       {mode === 'custom' && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Job Type</p>
+        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200 dark:border-gray-800">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide">Custom Job Type</p>
           <Input
             placeholder="e.g. Crown Reduction"
             value={customName}
@@ -64,7 +64,7 @@ export default function JobTypePicker({ templates = [], value, onChange, onCreat
             <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
             <Button type="button" loading={busy} onClick={handleSaveCustom} className="flex-1 !min-h-[40px] text-xs">Use Type</Button>
           </div>
-          {onCreateTemplate && <p className="text-[10px] text-gray-400">Will be saved as a reusable template.</p>}
+          {onCreateTemplate && <p className="text-[10px] text-gray-400 dark:text-gray-500">Will be saved as a reusable template.</p>}
         </div>
       )}
     </div>

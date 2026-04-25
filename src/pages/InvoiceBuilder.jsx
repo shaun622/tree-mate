@@ -138,9 +138,9 @@ export default function InvoiceBuilder() {
       <div className="px-4 py-4 space-y-4">
         {/* Job link banner */}
         {linkedJobId && !id && (
-          <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center gap-2">
-            <svg className="w-4 h-4 text-tree-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            <p className="text-xs font-semibold text-tree-700">Linked to job — invoice will update the job pipeline</p>
+          <div className="bg-brand-50 border border-brand-200 rounded-xl p-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <p className="text-xs font-semibold text-brand-700">Linked to job — invoice will update the job pipeline</p>
           </div>
         )}
 
@@ -148,17 +148,17 @@ export default function InvoiceBuilder() {
         {selectedClient ? (
           <Card className="p-4">
             <div className="flex items-start justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Bill To</h3>
-              <button onClick={openEditClient} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Edit client details">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Bill To</h3>
+              <button onClick={openEditClient} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-lg transition-colors" title="Edit client details">
+                <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
               </button>
             </div>
-            <p className="text-sm font-bold text-gray-900">{selectedClient.name}</p>
-            {selectedClient.phone && <p className="text-sm text-gray-600 mt-0.5">{selectedClient.phone}</p>}
-            {selectedClient.email && <p className="text-sm text-gray-600 mt-0.5">{selectedClient.email}</p>}
-            {selectedClient.address && <p className="text-sm text-gray-500 mt-0.5">{selectedClient.address}</p>}
+            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{selectedClient.name}</p>
+            {selectedClient.phone && <p className="text-sm text-gray-600 dark:text-gray-500 mt-0.5">{selectedClient.phone}</p>}
+            {selectedClient.email && <p className="text-sm text-gray-600 dark:text-gray-500 mt-0.5">{selectedClient.email}</p>}
+            {selectedClient.address && <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">{selectedClient.address}</p>}
             {!selectedClient.phone && !selectedClient.email && !selectedClient.address && (
-              <button onClick={openEditClient} className="text-xs text-tree-600 font-semibold mt-1 hover:text-tree-700">+ Add contact details</button>
+              <button onClick={openEditClient} className="text-xs text-brand-600 font-semibold mt-1 hover:text-brand-700">+ Add contact details</button>
             )}
           </Card>
         ) : (
@@ -179,9 +179,9 @@ export default function InvoiceBuilder() {
         </Card>
 
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Line Items</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Line Items</h3>
           {form.line_items.map((item, i) => (
-            <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 last:mb-0">
+            <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0 last:pb-0 last:mb-0">
               <Input placeholder="Description" value={item.description} onChange={e => updateItem(i, 'description', e.target.value)} />
               <div className="flex gap-2 items-end">
                 <Input label="Qty" type="number" min="1" value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} className="w-20" />
@@ -195,21 +195,21 @@ export default function InvoiceBuilder() {
               </div>
             </div>
           ))}
-          <button onClick={addItem} className="w-full py-2 text-sm text-tree-600 font-medium hover:bg-tree-50 rounded-lg">+ Add Line Item</button>
+          <button onClick={addItem} className="w-full py-2 text-sm text-brand-600 font-medium hover:bg-brand-50 rounded-lg">+ Add Line Item</button>
 
-          <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
           </div>
         </Card>
 
         {business?.bank_details && (
           <Card className="p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Bank Details</h3>
-            <p className="text-sm text-gray-600">BSB: {business.bank_details.bsb}</p>
-            <p className="text-sm text-gray-600">Account: {business.bank_details.account_number}</p>
-            <p className="text-sm text-gray-600">Name: {business.bank_details.account_name}</p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Bank Details</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-500">BSB: {business.bank_details.bsb}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-500">Account: {business.bank_details.account_number}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-500">Name: {business.bank_details.account_name}</p>
           </Card>
         )}
 

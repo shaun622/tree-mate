@@ -57,8 +57,8 @@ export default function CommunicationTemplates() {
   return (
     <PageWrapper>
       <Header title="Templates" back="/settings" rightAction={
-        <button onClick={() => { setEditing(null); setForm({ name: '', type: 'email', trigger_type: 'job_completed', subject: '', body: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <button onClick={() => { setEditing(null); setForm({ name: '', type: 'email', trigger_type: 'job_completed', subject: '', body: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+          <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
       } />
 
@@ -71,8 +71,8 @@ export default function CommunicationTemplates() {
               <Card key={t.id} hover onClick={() => { setEditing(t); setForm(t); setShowModal(true) }} className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{t.subject}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{t.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{t.subject}</p>
                   </div>
                   <div className="flex gap-2">
                     <Badge variant={t.type === 'email' ? 'info' : 'warning'}>{t.type}</Badge>
@@ -97,10 +97,10 @@ export default function CommunicationTemplates() {
           )}
           <TextArea label="Body" value={form.body} onChange={e => setForm(p => ({ ...p, body: e.target.value }))} />
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-2">Insert Variable:</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-500 mb-2">Insert Variable:</p>
             <div className="flex flex-wrap gap-1">
               {TEMPLATE_VARIABLES.map(v => (
-                <button key={v.key} type="button" onClick={() => insertVariable(v.key)} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 hover:bg-gray-200" title={v.description}>
+                <button key={v.key} type="button" onClick={() => insertVariable(v.key)} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600 dark:text-gray-500 hover:bg-gray-200 dark:bg-gray-800" title={v.description}>
                   {`{${v.key}}`}
                 </button>
               ))}

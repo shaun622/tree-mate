@@ -28,11 +28,11 @@ export default function PortalLogin() {
           <div className="w-14 h-14 bg-gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-3">
             <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Customer Portal</h1>
-          <p className="text-sm text-gray-500">View your job history and reports</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Customer Portal</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-500">View your job history and reports</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-elevated p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-2xl shadow-elevated p-6 space-y-4">
           {error && <div className="bg-red-50 text-red-600 text-sm rounded-xl p-3">{error}</div>}
           <Input label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
           <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />

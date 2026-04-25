@@ -63,7 +63,7 @@ export default function RecurringJobs() {
     <PageWrapper>
       <div className="md:hidden">
         <Header title="Recurring Jobs" back="/jobs" rightAction={
-          <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
+          <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
             <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           </button>
         } />
@@ -78,7 +78,7 @@ export default function RecurringJobs() {
 
       <div className="px-4 py-4 space-y-4">
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : profiles.length === 0 ? (
           <EmptyState title="No recurring jobs" description="Set up recurring job profiles for maintenance contracts" actionLabel="Add Profile" onAction={() => setShowModal(true)} />
         ) : (
@@ -86,12 +86,12 @@ export default function RecurringJobs() {
             <Card key={p.id} className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{p.job_type || 'Job'}</p>
-                  <p className="text-sm text-gray-500">{clientMap[p.client_id]?.name || ''}</p>
-                  <p className="text-xs text-gray-400">{p.frequency} — Next: {p.next_run_at ? formatDate(p.next_run_at) : 'Not set'}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{p.job_type || 'Job'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">{clientMap[p.client_id]?.name || ''}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{p.frequency} — Next: {p.next_run_at ? formatDate(p.next_run_at) : 'Not set'}</p>
                 </div>
-                <button onClick={() => toggleActive(p.id, !p.active)} className={`relative w-11 h-6 rounded-full transition-colors ${p.active ? 'bg-tree-500' : 'bg-gray-300'}`}>
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${p.active ? 'translate-x-5' : ''}`} />
+                <button onClick={() => toggleActive(p.id, !p.active)} className={`relative w-11 h-6 rounded-full transition-colors ${p.active ? 'bg-brand-500' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-gray-900 rounded-full transition-transform ${p.active ? 'translate-x-5' : ''}`} />
                 </button>
               </div>
             </Card>

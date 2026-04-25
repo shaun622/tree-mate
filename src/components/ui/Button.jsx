@@ -5,7 +5,7 @@ const VARIANTS = {
   primary:   'bg-gradient-brand text-white shadow-button hover:shadow-button-hover hover:brightness-110',
   secondary: 'bg-white text-gray-700 border border-gray-200 shadow-card hover:bg-gray-50 hover:border-gray-300 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800',
   danger:    'bg-gradient-danger text-white shadow-md hover:brightness-110',
-  ghost:     'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+  ghost:     'text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-800',
 }
 
 const SIZES = {

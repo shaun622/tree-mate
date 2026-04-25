@@ -65,8 +65,8 @@ export default function Automations() {
   return (
     <PageWrapper>
       <Header title="Automations" back="/settings" rightAction={
-        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+          <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
       } />
 
@@ -79,15 +79,15 @@ export default function Automations() {
               <Card key={r.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{r.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{r.name}</p>
                     <div className="flex gap-2 mt-1">
                       <Badge variant="info">{r.trigger_event?.replace(/_/g, ' ')}</Badge>
                       <Badge variant="neutral">{r.action?.replace(/_/g, ' ')}</Badge>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => toggleActive(r.id, !r.active)} className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? 'bg-tree-500' : 'bg-gray-300'}`}>
-                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${r.active ? 'translate-x-5' : ''}`} />
+                    <button onClick={() => toggleActive(r.id, !r.active)} className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? 'bg-brand-500' : 'bg-gray-300'}`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-gray-900 rounded-full transition-transform ${r.active ? 'translate-x-5' : ''}`} />
                     </button>
                     <button onClick={() => setDeleteId(r.id)} className="p-1 hover:bg-red-50 rounded-full">
                       <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

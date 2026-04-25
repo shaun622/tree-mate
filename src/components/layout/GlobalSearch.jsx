@@ -107,7 +107,7 @@ export default function GlobalSearch({ className }) {
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" strokeWidth={2} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2} />
         <input
           ref={inputRef}
           type="text"
@@ -118,7 +118,7 @@ export default function GlobalSearch({ className }) {
           className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 pl-9 pr-14 text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 dark:text-gray-100"
           style={{ fontSize: '14px' }}
         />
-        <kbd className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] font-semibold text-gray-500 dark:text-gray-400 tabular-nums">
+        <kbd className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[10px] font-semibold text-gray-500 dark:text-gray-500 tabular-nums">
           ⌘K
         </kbd>
       </div>
@@ -126,12 +126,12 @@ export default function GlobalSearch({ className }) {
       {open && query.length >= MIN_QUERY && (
         <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-elevated max-h-[60vh] overflow-y-auto z-40 animate-fade-in">
           {loading && (
-            <div className="px-4 py-6 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+            <div className="px-4 py-6 flex items-center justify-center text-sm text-gray-500 dark:text-gray-500 gap-2">
               <Loader2 className="w-4 h-4 animate-spin" /> Searching…
             </div>
           )}
           {!loading && totalResults === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-500">
               No results for <span className="font-semibold">"{query}"</span>
             </div>
           )}
@@ -182,20 +182,20 @@ function Group({ label, Icon, color, rows }) {
     <div className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
       <div className="px-4 pt-3 pb-1 flex items-center justify-between">
         <span className="section-title">{label}</span>
-        <span className="text-[10px] text-gray-400 tabular-nums">{rows.length}</span>
+        <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">{rows.length}</span>
       </div>
       {rows.map(row => (
         <button
           key={row.key}
           onClick={row.onClick}
-          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors text-left"
+          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:bg-gray-900/50 dark:hover:bg-gray-800/60 transition-colors text-left"
         >
           <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', COLOR_CLASSES[color] || COLOR_CLASSES.brand)}>
             <Icon className="w-4 h-4" strokeWidth={2} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{row.title}</p>
-            {row.subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{row.subtitle}</p>}
+            {row.subtitle && <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{row.subtitle}</p>}
           </div>
         </button>
       ))}

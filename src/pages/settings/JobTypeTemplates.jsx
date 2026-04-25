@@ -70,15 +70,15 @@ export default function JobTypeTemplates() {
   return (
     <PageWrapper>
       <Header title="Job Types" back="/settings" rightAction={
-        <button onClick={() => { setEditing(null); setForm({ name: '', description: '', color: '#22c55e', default_tasks: '', estimated_duration_minutes: '', price: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <button onClick={() => { setEditing(null); setForm({ name: '', description: '', color: '#22c55e', default_tasks: '', estimated_duration_minutes: '', price: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+          <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
         </button>
       } />
 
       <div className="px-4 py-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Suggested Job Types</h3>
-          <button onClick={() => setShowSuggestions(!showSuggestions)} className="text-xs text-tree-600 font-medium">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Suggested Job Types</h3>
+          <button onClick={() => setShowSuggestions(!showSuggestions)} className="text-xs text-brand-600 font-medium">
             {showSuggestions ? 'Hide Suggestions' : 'Show Suggestions'}
           </button>
         </div>
@@ -90,17 +90,17 @@ export default function JobTypeTemplates() {
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{s.name}</p>
-                    <p className="text-xs text-gray-500">{s.estimated_duration_minutes}min • {s.default_tasks.length} tasks</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{s.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">{s.estimated_duration_minutes}min • {s.default_tasks.length} tasks</p>
                   </div>
                 </div>
-                <button onClick={() => handleAddSuggestion(s)} className="px-3 py-1.5 bg-tree-50 text-tree-700 rounded-lg text-xs font-medium hover:bg-tree-100">Add</button>
+                <button onClick={() => handleAddSuggestion(s)} className="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-xs font-medium hover:bg-brand-100">Add</button>
               </Card>
             ))}
           </div>
         )}
 
-        <h3 className="text-sm font-semibold text-gray-900">Your Job Types ({templates.length})</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Your Job Types ({templates.length})</h3>
         {templates.length === 0 ? (
           <EmptyState title="No job types" description="Add from suggestions or create your own" />
         ) : (
@@ -111,13 +111,13 @@ export default function JobTypeTemplates() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color }} />
                     <div>
-                      <p className="font-medium text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-500">{t.estimated_duration_minutes}min{t.price ? ` • $${t.price}` : ''}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{t.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">{t.estimated_duration_minutes}min{t.price ? ` • $${t.price}` : ''}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => { setEditing(t); setForm({ name: t.name, description: t.description || '', color: t.color || '#22c55e', default_tasks: (t.default_tasks || []).join('\n'), estimated_duration_minutes: t.estimated_duration_minutes || '', price: t.price || '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 rounded-full">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <button onClick={() => { setEditing(t); setForm({ name: t.name, description: t.description || '', color: t.color || '#22c55e', default_tasks: (t.default_tasks || []).join('\n'), estimated_duration_minutes: t.estimated_duration_minutes || '', price: t.price || '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+                      <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
                     <button onClick={() => setDeleteId(t.id)} className="p-2 hover:bg-red-50 rounded-full">
                       <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -135,8 +135,8 @@ export default function JobTypeTemplates() {
           <Input label="Name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
           <Input label="Description" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-            <input type="color" value={form.color} onChange={e => setForm(p => ({ ...p, color: e.target.value }))} className="w-12 h-12 rounded-xl border-2 border-gray-200 cursor-pointer" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
+            <input type="color" value={form.color} onChange={e => setForm(p => ({ ...p, color: e.target.value }))} className="w-12 h-12 rounded-xl border-2 border-gray-200 dark:border-gray-800 cursor-pointer" />
           </div>
           <TextArea label="Default Tasks (one per line)" value={form.default_tasks} onChange={e => setForm(p => ({ ...p, default_tasks: e.target.value }))} />
           <div className="grid grid-cols-2 gap-3">

@@ -89,15 +89,15 @@ export default function ClientDetail() {
     }))
   }
 
-  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
+  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
 
   const pipelineColor = { lead: 'info', quoted: 'warning', active: 'success', on_hold: 'neutral', lost: 'danger' }
 
   return (
     <PageWrapper>
       <Header title={client?.name || 'Client'} back="/clients" rightAction={
-        <button onClick={() => setShowEditModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+        <button onClick={() => setShowEditModal(true)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
         </button>
       } />
 
@@ -108,35 +108,35 @@ export default function ClientDetail() {
           <div className="lg:w-2/5 space-y-4">
             <Card className="p-4 md:p-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">{client?.name}</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{client?.name}</h2>
                 <Badge variant={pipelineColor[client?.pipeline_stage] || 'neutral'}>{statusLabel(client?.pipeline_stage)}</Badge>
               </div>
               {client?.email && (
-                <a href={`mailto:${client.email}`} className="text-sm text-gray-500 hover:text-tree-600 transition-colors block">{client.email}</a>
+                <a href={`mailto:${client.email}`} className="text-sm text-gray-500 dark:text-gray-500 hover:text-brand-600 transition-colors block">{client.email}</a>
               )}
               {client?.phone && (
-                <a href={`tel:${client.phone}`} className="text-sm text-gray-500 hover:text-tree-600 transition-colors block">{client.phone}</a>
+                <a href={`tel:${client.phone}`} className="text-sm text-gray-500 dark:text-gray-500 hover:text-brand-600 transition-colors block">{client.phone}</a>
               )}
-              {client?.address && <p className="text-sm text-gray-500">{client.address}</p>}
-              {client?.notes && <p className="text-sm text-gray-400 italic mt-2">{client.notes}</p>}
+              {client?.address && <p className="text-sm text-gray-500 dark:text-gray-500">{client.address}</p>}
+              {client?.notes && <p className="text-sm text-gray-400 dark:text-gray-500 italic mt-2">{client.notes}</p>}
             </Card>
 
             {/* Add Job Button */}
-            <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-tree-50 border-2 border-dashed border-tree-200 text-tree-700 font-medium hover:bg-tree-100 hover:border-tree-300 transition-colors duration-150 active:scale-[0.99]">
+            <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-brand-50 border-2 border-dashed border-brand-200 text-brand-700 font-medium hover:bg-brand-100 hover:border-brand-300 transition-colors duration-150 active:scale-[0.99]">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               Add Job
             </button>
 
             {/* Job Sites */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Job Sites ({sites.length})</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Job Sites ({sites.length})</h3>
               {sites.length === 0 ? (
                 <EmptyState title="No job sites" description="Add a job site to start tracking work" />
               ) : (
                 <div className="space-y-2">
                   {sites.map(site => (
                     <Card key={site.id} hover onClick={() => navigate(`/sites/${site.id}`)} className="p-4">
-                      <p className="font-medium text-gray-900">{site.address}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{site.address}</p>
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                         <Badge variant="neutral">{statusLabel(site.site_type)}</Badge>
                         <Badge variant={site.site_access === 'easy' ? 'success' : site.site_access === 'difficult' ? 'warning' : site.site_access === 'crane_required' ? 'danger' : 'neutral'}>
@@ -156,19 +156,19 @@ export default function ClientDetail() {
             {/* Jobs */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Jobs ({clientJobs.length})</h3>
-                <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="text-xs font-semibold text-tree-600 hover:text-tree-700 transition-colors">+ New Job</button>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Jobs ({clientJobs.length})</h3>
+                <button onClick={() => navigate(`/jobs?new=1&client_id=${id}`)} className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors">+ New Job</button>
               </div>
               {clientJobs.length === 0 ? (
-                <p className="text-sm text-gray-400">No jobs yet</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">No jobs yet</p>
               ) : (
                 <div className="space-y-2">
                   {clientJobs.slice(0, 5).map(job => (
                       <Card key={job.id} hover onClick={() => navigate(`/jobs/${job.id}`)} className="p-3">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 truncate">{job.job_type || 'Job'}</p>
-                            <p className="text-xs text-gray-400">{job.scheduled_date || new Date(job.created_at).toLocaleDateString('en-AU')}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">{job.scheduled_date || new Date(job.created_at).toLocaleDateString('en-AU')}</p>
                           </div>
                           <Badge variant={['completed', 'paid'].includes(job.status) ? 'neutral' : ['in_progress', 'scheduled', 'approved'].includes(job.status) ? 'success' : job.status === 'quoted' ? 'warning' : 'info'}>
                             {statusLabel(job.status)}
@@ -176,7 +176,7 @@ export default function ClientDetail() {
                         </div>
                       </Card>
                   ))}
-                  {clientJobs.length > 5 && <p className="text-xs text-gray-400 text-center">+{clientJobs.length - 5} more</p>}
+                  {clientJobs.length > 5 && <p className="text-xs text-gray-400 dark:text-gray-500 text-center">+{clientJobs.length - 5} more</p>}
                 </div>
               )}
             </div>
@@ -184,18 +184,18 @@ export default function ClientDetail() {
             {/* Quotes */}
             {clientQuotes.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Quotes ({clientQuotes.length})</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Quotes ({clientQuotes.length})</h3>
                 <div className="space-y-2">
                   {clientQuotes.slice(0, 5).map(q => (
                     <Card key={q.id} hover onClick={() => navigate(`/quotes/${q.id}`)} className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900 truncate">{q.scope?.split('\n')[0] || 'Quote'}</p>
-                          <p className="text-xs text-gray-400">{new Date(q.created_at).toLocaleDateString('en-AU')}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{q.scope?.split('\n')[0] || 'Quote'}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(q.created_at).toLocaleDateString('en-AU')}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-gray-900">{formatCurrency(q.total)}</p>
-                          <p className="text-xs text-gray-400">{statusLabel(q.status)}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{formatCurrency(q.total)}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{statusLabel(q.status)}</p>
                         </div>
                       </div>
                     </Card>
@@ -207,7 +207,7 @@ export default function ClientDetail() {
             {/* Invoices */}
             {clientInvoices.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Invoices ({clientInvoices.length})</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Invoices ({clientInvoices.length})</h3>
                 <div className="space-y-2">
                   {clientInvoices.slice(0, 5).map(inv => {
                     const isOverdue = inv.status === 'sent' && inv.due_date && new Date(inv.due_date) < new Date()
@@ -215,12 +215,12 @@ export default function ClientDetail() {
                       <Card key={inv.id} hover onClick={() => navigate(`/invoices/${inv.id}`)} className="p-3">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 truncate">{inv.invoice_number || 'Invoice'}</p>
-                            <p className="text-xs text-gray-400">{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-AU')}` : ''}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{inv.invoice_number || 'Invoice'}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">{inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString('en-AU')}` : ''}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-gray-900">{formatCurrency(inv.total)}</p>
-                            <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-400'}`}>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{formatCurrency(inv.total)}</p>
+                            <p className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-400 dark:text-gray-500'}`}>
                               {isOverdue ? 'Overdue' : statusLabel(inv.status)}
                             </p>
                           </div>
@@ -242,10 +242,10 @@ export default function ClientDetail() {
           <Select label="Site Type" options={SITE_TYPES.map(t => ({ value: t, label: statusLabel(t) }))} value={siteForm.site_type} onChange={e => setSiteForm(p => ({ ...p, site_type: e.target.value }))} />
           <Select label="Site Access" options={SITE_ACCESS.map(a => ({ value: a, label: statusLabel(a) }))} value={siteForm.site_access} onChange={e => setSiteForm(p => ({ ...p, site_access: e.target.value }))} />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Hazards</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hazards</label>
             <div className="flex flex-wrap gap-2">
               {HAZARDS.map(h => (
-                <button key={h} type="button" onClick={() => toggleHazard(h)} className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${siteForm.hazards.includes(h) ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-gray-200 text-gray-600'}`}>
+                <button key={h} type="button" onClick={() => toggleHazard(h)} className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${siteForm.hazards.includes(h) ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-500'}`}>
                   {statusLabel(h)}
                 </button>
               ))}
@@ -254,10 +254,10 @@ export default function ClientDetail() {
           <TextArea label="Notes" placeholder="Access notes, special instructions..." value={siteForm.notes} onChange={e => setSiteForm(p => ({ ...p, notes: e.target.value }))} />
 
           {/* Ongoing Maintenance Toggle */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-            <span className="text-sm font-medium text-gray-700">Ongoing Maintenance</span>
-            <button type="button" onClick={() => setSiteForm(p => ({ ...p, regular_maintenance: !p.regular_maintenance }))} className={`relative w-11 h-6 rounded-full transition-colors ${siteForm.regular_maintenance ? 'bg-tree-500' : 'bg-gray-300'}`}>
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${siteForm.regular_maintenance ? 'translate-x-5' : ''}`} />
+          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Ongoing Maintenance</span>
+            <button type="button" onClick={() => setSiteForm(p => ({ ...p, regular_maintenance: !p.regular_maintenance }))} className={`relative w-11 h-6 rounded-full transition-colors ${siteForm.regular_maintenance ? 'bg-brand-500' : 'bg-gray-300'}`}>
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-gray-900 rounded-full transition-transform ${siteForm.regular_maintenance ? 'translate-x-5' : ''}`} />
             </button>
           </div>
 

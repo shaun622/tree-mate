@@ -55,7 +55,7 @@ export default function ConfirmModal({
       </div>
       <div className="text-center mt-4">
         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</h3>
-        {description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>}
+        {description && <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{description}</p>}
       </div>
       <div className="flex gap-2 mt-5">
         <Button variant="secondary" onClick={onClose} disabled={running} className="flex-1">{cancelLabel}</Button>

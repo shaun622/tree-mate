@@ -45,14 +45,14 @@ export default function MoreSheet({ open, onClose, items = [] }) {
               key={to}
               to={to}
               onClick={onClose}
-              className="flex items-center gap-3 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 -mx-2 px-2 rounded-xl transition-colors"
+              className="flex items-center gap-3 py-3 hover:bg-gray-50 dark:bg-gray-900/50 dark:hover:bg-gray-800/60 -mx-2 px-2 rounded-xl transition-colors"
             >
               <IconBox color={color}><Icon className="w-5 h-5" strokeWidth={2} /></IconBox>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{label}</p>
-                {description && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{description}</p>}
+                {description && <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{description}</p>}
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+              <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
             </Link>
           ))}
         </div>

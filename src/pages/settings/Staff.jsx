@@ -56,28 +56,28 @@ export default function Staff() {
     <PageWrapper>
       <Header title="Staff" back="/settings" rightAction={
         canAdd ? (
-          <button onClick={() => { setEditing(null); setForm({ name: '', email: '', phone: '', role: 'arborist' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 rounded-full">
-            <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <button onClick={() => { setEditing(null); setForm({ name: '', email: '', phone: '', role: 'arborist' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
+            <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           </button>
         ) : null
       } />
 
       <div className="px-4 py-4 space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">{staff.length} / {limit} staff members</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">{staff.length} / {limit} staff members</p>
           <Badge variant={canAdd ? 'success' : 'warning'}>{business?.plan || 'trial'} plan</Badge>
         </div>
 
         {staff.length === 0 ? (
           <EmptyState title="No staff" description="Add your first team member" actionLabel="Add Staff" onAction={() => setShowModal(true)} />
         ) : (
-          <Card className="divide-y divide-gray-50">
+          <Card className="divide-y divide-gray-100 dark:divide-gray-800">
             {staff.map(s => (
               <div key={s.id} className="flex items-center">
                 <div className="flex-1"><StaffCard staff={s} onClick={() => handleEdit(s)} /></div>
                 <div className="pr-3 flex gap-1">
-                  <label className="p-2 hover:bg-gray-100 rounded-full cursor-pointer">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <label className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full cursor-pointer">
+                    <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <input type="file" accept="image/*" className="hidden" onChange={e => handlePhotoUpload(s.id, e)} />
                   </label>
                   <button onClick={() => setDeleteId(s.id)} className="p-2 hover:bg-red-50 rounded-full">

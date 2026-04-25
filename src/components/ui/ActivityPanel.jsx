@@ -36,7 +36,7 @@ const COLORS = {
   quote_accepted: 'bg-green-50 text-green-600',
   quote_declined: 'bg-red-50 text-red-600',
   quote_viewed: 'bg-purple-50 text-purple-600',
-  job_created: 'bg-tree-50 text-tree-600',
+  job_created: 'bg-brand-50 text-brand-600',
   job_completed: 'bg-emerald-50 text-emerald-600',
   report_completed: 'bg-sky-50 text-sky-600',
   client_created: 'bg-indigo-50 text-indigo-600',
@@ -51,7 +51,7 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
   const navigate = useNavigate()
 
   if (activities.length === 0) {
-    return <p className="text-sm text-gray-400 text-center py-4">No recent activity</p>
+    return <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No recent activity</p>
   }
 
   const handleClick = (a) => {
@@ -63,7 +63,7 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
     <div className="space-y-3">
       {activities.map(a => {
         const icon = ICONS[a.type] || DEFAULT_ICON
-        const color = COLORS[a.type] || 'bg-gray-50 text-gray-500'
+        const color = COLORS[a.type] || 'bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-500'
         const isClickable = !!a.link_to
         return (
           <div
@@ -76,13 +76,13 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
                 {icon}
               </div>
               {!a.is_read && (
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-tree-500 rounded-full ring-2 ring-white" />
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-brand-500 rounded-full ring-2 ring-white" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              {a.title && <p className="text-sm font-semibold text-gray-900">{a.title}</p>}
-              <p className="text-sm text-gray-600">{a.message || a.description}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{formatDateTime(a.created_at)}</p>
+              {a.title && <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{a.title}</p>}
+              <p className="text-sm text-gray-600 dark:text-gray-500">{a.message || a.description}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{formatDateTime(a.created_at)}</p>
             </div>
           </div>
         )

@@ -99,14 +99,14 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in" onClick={onClose}>
       <div className="fixed inset-0 bg-black/60" />
-      <div className="relative bg-white w-full max-w-2xl rounded-3xl shadow-elevated overflow-hidden animate-slide-up max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="relative bg-white dark:bg-gray-900 w-full max-w-2xl rounded-3xl shadow-elevated overflow-hidden animate-slide-up max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Pin location on map</h2>
-            <p className="text-xs text-gray-500">Tap anywhere on the map to drop a pin</p>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Pin location on map</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Tap anywhere on the map to drop a pin</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-150">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150">
+            <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
@@ -124,11 +124,11 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
             </MapContainer>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
           {searching && (
-            <div className="absolute top-3 left-3 bg-white px-3 py-1.5 rounded-lg text-xs text-gray-600 shadow-card">
+            <div className="absolute top-3 left-3 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg text-xs text-gray-600 dark:text-gray-500 shadow-card">
               Locating...
             </div>
           )}
@@ -136,15 +136,15 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
 
         <div className="px-6 py-4 space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Address label</label>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">Address label</label>
             <input
               type="text"
               value={label}
               onChange={e => setLabel(e.target.value)}
               placeholder="Pick a point on the map..."
-              className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 focus:border-tree-400 focus:outline-none focus:ring-4 focus:ring-tree-50 bg-gray-50/50 focus:bg-white text-sm"
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-800 focus:border-brand-400 focus:outline-none focus:ring-4 focus:ring-brand-50 bg-gray-50/50 focus:bg-white dark:bg-gray-900 text-sm"
             />
-            {busy && <p className="text-[10px] text-gray-400 mt-1">Looking up address...</p>}
+            {busy && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Looking up address...</p>}
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>

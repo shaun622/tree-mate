@@ -130,7 +130,7 @@ export default function NewJobReport() {
         {/* Site Summary */}
         {site && (
           <Card className="p-4">
-            <p className="font-medium text-gray-900">{site.address}</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{site.address}</p>
             <div className="flex gap-2 mt-1">
               <Badge variant="neutral">{statusLabel(site.site_type)}</Badge>
               <Badge>{statusLabel(site.site_access)}</Badge>
@@ -148,28 +148,28 @@ export default function NewJobReport() {
 
         {/* Tasks */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Tasks</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Tasks</h3>
           <div className="space-y-2">
             {tasks.map(t => (
-              <label key={t.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                <input type="checkbox" checked={t.completed} onChange={e => handleToggleTask(t.id, e.target.checked)} className="w-5 h-5 rounded border-gray-300 text-tree-500 focus:ring-tree-500" />
-                <span className={`text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>{t.task_name}</span>
+              <label key={t.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 cursor-pointer">
+                <input type="checkbox" checked={t.completed} onChange={e => handleToggleTask(t.id, e.target.checked)} className="w-5 h-5 rounded border-gray-300 dark:border-gray-700 text-brand-500 focus:ring-brand-500" />
+                <span className={`text-sm ${t.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{t.task_name}</span>
               </label>
             ))}
           </div>
           <div className="flex gap-2 mt-3">
-            <input type="text" value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Add custom task..." className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddTask())} />
+            <input type="text" value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Add custom task..." className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddTask())} />
             <Button variant="secondary" onClick={handleAddTask} className="px-3 py-2 text-sm">Add</Button>
           </div>
         </Card>
 
         {/* Equipment Used */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Equipment Used</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Equipment Used</h3>
           {equipment.map(eq => (
             <div key={eq.id} className="flex justify-between items-center p-2 border-b border-gray-50">
               <span className="text-sm">{eq.equipment_name}</span>
-              <span className="text-sm text-gray-500">{eq.hours_used}h — ${eq.cost}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-500">{eq.hours_used}h — ${eq.cost}</span>
             </div>
           ))}
           <div className="space-y-2 mt-3">
@@ -188,11 +188,11 @@ export default function NewJobReport() {
 
         {/* Tree Assessments */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Tree Assessments</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Tree Assessments</h3>
           {assessments.map(a => (
             <div key={a.id} className="p-2 border-b border-gray-50 text-sm">
               <p className="font-medium">Tree #{a.tree_number}: {a.species || 'Unknown'}</p>
-              <p className="text-gray-500">{a.diameter_dbh_cm}cm DBH, {a.height_m}m tall — {statusLabel(a.action_taken)}</p>
+              <p className="text-gray-500 dark:text-gray-500">{a.diameter_dbh_cm}cm DBH, {a.height_m}m tall — {statusLabel(a.action_taken)}</p>
             </div>
           ))}
           <div className="space-y-2 mt-3">
@@ -216,7 +216,7 @@ export default function NewJobReport() {
 
         {/* Photos */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Photos</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Photos</h3>
           {canUseFeature(business, 'photos') ? (
             <>
               {photos.length > 0 && (
@@ -230,10 +230,10 @@ export default function NewJobReport() {
                 </div>
               )}
               <div className="flex gap-2">
-                <select value={photoTag} onChange={e => setPhotoTag(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 text-sm">
+                <select value={photoTag} onChange={e => setPhotoTag(e.target.value)} className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-800 text-sm">
                   {PHOTO_TAGS.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                 </select>
-                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-tree-50 file:text-tree-700" />
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="text-sm text-gray-500 dark:text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700" />
               </div>
             </>
           ) : (
@@ -243,7 +243,7 @@ export default function NewJobReport() {
 
         {/* Summary Fields */}
         <Card className="p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">Summary</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Summary</h3>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Debris (m3)" type="number" value={form.debris_volume_m3} onChange={e => setForm(p => ({ ...p, debris_volume_m3: e.target.value }))} />
             <Input label="Stumps Ground" type="number" value={form.stump_count} onChange={e => setForm(p => ({ ...p, stump_count: e.target.value }))} />
@@ -252,11 +252,11 @@ export default function NewJobReport() {
           </div>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.herbicide_applied} onChange={e => setForm(p => ({ ...p, herbicide_applied: e.target.checked }))} className="w-4 h-4 rounded text-tree-500" />
+              <input type="checkbox" checked={form.herbicide_applied} onChange={e => setForm(p => ({ ...p, herbicide_applied: e.target.checked }))} className="w-4 h-4 rounded text-brand-500" />
               Herbicide Applied
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.ground_levelled} onChange={e => setForm(p => ({ ...p, ground_levelled: e.target.checked }))} className="w-4 h-4 rounded text-tree-500" />
+              <input type="checkbox" checked={form.ground_levelled} onChange={e => setForm(p => ({ ...p, ground_levelled: e.target.checked }))} className="w-4 h-4 rounded text-brand-500" />
               Ground Levelled
             </label>
           </div>

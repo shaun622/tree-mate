@@ -74,7 +74,7 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700">
+      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
         {label}{required && <span className="text-red-500"> *</span>}
       </label>
 
@@ -106,12 +106,12 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
           style={{ WebkitTapHighlightColor: 'transparent' }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left disabled:opacity-60 transition-colors duration-150 ${
             useClientAddr
-              ? 'bg-tree-600 border-tree-600'
-              : 'bg-white border-gray-200 hover:border-tree-300'
+              ? 'bg-brand-600 border-brand-600'
+              : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-brand-300'
           }`}
         >
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-150 ${
-            useClientAddr ? 'bg-white/15 text-white' : 'bg-tree-50 text-tree-600'
+            useClientAddr ? 'bg-white/15 text-white' : 'bg-brand-50 text-brand-600'
           }`}>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
@@ -119,19 +119,19 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold transition-colors duration-150 ${useClientAddr ? 'text-white' : 'text-gray-900'}`}>
+            <p className={`text-sm font-semibold transition-colors duration-150 ${useClientAddr ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`}>
               Use customer's address
             </p>
-            <p className={`text-xs truncate transition-colors duration-150 ${useClientAddr ? 'text-white/80' : 'text-gray-500'}`}>
+            <p className={`text-xs truncate transition-colors duration-150 ${useClientAddr ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'}`}>
               {clientAddress}
             </p>
           </div>
           {/* iOS-style toggle switch */}
           <div className={`relative w-11 h-6 rounded-full flex-shrink-0 transition-colors duration-150 ${
-            useClientAddr ? 'bg-white/25' : 'bg-gray-200'
+            useClientAddr ? 'bg-white/25' : 'bg-gray-200 dark:bg-gray-800'
           }`}>
             <div
-              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 ease-out"
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white dark:bg-gray-900 shadow-md transition-transform duration-200 ease-out"
               style={{ transform: useClientAddr ? 'translateX(22px)' : 'translateX(2px)' }}
             />
           </div>
@@ -141,9 +141,9 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
       {/* OR divider */}
       {!selected && !disabled && hasClientAddress && !useClientAddr && (
         <div className="flex items-center gap-2 py-1">
-          <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">or enter manually</span>
-          <div className="flex-1 h-px bg-gray-100" />
+          <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+          <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">or enter manually</span>
+          <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
         </div>
       )}
 
@@ -161,20 +161,20 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
 
       {/* Selected site card */}
       {selected && !editing && (
-        <div className="bg-gradient-to-br from-tree-50 to-white border-2 border-tree-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-tree-500 to-tree-600 text-white flex items-center justify-center flex-shrink-0 shadow-button">
+        <div className="bg-gradient-to-br from-brand-50 to-white border-2 border-brand-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white flex items-center justify-center flex-shrink-0 shadow-button">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </div>
           <div className="text-sm min-w-0 flex-1 pt-0.5">
-            <p className="font-semibold text-gray-900 leading-snug">{selected.address}</p>
-            {selected.notes && <p className="text-gray-500 text-xs mt-1 truncate">{selected.notes}</p>}
+            <p className="font-semibold text-gray-900 dark:text-gray-100 leading-snug">{selected.address}</p>
+            {selected.notes && <p className="text-gray-500 dark:text-gray-500 text-xs mt-1 truncate">{selected.notes}</p>}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button type="button" onClick={() => setEditing(true)} className="p-2 rounded-xl hover:bg-tree-100 transition-colors" aria-label="Edit site">
-              <svg className="w-4 h-4 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            <button type="button" onClick={() => setEditing(true)} className="p-2 rounded-xl hover:bg-brand-100 transition-colors" aria-label="Edit site">
+              <svg className="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
             </button>
             <button type="button" onClick={clearSite} className="p-2 rounded-xl hover:bg-red-50 transition-colors" aria-label="Change site">
-              <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         </div>
@@ -182,8 +182,8 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
 
       {/* Edit existing site */}
       {selected && editing && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Site</p>
+        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200 dark:border-gray-800">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide">Edit Site</p>
           <AddressAutocomplete
             value={draft.address}
             onChange={(addr, coords) => setDraft(p => ({ ...p, address: addr, lat: coords?.lat ?? p.lat, lng: coords?.lng ?? p.lng }))}
@@ -197,7 +197,7 @@ export default function JobSitePicker({ sites, client, clientId, value, onChange
         </div>
       )}
 
-      {busy && !selected && <p className="text-xs text-gray-400">Adding site...</p>}
+      {busy && !selected && <p className="text-xs text-gray-400 dark:text-gray-500">Adding site...</p>}
     </div>
   )
 }

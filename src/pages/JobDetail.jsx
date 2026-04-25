@@ -180,8 +180,8 @@ export default function JobDetail() {
     if (!error && data) setJobTypes(prev => [...prev, data])
   }
 
-  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
-  if (!job) return <PageWrapper><Header title="Job" back="/jobs" /><div className="px-4 py-12 text-center"><p className="text-sm text-gray-400">Job not found</p><Button variant="secondary" onClick={() => navigate('/jobs')} className="mt-4">Back to Jobs</Button></div></PageWrapper>
+  if (loading) return <PageWrapper><div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></PageWrapper>
+  if (!job) return <PageWrapper><Header title="Job" back="/jobs" /><div className="px-4 py-12 text-center"><p className="text-sm text-gray-400 dark:text-gray-500">Job not found</p><Button variant="secondary" onClick={() => navigate('/jobs')} className="mt-4">Back to Jobs</Button></div></PageWrapper>
 
   return (
     <PageWrapper>
@@ -257,9 +257,9 @@ export default function JobDetail() {
       <Modal open={showDeposit} onClose={() => setShowDeposit(false)} title="Deposit & Approval">
         <div className="space-y-4">
           {quoteTotal > 0 && (
-            <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center justify-between">
-              <span className="text-sm font-semibold text-tree-700">Quote Total</span>
-              <span className="text-lg font-bold text-tree-600">${quoteTotal.toFixed(2)}</span>
+            <div className="bg-brand-50 border border-brand-200 rounded-xl p-3 flex items-center justify-between">
+              <span className="text-sm font-semibold text-brand-700">Quote Total</span>
+              <span className="text-lg font-bold text-brand-600">${quoteTotal.toFixed(2)}</span>
             </div>
           )}
 
@@ -269,16 +269,16 @@ export default function JobDetail() {
               type="checkbox"
               checked={depositForm.noDeposit}
               onChange={e => setDepositForm(p => ({ ...p, noDeposit: e.target.checked, amount: e.target.checked ? 0 : Math.round(quoteTotal * (p.percentage / 100) * 100) / 100 }))}
-              className="w-5 h-5 rounded border-gray-300 text-tree-600 focus:ring-tree-500"
+              className="w-5 h-5 rounded border-gray-300 dark:border-gray-700 text-brand-600 focus:ring-brand-500"
             />
-            <span className="text-sm font-medium text-gray-700">No deposit required</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">No deposit required</span>
           </label>
 
           {!depositForm.noDeposit && (
             <>
               {/* Deposit type toggle */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Deposit Type</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Deposit Type</label>
                 <div className="flex gap-2">
                   {[{ key: 'percentage', label: '% of Quote' }, { key: 'fixed', label: '$ Amount' }].map(opt => (
                     <button
@@ -287,8 +287,8 @@ export default function JobDetail() {
                       onClick={() => handleDepositTypeChange(opt.key)}
                       className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold border-2 transition-all ${
                         depositForm.type === opt.key
-                          ? 'border-tree-500 bg-tree-50 text-tree-700'
-                          : 'border-gray-100 text-gray-500 hover:border-gray-200'
+                          ? 'border-brand-500 bg-brand-50 text-brand-700'
+                          : 'border-gray-100 text-gray-500 dark:text-gray-500 hover:border-gray-200 dark:border-gray-800'
                       }`}
                     >
                       {opt.label}
@@ -310,7 +310,7 @@ export default function JobDetail() {
                     onChange={e => handlePercentageChange(Number(e.target.value) || 0)}
                   />
                   {quoteTotal > 0 && (
-                    <p className="text-xs text-tree-600 font-semibold mt-1">
+                    <p className="text-xs text-brand-600 font-semibold mt-1">
                       {depositForm.percentage}% = ${(Math.round(quoteTotal * (depositForm.percentage / 100) * 100) / 100).toFixed(2)}
                     </p>
                   )}

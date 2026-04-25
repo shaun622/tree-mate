@@ -48,7 +48,7 @@ export default function ScheduleMap({ points = [], routeGeometry = null, onMarke
   const straightLine = points.map(p => [p.lat, p.lng])
 
   return (
-    <div style={{ height, width: '100%', position: 'relative', zIndex: 0 }} className="rounded-2xl overflow-hidden border border-gray-200">
+    <div style={{ height, width: '100%', position: 'relative', zIndex: 0 }} className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
       <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
         <TileLayer
           attribution={TILE_ATTRIBUTION}

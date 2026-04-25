@@ -89,7 +89,7 @@ export default function Clients() {
 
       <div className="px-4 py-4 space-y-4">
         {/* Search */}
-        <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-tree-50 focus:border-tree-400 focus:bg-white transition-colors duration-150" />
+        <input type="text" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-gray-50/50 text-sm focus:outline-none focus:ring-4 focus:ring-brand-50 focus:border-brand-400 focus:bg-white dark:bg-gray-900 transition-colors duration-150" />
 
         {displayed.length === 0 ? (
           <EmptyState
@@ -114,11 +114,11 @@ export default function Clients() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-900 truncate">{client.name}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{client.name}</p>
                         <Badge variant={badge.variant}>{badge.label}</Badge>
                       </div>
-                      <p className="text-sm text-gray-500 truncate">{client.email || client.phone || 'No contact info'}</p>
-                      {jobCount > 0 && <p className="text-xs text-gray-400 mt-0.5">{jobCount} job{jobCount > 1 ? 's' : ''}</p>}
+                      <p className="text-sm text-gray-500 dark:text-gray-500 truncate">{client.email || client.phone || 'No contact info'}</p>
+                      {jobCount > 0 && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{jobCount} job{jobCount > 1 ? 's' : ''}</p>}
                     </div>
                     <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                   </div>

@@ -14,8 +14,10 @@ import JobSitePicker from '../components/pickers/JobSitePicker'
 import { calculateGST, formatCurrency } from '../lib/utils'
 import { getPlanLimits, isTrialExpired } from '../lib/plans'
 import UpgradePrompt from '../components/ui/UpgradePrompt'
+import { useConfirm } from '../contexts/ConfirmContext'
 
 export default function QuoteBuilder() {
+  const confirm = useConfirm()
   const { id } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -161,9 +163,19 @@ export default function QuoteBuilder() {
 
   const handleSend = async () => {
     if (quoteStatus === 'accepted') {
-      if (!confirm('Quote already accepted by customer. Are you sure you want to send an amended quote?')) return
+      const ok = await confirm({
+        title: 'Quote already accepted',
+        description: 'The customer has already accepted this quote. Send an amended version?',
+        confirmLabel: 'Send amended',
+      })
+      if (!ok) return
     } else if (quoteStatus === 'sent' || quoteStatus === 'viewed') {
-      if (!confirm('Quote has been sent and not responded to. Are you sure you want to send it again?')) return
+      const ok = await confirm({
+        title: 'Quote already sent',
+        description: "It's been sent and not responded to. Send it again?",
+        confirmLabel: 'Send again',
+      })
+      if (!ok) return
     }
     setSending(true)
     const quote = await save('sent')
@@ -182,15 +194,15 @@ export default function QuoteBuilder() {
       <div className="px-4 py-4 space-y-4">
         {/* Job link banner */}
         {linkedJobId && !id && (
-          <div className="bg-tree-50 border border-tree-200 rounded-xl p-3 flex items-center gap-2">
-            <svg className="w-4 h-4 text-tree-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            <p className="text-xs font-semibold text-tree-700">Linked to job — quote will update the job pipeline</p>
+          <div className="bg-brand-50 border border-brand-200 rounded-xl p-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-brand-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <p className="text-xs font-semibold text-brand-700">Linked to job — quote will update the job pipeline</p>
           </div>
         )}
 
         {/* Status banner */}
         {quoteStatus === 'accepted' && (
-          <div className="bg-gradient-to-r from-tree-500 to-tree-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
+          <div className="bg-gradient-to-r from-brand-500 to-brand-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
             </div>
@@ -235,8 +247,8 @@ export default function QuoteBuilder() {
         <Card className="p-4 space-y-3">
           {linkedJobId && form.client_id ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
-              <p className="text-sm font-semibold text-gray-900 py-2.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Client</label>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 py-2.5 px-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
                 {clients.find(c => c.id === form.client_id)?.name || 'Loading...'}
               </p>
             </div>
@@ -262,14 +274,14 @@ export default function QuoteBuilder() {
 
         {/* Line Items */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Line Items</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Line Items</h3>
           {form.line_items.map((item, i) => (
-            <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0 last:mb-0">
+            <div key={i} className="space-y-2 mb-4 pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0 last:pb-0 last:mb-0">
               <Input placeholder="Description" value={item.description} onChange={e => updateItem(i, 'description', e.target.value)} />
               <div className="flex gap-2 items-end">
                 <Input label="Qty" type="number" min="1" value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} className="w-20" />
                 <Input label="Unit Price" type="number" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(i, 'unit_price', e.target.value)} className="flex-1" />
-                <p className="text-sm font-medium text-gray-900 pb-3 w-24 text-right">{formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 pb-3 w-24 text-right">{formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}</p>
                 {form.line_items.length > 1 && (
                   <button type="button" onClick={() => removeItem(i)} className="pb-3 text-red-400 hover:text-red-600">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -278,12 +290,12 @@ export default function QuoteBuilder() {
               </div>
             </div>
           ))}
-          <button type="button" onClick={addItem} className="w-full py-2 text-sm text-tree-600 font-medium hover:bg-tree-50 rounded-lg transition-colors">+ Add Line Item</button>
+          <button type="button" onClick={addItem} className="w-full py-2 text-sm text-brand-600 font-medium hover:bg-brand-50 rounded-lg transition-colors">+ Add Line Item</button>
 
           {/* Totals */}
-          <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
           </div>
         </Card>

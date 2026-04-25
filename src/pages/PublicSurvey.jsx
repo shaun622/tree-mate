@@ -38,7 +38,7 @@ export default function PublicSurvey() {
     setSubmitted(true)
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-tree-500 border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="min-h-screen bg-gradient-page flex items-center justify-center p-6">
@@ -46,22 +46,22 @@ export default function PublicSurvey() {
         {business && (
           <div className="text-center mb-6">
             {business.logo_url && <img src={business.logo_url} alt="" className="w-14 h-14 rounded-xl mx-auto mb-2 object-cover" />}
-            <h1 className="text-xl font-bold text-gray-900">{business.name}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{business.name}</h1>
           </div>
         )}
 
         {submitted ? (
           <Card className="p-6 text-center">
-            <div className="w-16 h-16 bg-tree-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-tree-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
             </div>
-            <h2 className="text-lg font-bold text-gray-900 mb-1">Thank You!</h2>
-            <p className="text-sm text-gray-500">Your feedback helps us improve our service.</p>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Thank You!</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-500">Your feedback helps us improve our service.</p>
           </Card>
         ) : (
           <Card className="p-6 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 text-center">How was our service?</h2>
-            {site && <p className="text-sm text-gray-500 text-center">{site.address}</p>}
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 text-center">How was our service?</h2>
+            {site && <p className="text-sm text-gray-500 dark:text-gray-500 text-center">{site.address}</p>}
 
             <div className="flex justify-center gap-2">
               {[1, 2, 3, 4, 5].map(i => (

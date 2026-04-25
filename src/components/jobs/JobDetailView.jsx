@@ -14,14 +14,14 @@ function formatTime(d) {
 function InfoRow({ icon, label, value, sub }) {
   if (!value) return null
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
-      <div className="w-9 h-9 rounded-xl bg-tree-50 text-tree-600 flex items-center justify-center flex-shrink-0">
+    <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
+      <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-        <p className="text-sm font-semibold text-gray-900 break-words">{value}</p>
-        {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+        <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">{value}</p>
+        {sub && <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">{sub}</p>}
       </div>
     </div>
   )
@@ -50,7 +50,7 @@ function PipelineStepper({ currentStatus, onStepClick }) {
         return (
           <div key={stage.key} className="flex items-center flex-1">
             {i > 0 && (
-              <div className={`flex-1 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-tree-400' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-0.5 transition-colors duration-300 ${isComplete ? 'bg-brand-400' : 'bg-gray-200 dark:bg-gray-800'}`} />
             )}
             <button
               type="button"
@@ -59,9 +59,9 @@ function PipelineStepper({ currentStatus, onStepClick }) {
               disabled={!onStepClick}
             >
               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors duration-150 ${
-                isComplete ? 'bg-tree-500 border-tree-500 text-white shadow-glow hover:bg-tree-600' :
-                isCurrent ? 'bg-white border-tree-500 text-tree-600 shadow-sm' :
-                'bg-white border-gray-200 text-gray-300 hover:border-gray-300 hover:text-gray-400'
+                isComplete ? 'bg-brand-500 border-brand-500 text-white shadow-glow hover:bg-brand-600' :
+                isCurrent ? 'bg-white dark:bg-gray-900 border-brand-500 text-brand-600 shadow-sm' :
+                'bg-white dark:bg-gray-900 border-gray-200 text-gray-300 hover:border-gray-300 dark:border-gray-700 hover:text-gray-400 dark:text-gray-500'
               }`}>
                 {isComplete ? (
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -70,7 +70,7 @@ function PipelineStepper({ currentStatus, onStepClick }) {
                 )}
               </div>
               <span className={`text-[10px] font-semibold leading-tight text-center whitespace-nowrap transition-colors duration-300 ${
-                isCurrent ? 'text-tree-600' : isComplete ? 'text-tree-500' : 'text-gray-300'
+                isCurrent ? 'text-brand-600' : isComplete ? 'text-brand-500' : 'text-gray-300'
               }`}>
                 {stage.label}
               </span>
@@ -187,7 +187,7 @@ export default function JobDetailView({
       {hasCoords ? (
         <ScheduleMap points={mapPoint} height={compact ? 180 : 220} />
       ) : (
-        <div className="h-28 rounded-2xl bg-gradient-to-br from-tree-500 via-tree-600 to-tree-700 flex items-center justify-center shadow-button">
+        <div className="h-28 rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 flex items-center justify-center shadow-button">
           <svg className="w-10 h-10 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
         </div>
       )}
@@ -197,21 +197,21 @@ export default function JobDetailView({
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-900 leading-tight">{job.job_type || 'Job'}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{job.job_type || 'Job'}</h2>
               {showPriority && (
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${pStyle.bg} ${pStyle.text}`}>
                   {statusLabel(job.priority)}
                 </span>
               )}
             </div>
-            {client && <p className="text-sm text-gray-500 mt-0.5">{client.name}</p>}
+            {client && <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">{client.name}</p>}
           </div>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
             {statusLabel(job.status)}
           </span>
         </div>
         {job.notes && (
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed italic">{job.notes}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-500 mt-2 leading-relaxed italic">{job.notes}</p>
         )}
       </Card>
 
@@ -260,14 +260,14 @@ export default function JobDetailView({
           <InfoRow
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
             label="Client Phone"
-            value={<a href={`tel:${client.phone}`} className="text-tree-600 hover:underline">{client.phone}</a>}
+            value={<a href={`tel:${client.phone}`} className="text-brand-600 hover:underline">{client.phone}</a>}
           />
         )}
         {client?.email && (
           <InfoRow
             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
             label="Client Email"
-            value={<a href={`mailto:${client.email}`} className="text-tree-600 hover:underline truncate block">{client.email}</a>}
+            value={<a href={`mailto:${client.email}`} className="text-brand-600 hover:underline truncate block">{client.email}</a>}
           />
         )}
         {job.deposit_received && job.deposit_amount > 0 && (
@@ -298,20 +298,20 @@ export default function JobDetailView({
       {quote && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-gray-900">Quote</h3>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Quote</h3>
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg ${statusColor(quote.status)}`}>
               {statusLabel(quote.status)}
             </span>
           </div>
-          <p className="text-lg font-bold text-tree-600">{formatCurrency(quote.total)}</p>
+          <p className="text-lg font-bold text-brand-600">{formatCurrency(quote.total)}</p>
           {quote.line_items?.length > 0 && (
-            <p className="text-xs text-gray-400 mt-1">{quote.line_items.length} line item{quote.line_items.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{quote.line_items.length} line item{quote.line_items.length !== 1 ? 's' : ''}</p>
           )}
-          <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+          <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
             {onEditQuote && (
               <button
                 onClick={onEditQuote}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-50 py-2 rounded-xl transition-colors duration-150"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 py-2 rounded-xl transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 Edit Quote
@@ -320,7 +320,7 @@ export default function JobDetailView({
             {onAcceptQuote && quote.status !== 'accepted' && (
               <button
                 onClick={onAcceptQuote}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-tree-600 hover:text-white hover:bg-tree-600 border-2 border-tree-200 hover:border-tree-600 py-2 rounded-xl transition-colors duration-150"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-white hover:bg-brand-600 border-2 border-brand-200 hover:border-brand-600 py-2 rounded-xl transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 Accept Quote
@@ -344,7 +344,7 @@ export default function JobDetailView({
       {/* Reports list */}
       {reports.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Reports</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Job Reports</h3>
           <div className="space-y-2">
             {reports.map(r => (
               <Card key={r.id} hover onClick={() => onOpenReport?.(r.id)} className="p-4">
@@ -362,8 +362,8 @@ export default function JobDetailView({
       {!compact && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-900">Photos ({photos.length})</h3>
-            <label className={`text-xs font-semibold text-tree-600 cursor-pointer ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Photos ({photos.length})</h3>
+            <label className={`text-xs font-semibold text-brand-600 cursor-pointer ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
               {uploadingPhoto ? 'Uploading...' : '+ Add Photo'}
               <input type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="hidden" />
             </label>
@@ -371,7 +371,7 @@ export default function JobDetailView({
           {photos.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {photos.map(p => (
-                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-2xl overflow-hidden bg-gray-100 transition-colors duration-150 hover:shadow-card-hover hover:scale-[1.02]">
+                <a key={p.id} href={p.photo_url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-colors duration-150 hover:shadow-card-hover hover:scale-[1.02]">
                   <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
                 </a>
               ))}

@@ -47,10 +47,10 @@ export default function ImportData() {
       <div className="px-4 py-4 space-y-4">
         <Card className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Import Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Import Type</label>
             <div className="flex gap-2">
               {['clients', 'job_sites'].map(t => (
-                <button key={t} onClick={() => setImportType(t)} className={`px-4 py-2 rounded-xl text-sm font-medium ${importType === t ? 'bg-tree-500 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
+                <button key={t} onClick={() => setImportType(t)} className={`px-4 py-2 rounded-xl text-sm font-medium ${importType === t ? 'bg-brand-500 text-white' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-500'}`}>
                   {t === 'clients' ? 'Clients' : 'Job Sites'}
                 </button>
               ))}
@@ -58,13 +58,13 @@ export default function ImportData() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">CSV File</label>
-            <input type="file" accept=".csv" onChange={e => setFile(e.target.files[0])} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-tree-50 file:text-tree-700" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CSV File</label>
+            <input type="file" accept=".csv" onChange={e => setFile(e.target.files[0])} className="text-sm text-gray-500 dark:text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700" />
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-3">
-            <p className="text-xs font-medium text-gray-500 mb-1">Expected CSV columns for {importType}:</p>
-            <p className="text-xs text-gray-400">
+          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-500 mb-1">Expected CSV columns for {importType}:</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               {importType === 'clients' ? 'name, email, phone, address' : 'client_name, address, site_type, site_access'}
             </p>
           </div>

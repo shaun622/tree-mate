@@ -49,7 +49,7 @@ export default function TopNav() {
           <Link
             to="/settings"
             aria-label="Settings"
-            className="min-h-tap min-w-tap flex items-center justify-center rounded-xl p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+            className="min-h-tap min-w-tap flex items-center justify-center rounded-xl p-2 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-800 transition-colors"
           >
             <SettingsIcon className="w-5 h-5" strokeWidth={2} />
           </Link>
@@ -73,7 +73,7 @@ export default function TopNav() {
                 'flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors',
                 active
                   ? 'border-brand-500 text-brand-700 dark:text-brand-300'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                  : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-200',
               )}
             >
               <Icon className="w-4 h-4" strokeWidth={2} />
