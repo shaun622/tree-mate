@@ -1,0 +1,42 @@
+import { createContext, useContext, useEffect, useState } from 'react'
+
+const ThemeContext = createContext({ mode: 'system', setMode: () => {}, isDark: false })
+const STORAGE_KEY = 'treemate:theme-mode'
+
+function applyMode(mode) {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const isDark = mode === 'dark' || (mode === 'system' && prefersDark)
+  document.documentElement.classList.toggle('dark', isDark)
+  return isDark
+}
+
+export function ThemeProvider({ children }) {
+  const [mode, setModeState] = useState(() => {
+    try { return localStorage.getItem(STORAGE_KEY) || 'system' } catch { return 'system' }
+  })
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  )
+
+  useEffect(() => {
+    setIsDark(applyMode(mode))
+    try { localStorage.setItem(STORAGE_KEY, mode) } catch {}
+  }, [mode])
+
+  // React to OS-level changes when mode === 'system'
+  useEffect(() => {
+    if (mode !== 'system') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = () => setIsDark(applyMode('system'))
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [mode])
+
+  return (
+    <ThemeContext.Provider value={{ mode, setMode: setModeState, isDark }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme() { return useContext(ThemeContext) }

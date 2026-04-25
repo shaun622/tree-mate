@@ -2,38 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS variables — brand colour (tree green) as space-separated RGB triplets ── */
+:root {
+  --brand-50:  240 253 244;
+  --brand-100: 220 252 231;
+  --brand-200: 187 247 208;
+  --brand-300: 134 239 172;
+  --brand-400: 74 222 128;
+  --brand-500: 34 197 94;
+  --brand-600: 22 163 74;
+  --brand-700: 21 128 61;
+  --brand-800: 22 101 52;
+  --brand-900: 20 83 45;
+  --brand-950: 5 46 22;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: background-color 0.35s var(--ease-out-expo), color 0.35s var(--ease-out-expo);
   }
+  html * {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 0.25s;
+    transition-timing-function: var(--ease-out-expo);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html, html * { transition: none !important; animation: none !important; }
+  }
+
   body {
-    @apply text-gray-900 antialiased;
+    font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply text-gray-900 antialiased;
   }
+  .dark body {
+    @apply text-gray-100;
+    background: rgb(3 7 18);
+  }
+
   body.modal-open .app-bottom-nav {
     display: none;
   }
+
   * {
-    @apply selection:bg-tree-200 selection:text-tree-900;
+    @apply selection:bg-brand-200 selection:text-brand-900;
   }
+  .dark ::selection { @apply bg-brand-800 text-brand-100; }
+}
+
+@layer components {
+  /* Section heading — small uppercase label above card groups */
+  .section-title {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400;
+  }
+
+  /* Form inputs — 16px enforced to stop iOS Safari auto-zoom */
+  .input {
+    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 min-h-tap shadow-inner-soft
+           placeholder:text-gray-400 disabled:bg-gray-50 transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400
+           dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500;
+    font-size: 16px;
+  }
+
+  /* Card surfaces */
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 p-4 shadow-card transition-all duration-200
+           dark:bg-gray-900 dark:border-gray-800;
+  }
+  .card-interactive {
+    @apply card cursor-pointer hover:shadow-card-hover hover:border-gray-200
+           hover:-translate-y-0.5 active:translate-y-0
+           dark:hover:border-gray-700;
+  }
+
+  /* Button base + variants (used as utility classes; <Button> primitive composes the same) */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-wide
+           transition-all duration-200 min-h-tap min-w-tap px-5 py-3 text-sm
+           focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2
+           dark:focus:ring-offset-gray-950
+           disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98];
+  }
+  .btn-primary   { @apply btn bg-gradient-brand text-white shadow-button hover:shadow-button-hover hover:brightness-110; }
+  .btn-secondary { @apply btn bg-white text-gray-700 border border-gray-200 shadow-card hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-800; }
+  .btn-danger    { @apply btn bg-gradient-danger text-white shadow-md hover:brightness-110; }
+  .btn-ghost     { @apply btn text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800; }
+
+  /* Hide scrollbars on horizontal pill strips */
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
 }
 
 @layer utilities {
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  .safe-top {
-    padding-top: env(safe-area-inset-top, 0px);
-  }
-  .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20;
-  }
-  .glass-strong {
-    @apply bg-white/90 backdrop-blur-xl border border-white/30;
-  }
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-brand;
-  }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
+  .glass        { @apply bg-white/80 backdrop-blur-xl border border-white/20; }
+  .glass-strong { @apply bg-white/90 backdrop-blur-xl border border-white/30; }
+  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-brand; }
 }

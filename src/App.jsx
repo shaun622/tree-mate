@@ -2,6 +2,7 @@ import React, { Suspense, useLayoutEffect } from 'react'
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
+import { ThemeProvider } from './contexts/ThemeContext'
 import BottomNav from './components/layout/BottomNav'
 import TopNav from './components/layout/TopNav'
 import { isTrialExpired, trialDaysLeft } from './lib/plans'
@@ -131,10 +132,11 @@ function BusinessGuard() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BusinessProvider>
-        <ScrollToTop />
-        <Suspense fallback={<LoadingSpinner />}>
+    <ThemeProvider>
+      <AuthProvider>
+        <BusinessProvider>
+          <ScrollToTop />
+          <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Public */}
             <Route path="/portal/login" element={<PortalLogin />} />
@@ -183,7 +185,8 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-      </BusinessProvider>
-    </AuthProvider>
+        </BusinessProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

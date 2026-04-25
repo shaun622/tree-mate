@@ -9,6 +9,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>TreePro</title>
+    <script>
+      // FOUC prevention — runs before any CSS/JS so the correct theme class is set
+      (function () {
+        try {
+          var t = localStorage.getItem('treemate:theme-mode') || 'system';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (t === 'dark' || (t === 'system' && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="bg-gray-50 antialiased">
     <div id="root"></div>

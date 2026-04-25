@@ -1,8 +1,12 @@
 import { format } from 'date-fns'
+import { clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 // ── Class Names ──────────────────────────────────────────────────────────────
-export function cn(...classes) {
-  return classes.filter(Boolean).join(' ')
+// clsx handles conditionals; tailwind-merge resolves conflicts so later classes
+// win (e.g. cn('p-4', '!p-0') → 'p-0').
+export function cn(...args) {
+  return twMerge(clsx(...args))
 }
 
 // ── Date Formatting (Australian) ─────────────────────────────────────────────

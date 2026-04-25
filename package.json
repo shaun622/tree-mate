@@ -10,15 +10,20 @@
     "start": "serve dist -s -l ${PORT:-3000}"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@supabase/supabase-js": "^2.47.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "leaflet": "^1.9.4",
+    "lucide-react": "^1.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.28.0",
     "recharts": "^2.13.0",
-    "serve": "^14.2.6"
+    "serve": "^14.2.6",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
