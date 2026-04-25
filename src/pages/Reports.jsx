@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
+import PageHero from '../components/layout/PageHero'
 import Card from '../components/ui/Card'
 import { formatCurrency } from '../lib/utils'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
@@ -59,7 +60,12 @@ export default function Reports() {
 
   return (
     <PageWrapper>
-      <Header title="Reports" back="/settings" />
+      <div className="md:hidden">
+        <Header title="Reports" back="/settings" />
+      </div>
+      <div className="hidden md:block px-4 md:px-0 pt-4">
+        <PageHero title="Reports" subtitle="Performance insights & analytics" />
+      </div>
 
       <div className="px-4 py-4 space-y-4">
         {/* Stats */}

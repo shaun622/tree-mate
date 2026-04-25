@@ -634,6 +634,7 @@ export default function Jobs() {
 
   return (
     <PageWrapper width="wide">
+      <div className="md:hidden">
       <Header title="Jobs" subtitle="Track every job from enquiry to completion" rightAction={
         <div className="flex items-center gap-2">
           <button
@@ -656,6 +657,7 @@ export default function Jobs() {
           </button>
         </div>
       } />
+      </div>
 
       <div className="px-4 py-4 space-y-4">
         {/* Desktop hero — mobile uses Header above */}

@@ -6,6 +6,8 @@ import { useClients } from '../hooks/useClients'
 import { useJobSites } from '../hooks/useJobSites'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
+import PageHero from '../components/layout/PageHero'
+import { Plus } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
@@ -70,11 +72,20 @@ export default function Clients() {
 
   return (
     <PageWrapper width="wide">
-      <Header title="Clients" subtitle={`${clients.length} customer${clients.length !== 1 ? 's' : ''}`} rightAction={
-        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150 active:scale-95">
-          <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-        </button>
-      } />
+      <div className="md:hidden">
+        <Header title="Clients" subtitle={`${clients.length} customer${clients.length !== 1 ? 's' : ''}`} rightAction={
+          <button onClick={() => setShowModal(true)} className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150 active:scale-95">
+            <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          </button>
+        } />
+      </div>
+      <div className="hidden md:block px-4 md:px-0 pt-4">
+        <PageHero
+          title="Clients"
+          subtitle={`${clients.length} customer${clients.length !== 1 ? 's' : ''}`}
+          action={<Button leftIcon={Plus} onClick={() => setShowModal(true)}>New Client</Button>}
+        />
+      </div>
 
       <div className="px-4 py-4 space-y-4">
         {/* Search */}

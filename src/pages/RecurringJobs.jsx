@@ -4,6 +4,8 @@ import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
+import PageHero from '../components/layout/PageHero'
+import { Plus } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
@@ -59,11 +61,20 @@ export default function RecurringJobs() {
 
   return (
     <PageWrapper>
-      <Header title="Recurring Jobs" back="/jobs" rightAction={
-        <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
-          <svg className="w-6 h-6 text-tree-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-        </button>
-      } />
+      <div className="md:hidden">
+        <Header title="Recurring Jobs" back="/jobs" rightAction={
+          <button onClick={() => setShowModal(true)} className="p-2 hover:bg-gray-100 rounded-full">
+            <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          </button>
+        } />
+      </div>
+      <div className="hidden md:block px-4 md:px-0 pt-4">
+        <PageHero
+          title="Recurring Jobs"
+          subtitle={`${profiles.length} profile${profiles.length === 1 ? '' : 's'}`}
+          action={<Button leftIcon={Plus} onClick={() => setShowModal(true)}>New Profile</Button>}
+        />
+      </div>
 
       <div className="px-4 py-4 space-y-4">
         {loading ? (

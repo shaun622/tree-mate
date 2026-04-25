@@ -5,6 +5,7 @@ import { useBusiness } from '../hooks/useBusiness'
 import { useStaff } from '../hooks/useStaff'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
+import PageHero from '../components/layout/PageHero'
 import Card from '../components/ui/Card'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
@@ -453,7 +454,12 @@ export default function Schedule() {
 
   return (
     <PageWrapper width="wide">
-      <Header title="Schedule" subtitle="Your daily site visits and jobs" />
+      <div className="md:hidden">
+        <Header title="Schedule" subtitle="Your daily site visits and jobs" />
+      </div>
+      <div className="hidden md:block px-4 md:px-0 pt-4">
+        <PageHero title="Schedule" subtitle="Your daily site visits and jobs" />
+      </div>
 
       <div className="px-4 py-4 space-y-4">
         {/* Day picker (for today + map views) */}
