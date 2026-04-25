@@ -7,6 +7,7 @@ import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { Input, Select } from '../../components/ui/Input'
 import EmptyState from '../../components/ui/EmptyState'
 
@@ -27,6 +28,7 @@ export default function Automations() {
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', trigger_event: 'job_completed', action: 'send_email', template_id: '', active: true })
+  const [deleteId, setDeleteId] = useState(null)
 
   useEffect(() => {
     if (!business?.id) return
@@ -87,7 +89,7 @@ export default function Automations() {
                     <button onClick={() => toggleActive(r.id, !r.active)} className={`relative w-11 h-6 rounded-full transition-colors ${r.active ? 'bg-tree-500' : 'bg-gray-300'}`}>
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${r.active ? 'translate-x-5' : ''}`} />
                     </button>
-                    <button onClick={() => { if (confirm('Delete?')) handleDelete(r.id) }} className="p-1 hover:bg-red-50 rounded-full">
+                    <button onClick={() => setDeleteId(r.id)} className="p-1 hover:bg-red-50 rounded-full">
                       <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
@@ -106,6 +108,16 @@ export default function Automations() {
           <Button type="submit" loading={saving} className="w-full">Add Automation</Button>
         </form>
       </Modal>
+
+      <ConfirmModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        title="Delete this automation?"
+        description="This rule will stop firing immediately."
+        destructive
+        confirmLabel="Delete"
+        onConfirm={async () => { await handleDelete(deleteId) }}
+      />
     </PageWrapper>
   )
 }

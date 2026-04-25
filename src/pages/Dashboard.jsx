@@ -7,7 +7,9 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import StatCard from '../components/ui/StatCard'
 import ActivityPanel from '../components/ui/ActivityPanel'
+import { Calendar, CheckCircle2, ClipboardList, Wallet } from 'lucide-react'
 import { formatCurrency, statusLabel } from '../lib/utils'
 
 const PIPELINE_STAGES = [
@@ -185,25 +187,33 @@ export default function Dashboard() {
 
               {/* Stat pills */}
               <div className="flex gap-2">
-                <div className="flex-1 bg-sky-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
-                  <p className="text-lg font-bold text-sky-700">{todayStats.siteVisits}</p>
-                  <p className="text-[10px] font-semibold text-sky-600">Site Visits</p>
+                <div className="flex-1 bg-sky-50 dark:bg-sky-950/40 rounded-2xl p-3 text-center transition-colors">
+                  <p className="text-lg font-bold tabular-nums text-sky-700 dark:text-sky-300">{todayStats.siteVisits}</p>
+                  <p className="text-[10px] font-semibold text-sky-600 dark:text-sky-400">Site Visits</p>
                 </div>
-                <div className="flex-1 bg-tree-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
-                  <p className="text-lg font-bold text-tree-700">{todayStats.jobs}</p>
-                  <p className="text-[10px] font-semibold text-tree-600">Jobs</p>
+                <div className="flex-1 bg-brand-50 dark:bg-brand-950/40 rounded-2xl p-3 text-center transition-colors">
+                  <p className="text-lg font-bold tabular-nums text-brand-700 dark:text-brand-300">{todayStats.jobs}</p>
+                  <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-400">Jobs</p>
                 </div>
-                <div className="flex-1 bg-emerald-50 rounded-2xl p-3 text-center transition-colors duration-150 hover:shadow-card">
+                <div className="flex-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-3 text-center transition-colors">
                   <div className="flex items-center justify-center gap-1">
-                    <p className="text-lg font-bold text-emerald-700">{todayStats.completed}</p>
+                    <p className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{todayStats.completed}</p>
                     {todayStats.completed > 0 && (
-                      <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" strokeWidth={2.5} />
                     )}
                   </div>
-                  <p className="text-[10px] font-semibold text-emerald-600">Completed</p>
+                  <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Completed</p>
                 </div>
               </div>
             </Card>
+
+            {/* StatCard grid — top-of-page KPI strip */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <StatCard label="Today" value={scheduledForToday} icon={Calendar} />
+              <StatCard label="Completed" value={todayStats.completed} icon={CheckCircle2} />
+              <StatCard label="Pending Quotes" value={revenue.pendingQuotes} icon={ClipboardList} format="currency" />
+              <StatCard label="This Month" value={revenue.completedValue} icon={Wallet} format="currency" />
+            </div>
 
             {/* Revenue Snapshot */}
             <Card className="p-4 md:p-6 space-y-3">

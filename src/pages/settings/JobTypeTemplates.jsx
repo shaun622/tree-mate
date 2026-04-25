@@ -6,6 +6,7 @@ import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { Input, TextArea } from '../../components/ui/Input'
 import EmptyState from '../../components/ui/EmptyState'
 import { SUGGESTED_JOB_TYPES } from '../../lib/utils'
@@ -19,6 +20,7 @@ export default function JobTypeTemplates() {
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', color: '#22c55e', default_tasks: '', estimated_duration_minutes: '', price: '' })
+  const [deleteId, setDeleteId] = useState(null)
 
   useEffect(() => {
     if (!business?.id) return
@@ -117,7 +119,7 @@ export default function JobTypeTemplates() {
                     <button onClick={() => { setEditing(t); setForm({ name: t.name, description: t.description || '', color: t.color || '#22c55e', default_tasks: (t.default_tasks || []).join('\n'), estimated_duration_minutes: t.estimated_duration_minutes || '', price: t.price || '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 rounded-full">
                       <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     </button>
-                    <button onClick={() => { if (confirm('Delete?')) handleDelete(t.id) }} className="p-2 hover:bg-red-50 rounded-full">
+                    <button onClick={() => setDeleteId(t.id)} className="p-2 hover:bg-red-50 rounded-full">
                       <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
@@ -144,6 +146,16 @@ export default function JobTypeTemplates() {
           <Button type="submit" loading={saving} className="w-full">{editing ? 'Save' : 'Add Job Type'}</Button>
         </form>
       </Modal>
+
+      <ConfirmModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        title="Delete this job type?"
+        description="It will be removed from your library."
+        destructive
+        confirmLabel="Delete"
+        onConfirm={async () => { await handleDelete(deleteId) }}
+      />
     </PageWrapper>
   )
 }

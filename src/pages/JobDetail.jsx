@@ -9,6 +9,7 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
+import ConfirmModal from '../components/ui/ConfirmModal'
 import { Input, Select, TextArea } from '../components/ui/Input'
 import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
@@ -28,6 +29,7 @@ export default function JobDetail() {
   const [showEdit, setShowEdit] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
   const [editForm, setEditForm] = useState(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [jobTypes, setJobTypes] = useState([])
   const [showDeposit, setShowDeposit] = useState(false)
   const [depositForm, setDepositForm] = useState({
@@ -161,8 +163,8 @@ export default function JobDetail() {
     setSavingEdit(false)
   }
 
-  const handleDelete = async () => {
-    if (!confirm('Delete this job? This cannot be undone.')) return
+  const handleDelete = () => setDeleteOpen(true)
+  const confirmDelete = async () => {
     const { error } = await supabase.from('jobs').delete().eq('id', id)
     if (!error) navigate('/jobs')
   }
@@ -351,6 +353,16 @@ export default function JobDetail() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete this job?"
+        description="This cannot be undone."
+        destructive
+        confirmLabel="Delete job"
+        onConfirm={confirmDelete}
+      />
     </PageWrapper>
   )
 }

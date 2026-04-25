@@ -11,6 +11,8 @@ import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import { Input, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
+import FilterChips from '../components/ui/FilterChips'
+import PageHero from '../components/layout/PageHero'
 import ClientPicker from '../components/pickers/ClientPicker'
 import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
@@ -656,17 +658,30 @@ export default function Jobs() {
       } />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Desktop hero — mobile uses Header above */}
+        <div className="hidden md:block">
+          <PageHero
+            title="Jobs"
+            subtitle={`${jobs.length} job${jobs.length === 1 ? '' : 's'} · ${jobs.filter(j => LIST_FILTERS[0].statuses.includes(j.status)).length} in pipeline`}
+            action={
+              <Button leftIcon={({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>} onClick={() => setShowModal(true)}>
+                New Job
+              </Button>
+            }
+          />
+        </div>
+
         {viewMode === 'list' && (
-          <div className="flex flex-wrap gap-2">
-            {LIST_FILTERS.map(f => {
-              const count = jobs.filter(j => f.statuses.includes(j.status)).length
-              return (
-                <button key={f.key} onClick={() => setFilter(f.key)} className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors duration-150 ${filter === f.key ? 'bg-tree-600 text-white shadow-button' : 'bg-white border-2 border-gray-100 text-gray-500 hover:border-gray-200 hover:text-gray-700'}`}>
-                  {f.label} ({count})
-                </button>
-              )
-            })}
-          </div>
+          <FilterChips
+            options={LIST_FILTERS.map(f => ({
+              value: f.key,
+              label: f.label,
+              count: jobs.filter(j => f.statuses.includes(j.status)).length,
+            }))}
+            value={filter}
+            onChange={setFilter}
+            ariaLabel="Job pipeline stage"
+          />
         )}
 
         {loading ? (
