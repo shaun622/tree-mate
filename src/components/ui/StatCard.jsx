@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react'
 import { cn } from '../../lib/utils'
-import Card from './Card'
 
 function useAnimatedNumber(target, duration = 600) {
   const [display, setDisplay] = useState(0)
@@ -23,20 +22,21 @@ function useAnimatedNumber(target, duration = 600) {
 }
 
 /**
- * StatCard — KPI tile with animated number, optional icon-box, optional trend.
+ * StatCard — KPI tile with mono eyebrow label, big bold number, optional
+ * corner-affordance icon (top-right ghost button), optional trend.
  *
- * Usage:
- *   <StatCard label="Active Jobs" value={12} icon={Briefcase} trend={1} trendLabel="+1 this week" />
+ * Pattern: small mono uppercase label → big sans-bold number → tiny mono
+ * trend pill. Used on Dashboard + Analytics top strips.
  */
 export default function StatCard({
   label,
   value,
-  icon: Icon,
   trend,
   trendLabel,
   format = 'number',
   prefix,
   suffix,
+  cornerIcon: CornerIcon = ArrowUpRight,
   onClick,
 }) {
   const display = useAnimatedNumber(typeof value === 'number' ? value : 0)
@@ -45,34 +45,38 @@ export default function StatCard({
     : display.toLocaleString('en-AU')
 
   return (
-    <Card onClick={onClick}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">{label}</p>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100">
-            {prefix}{formatted}{suffix}
-          </p>
-          {trendLabel && (
-            <div
-              className={cn(
-                'mt-1.5 flex items-center gap-1 text-xs font-medium',
-                trend > 0 && 'text-emerald-600 dark:text-emerald-400',
-                trend < 0 && 'text-red-600 dark:text-red-400',
-                (!trend || trend === 0) && 'text-gray-500 dark:text-gray-500',
-              )}
-            >
-              {trend > 0 && <TrendingUp className="w-3.5 h-3.5" strokeWidth={2.5} />}
-              {trend < 0 && <TrendingDown className="w-3.5 h-3.5" strokeWidth={2.5} />}
-              {trendLabel}
-            </div>
-          )}
-        </div>
-        {Icon && (
-          <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
-            <Icon className="w-5 h-5" strokeWidth={2} />
+    <div
+      onClick={onClick}
+      className={cn(
+        'card relative group',
+        onClick && 'card-interactive',
+      )}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="eyebrow-muted">{label}</div>
+        {CornerIcon && (
+          <div className="text-ink-4 opacity-60 group-hover:opacity-100 transition-opacity">
+            <CornerIcon className="w-3.5 h-3.5" strokeWidth={2} />
           </div>
         )}
       </div>
-    </Card>
+      <div className="font-semibold text-[28px] leading-none tabular-nums text-ink-1 tracking-tight">
+        {prefix}{formatted}{suffix}
+      </div>
+      {trendLabel && (
+        <div
+          className={cn(
+            'mt-2 flex items-center gap-1 text-[11px] font-medium font-mono tabular-nums',
+            trend > 0 && 'text-emerald-600 dark:text-emerald-400',
+            trend < 0 && 'text-red-600 dark:text-red-400',
+            (!trend || trend === 0) && 'text-ink-3',
+          )}
+        >
+          {trend > 0 && <TrendingUp className="w-3 h-3" strokeWidth={2.5} />}
+          {trend < 0 && <TrendingDown className="w-3 h-3" strokeWidth={2.5} />}
+          {trendLabel}
+        </div>
+      )}
+    </div>
   )
 }

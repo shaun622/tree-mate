@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS variables — brand colour (tree green) as space-separated RGB triplets ── */
+/* ─────────────────────────────────────────────────────────────────────────
+ * Tokens — FieldSuite × TreeMate visual identity
+ *
+ * The chrome lives on a soft mint canvas, with the app sitting in a
+ * warm cream "shell" card. Status pills use semantic tones (good / warn /
+ * bad / accent). Eyebrows use the accent colour, mono caps + a 18×1px
+ * horizontal-line prefix.
+ * ──────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Brand (tree green) — RGB triplets so Tailwind's rgb(var() / <alpha>) works */
   --brand-50:  240 253 244;
   --brand-100: 220 252 231;
   --brand-200: 187 247 208;
@@ -15,13 +23,45 @@
   --brand-800: 22 101 52;
   --brand-900: 20 83 45;
   --brand-950: 5 46 22;
+
+  /* FieldSuite warm-cream surface stack (oklch with subtle warm undertones) */
+  --canvas:    oklch(0.945 0.045 145);   /* outer mint canvas */
+  --canvas-2:  oklch(0.965 0.035 145);   /* lighter mint variant */
+  --shell:     oklch(0.985 0.003 80);    /* warm off-white inside the app card */
+  --shell-2:   oklch(0.965 0.004 80);    /* slightly tinted surface */
+  --shell-3:   oklch(0.945 0.005 80);    /* deeper tint for grouping */
+
+  /* Ink (text) — warm-cool neutral. */
+  --ink-1:     oklch(0.18 0.012 250);    /* darkest */
+  --ink-2:     oklch(0.32 0.010 250);
+  --ink-3:     oklch(0.50 0.008 250);
+  --ink-4:     oklch(0.65 0.006 250);    /* lightest */
+
+  --line:      oklch(0.90 0.005 250);    /* hairline */
+  --line-2:    oklch(0.94 0.004 250);    /* inner */
+
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  --canvas:   #050810;                    /* deep night */
+  --canvas-2: #0a1018;
+  --shell:    #0e131c;                    /* app card surface */
+  --shell-2:  #131927;
+  --shell-3:  #182030;
+  --ink-1:    #f3f4f6;
+  --ink-2:    #d1d5db;
+  --ink-3:    #9ca3af;
+  --ink-4:    #6b7280;
+  --line:     rgba(255,255,255,0.08);
+  --line-2:   rgba(255,255,255,0.05);
 }
 
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    background: var(--canvas);
     transition: background-color 0.35s var(--ease-out-expo), color 0.35s var(--ease-out-expo);
   }
   html * {
@@ -34,57 +74,104 @@
   }
 
   body {
-    font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
+    font-family: 'Geist Variable', 'Inter Variable', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply text-gray-900 antialiased;
-  }
-  .dark body {
-    @apply text-gray-100;
-    background: rgb(3 7 18);
+    background: var(--canvas);
+    color: var(--ink-1);
   }
 
-  body.modal-open .app-bottom-nav {
-    display: none;
-  }
+  body.modal-open .app-bottom-nav { display: none; }
 
-  * {
-    @apply selection:bg-brand-200 selection:text-brand-900;
-  }
+  * { @apply selection:bg-brand-200 selection:text-brand-900; }
   .dark ::selection { @apply bg-brand-800 text-brand-100; }
 }
 
 @layer components {
-  /* Section heading — small uppercase label above card groups */
-  .section-title {
-    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400;
+  /* ─── Eyebrow ─────────────────────────────────────────────────────────
+   *  Tiny mono caps + accent colour + 18×1px horizontal line prefix.
+   *  Used above page titles and as section labels.
+   * ───────────────────────────────────────────────────────────────────── */
+  .eyebrow {
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--brand-600));
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-feature-settings: "ss01", "ss02";
+  }
+  .dark .eyebrow { color: rgb(var(--brand-400)); }
+  .eyebrow::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: currentColor;
+    display: inline-block;
   }
 
-  /* Form inputs — 16px enforced to stop iOS Safari auto-zoom */
+  /* Eyebrow — neutral variant (gray, no accent) */
+  .eyebrow-muted {
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  /* Section title — mono caps, smaller, used above grouped content */
+  .section-title {
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  /* ─── Form inputs — 16px enforced to stop iOS auto-zoom ─────────────── */
   .input {
-    @apply w-full rounded-xl border border-gray-200 bg-white px-4 py-3 min-h-tap shadow-inner-soft
+    @apply w-full rounded-card border border-gray-200 bg-white px-4 py-3 min-h-tap
            placeholder:text-gray-400 disabled:bg-gray-50 transition-colors duration-200
            focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400
            dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500;
     font-size: 16px;
   }
 
-  /* Card surfaces */
+  /* ─── Card — 10px radius, hairline border ─────────────────────────────── */
   .card {
-    @apply bg-white rounded-2xl border border-gray-100 p-4 shadow-card transition-all duration-200
-           dark:bg-gray-900 dark:border-gray-800;
+    background: var(--shell);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    transition: box-shadow 0.2s var(--ease-out-expo), border-color 0.2s, transform 0.2s;
   }
   .card-interactive {
-    @apply card cursor-pointer hover:shadow-card-hover hover:border-gray-200
-           hover:-translate-y-0.5 active:translate-y-0
-           dark:hover:border-gray-700;
+    cursor: pointer;
+  }
+  .card-interactive:hover {
+    box-shadow: 0 4px 12px 0 rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.04);
+    transform: translateY(-1px);
+  }
+  .card-interactive:active { transform: translateY(0); }
+
+  /* ─── App shell — the cream card that holds the whole app on desktop ── */
+  .app-shell {
+    background: var(--shell);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 1px 2px rgba(15,17,24,0.04), 0 24px 60px -20px rgba(15,17,24,0.06);
   }
 
-  /* Button base + variants (used as utility classes; <Button> primitive composes the same) */
+  /* ─── Buttons (utility variant — <Button> primitive composes the same) ─ */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-wide
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-tight
            transition-all duration-200 min-h-tap min-w-tap px-5 py-3 text-sm
            focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2
            dark:focus:ring-offset-gray-950
@@ -95,6 +182,21 @@
   .btn-danger    { @apply btn bg-gradient-danger text-white shadow-md hover:brightness-110; }
   .btn-ghost     { @apply btn text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800; }
 
+  /* Tiny ghost pill — the right-side action style on FieldSuite screens */
+  .pill-ghost {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5
+           text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors
+           dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800;
+  }
+
+  /* Brand pill — the centered TreeMate brand badge in the TopNav */
+  .brand-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-1.5
+           text-sm font-semibold text-white shadow-button;
+    background: rgb(var(--brand-500));
+  }
+  .brand-pill:hover { background: rgb(var(--brand-600)); }
+
   /* Hide scrollbars on horizontal pill strips */
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
@@ -103,6 +205,20 @@
 @layer utilities {
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
+
+  /* Surface utilities backed by the theme tokens */
+  .bg-canvas    { background: var(--canvas); }
+  .bg-canvas-2  { background: var(--canvas-2); }
+  .bg-shell     { background: var(--shell); }
+  .bg-shell-2   { background: var(--shell-2); }
+  .bg-shell-3   { background: var(--shell-3); }
+  .text-ink-1   { color: var(--ink-1); }
+  .text-ink-2   { color: var(--ink-2); }
+  .text-ink-3   { color: var(--ink-3); }
+  .text-ink-4   { color: var(--ink-4); }
+  .border-line  { border-color: var(--line); }
+  .border-line-2{ border-color: var(--line-2); }
+
   .glass        { @apply bg-white/80 backdrop-blur-xl border border-white/20; }
   .glass-strong { @apply bg-white/90 backdrop-blur-xl border border-white/30; }
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-brand; }

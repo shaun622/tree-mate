@@ -34,8 +34,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"Inter Variable"', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['"JetBrains Mono Variable"', 'ui-monospace', 'monospace'],
+        sans:    ['"Geist Variable"', '"Inter Variable"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono:    ['"Geist Mono Variable"', '"JetBrains Mono Variable"', 'ui-monospace', 'monospace'],
+        display: ['"Geist Variable"', '"Inter Variable"', 'system-ui', 'sans-serif'],
       },
       spacing: { tap: '44px' },
       minHeight: { tap: '44px' },
@@ -65,7 +66,17 @@ export default {
         'gradient-dark':        'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         'gradient-hero':        'linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-700)) 50%, rgb(var(--brand-800)) 100%)',
       },
-      borderRadius: { '2xl': '1rem', '3xl': '1.25rem', '4xl': '1.5rem' },
+      borderRadius: {
+        // FieldSuite scale: sm 6 / md 10 / lg 16 / xl 24
+        // Tailwind defaults preserved where they map closely;
+        // overrides shift cards to 10px and outer containers to 24px.
+        'card':    '10px',
+        'card-lg': '14px',
+        'shell':   '24px',
+        '2xl':     '1rem',
+        '3xl':     '1.25rem',
+        '4xl':     '1.5rem',
+      },
       animation: {
         'fade-in':       'fadeIn 0.25s ease-out',
         'slide-up':      'slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1)',

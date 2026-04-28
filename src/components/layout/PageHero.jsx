@@ -3,25 +3,28 @@ import { cn } from '../../lib/utils'
 /**
  * PageHero — page title + dynamic subtitle + optional primary action.
  *
- * Lives at the TOP of every list/dashboard page (NOT a sticky bar).
- * Subtitle is dynamic context (counts, dates, totals) — not static description.
+ * Uses the FieldSuite mono accent eyebrow with the 18×1px horizontal-line
+ * prefix above the title. Subtitle is dynamic context (counts, dates) —
+ * not static description.
  *
  * Usage:
  *   <PageHero
- *     title="Jobs"
- *     subtitle={`${total} jobs · ${activeCount} active`}
- *     action={<Button leftIcon={Plus} onClick={openCreate}>New Job</Button>}
+ *     eyebrow="Jobs board"
+ *     title="11 active across 7 clients"
+ *     subtitle={null}
+ *     action={<Button leftIcon={Plus}>New job</Button>}
  *   />
  */
-export default function PageHero({ title, subtitle, action, className }) {
+export default function PageHero({ eyebrow, title, subtitle, action, className }) {
   return (
-    <section className={cn('mb-6 flex items-start justify-between gap-3', className)}>
+    <section className={cn('mb-5 flex items-start justify-between gap-3', className)}>
       <div className="min-w-0 flex-1">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+        {eyebrow && <div className="eyebrow mb-1.5">{eyebrow}</div>}
+        <h1 className="text-[26px] sm:text-[30px] font-semibold tracking-tight leading-[1.05] text-ink-1">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{subtitle}</p>
+          <p className="text-[13.5px] text-ink-3 mt-1 max-w-prose">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
