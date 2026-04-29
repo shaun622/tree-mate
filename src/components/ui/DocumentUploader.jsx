@@ -42,12 +42,12 @@ export default function DocumentUploader({ bucket, path, onUpload, accept = 'ima
       />
       <label
         htmlFor="file-upload"
-        className={`inline-flex items-center gap-2 px-4 py-3 rounded-card border-2 border-dashed border-line hover:border-brand-300 cursor-pointer transition-colors text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+        className={`inline-flex items-center gap-2 px-4 py-3 rounded-card border-2 border-dashed border-gray-200 dark:border-gray-700 hover:border-brand-300 dark:hover:border-brand-700/60 cursor-pointer transition-colors text-sm ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
       >
         {uploading
           ? <Loader2 className="w-4 h-4 text-brand-500 animate-spin" strokeWidth={2.2} />
-          : <Upload className="w-4 h-4 text-ink-3" strokeWidth={2} />}
-        <span className="text-ink-2">{uploading ? 'Uploading…' : label}</span>
+          : <Upload className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2} />}
+        <span className="text-gray-700 dark:text-gray-300">{uploading ? 'Uploading…' : label}</span>
       </label>
     </div>
   )

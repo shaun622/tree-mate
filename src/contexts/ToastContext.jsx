@@ -86,13 +86,13 @@ function ToastItem({ toast, onDismiss }) {
       <div className="flex-1 min-w-0">
         <p className={cn('text-[13px] font-medium leading-tight', cfg.text)}>{toast.message}</p>
         {toast.description && (
-          <p className="text-[11.5px] text-ink-3 mt-0.5">{toast.description}</p>
+          <p className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-0.5">{toast.description}</p>
         )}
       </div>
       <button
         onClick={onDismiss}
         aria-label="Dismiss"
-        className="shrink-0 -m-1 p-1 rounded text-ink-4 hover:text-ink-2 hover:bg-surface-2 transition-colors"
+        className="shrink-0 -m-1 p-1 rounded text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       >
         <X className="w-3.5 h-3.5" strokeWidth={2.2} />
       </button>

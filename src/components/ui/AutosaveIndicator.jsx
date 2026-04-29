@@ -17,18 +17,19 @@ import { cn } from '../../lib/utils'
 export default function AutosaveIndicator({ status = 'idle', lastSavedAt }) {
   if (status === 'idle' && !lastSavedAt) return null
 
+  const muted = 'text-gray-500 dark:text-gray-400'
   const cfg = {
-    saving: { Icon: Loader2,     iconCls: 'animate-spin', text: 'Saving…',   colour: 'text-ink-3' },
+    saving: { Icon: Loader2,     iconCls: 'animate-spin', text: 'Saving…',    colour: muted },
     saved:  { Icon: Check,       iconCls: '',             text: 'Saved',      colour: 'text-emerald-600 dark:text-emerald-400' },
     error:  { Icon: AlertCircle, iconCls: '',             text: 'Save failed',colour: 'text-red-600 dark:text-red-400' },
-    idle:   { Icon: Check,       iconCls: '',             text: lastSavedAt ? formatRelative(lastSavedAt) : '', colour: 'text-ink-3' },
-  }[status] || { Icon: Check, iconCls: '', text: '', colour: 'text-ink-3' }
+    idle:   { Icon: Check,       iconCls: '',             text: lastSavedAt ? formatRelative(lastSavedAt) : '', colour: muted },
+  }[status] || { Icon: Check, iconCls: '', text: '', colour: muted }
 
   const { Icon } = cfg
 
   return (
-    <span className={cn('inline-flex items-center gap-1 text-[11px] font-mono tabular-nums', cfg.colour)}>
-      <Icon className="w-3 h-3" strokeWidth={2.5} />
+    <span className={cn('inline-flex items-center gap-1 text-[11px] tabular-nums', cfg.colour)}>
+      <Icon className={cn('w-3 h-3', cfg.iconCls)} strokeWidth={2.5} />
       {cfg.text}
     </span>
   )

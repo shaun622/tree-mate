@@ -337,7 +337,7 @@ export default function QuoteBuilder() {
             onChange={e => setForm(p => ({ ...p, prune_code: e.target.value }))}
           />
           <div>
-            <label className="block text-[10px] font-mono uppercase tracking-wider text-ink-3 mb-1.5">Hazards</label>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">Hazards</label>
             <input
               type="text"
               placeholder="Comma-separated, e.g. Power lines (0.8m), Heritage status: no"

@@ -41,7 +41,7 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
   const navigate = useNavigate()
 
   if (activities.length === 0) {
-    return <p className="text-[13px] text-ink-3 text-center py-4 italic">No recent activity</p>
+    return <p className="text-[13px] text-gray-500 dark:text-gray-400 text-center py-4 italic">No recent activity</p>
   }
 
   const handleClick = (a) => {
@@ -60,7 +60,7 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
             onClick={isClickable ? () => handleClick(a) : undefined}
             className={cn(
               'flex items-start gap-2.5',
-              isClickable && 'cursor-pointer hover:bg-surface-2 -mx-2 px-2 py-1 rounded-card transition-colors',
+              isClickable && 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 -mx-2 px-2 py-1 rounded-card transition-colors',
               !a.is_read ? '' : 'opacity-75',
             )}
           >
@@ -71,16 +71,16 @@ export default function ActivityPanel({ activities = [], onMarkRead }) {
 
             {/* content */}
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-ink-1 leading-snug truncate">
+              <p className="text-[13px] font-medium text-gray-900 dark:text-gray-100 leading-snug truncate">
                 {a.title || a.message || a.description}
               </p>
-              <p className="text-[11.5px] text-ink-3 mt-0.5">
+              <p className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-0.5">
                 {relativeTime(a.created_at)}
               </p>
             </div>
 
-            {/* category pill — green tint, mono */}
-            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-[10.5px] font-mono font-medium tracking-tight">
+            {/* category pill — brand tint, Inter caps */}
+            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-[10px] font-semibold uppercase tracking-wider">
               {pillLabel}
             </span>
           </div>

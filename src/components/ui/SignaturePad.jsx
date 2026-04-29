@@ -111,7 +111,7 @@ export default function SignaturePad({
     <div className={cn('w-full', className)}>
       <div
         className={cn(
-          'rounded-card border bg-surface-card border-line overflow-hidden',
+          'rounded-card border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 overflow-hidden',
           readOnly ? 'pointer-events-none' : 'touch-none',
         )}
       >
@@ -132,7 +132,7 @@ export default function SignaturePad({
           <button
             type="button"
             onClick={clear}
-            className="inline-flex items-center gap-1.5 text-[12px] text-ink-3 hover:text-ink-1 transition-colors"
+            className="inline-flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" strokeWidth={2} />
             Clear
@@ -144,7 +144,7 @@ export default function SignaturePad({
             className={cn(
               'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all',
               !hasInk
-                ? 'bg-surface-2 text-ink-4 cursor-not-allowed'
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 : saved
                   ? 'bg-emerald-500 text-white'
                   : 'bg-brand-500 text-white hover:bg-brand-600',

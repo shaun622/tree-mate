@@ -109,7 +109,7 @@ export default function Onboarding() {
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Brand Colour</label>
                   <div className="flex items-center gap-3">
                     <input type="color" value={form.brand_colour} onChange={e => update('brand_colour', e.target.value)} className="w-12 h-12 rounded-xl border-2 border-gray-100 dark:border-gray-800 cursor-pointer" />
-                    <span className="text-sm text-gray-400 dark:text-gray-500 font-mono">{form.brand_colour}</span>
+                    <span className="text-sm text-gray-400 dark:text-gray-500 tabular-nums uppercase">{form.brand_colour}</span>
                   </div>
                 </div>
                 <div className="flex gap-3">

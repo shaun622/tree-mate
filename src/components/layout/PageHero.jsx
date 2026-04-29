@@ -20,11 +20,11 @@ export default function PageHero({ eyebrow, title, subtitle, action, className }
     <section className={cn('mb-5 flex items-start justify-between gap-3', className)}>
       <div className="min-w-0 flex-1">
         {eyebrow && <div className="eyebrow mb-1.5">{eyebrow}</div>}
-        <h1 className="text-[26px] sm:text-[30px] font-bold tracking-tight leading-[1.05] text-ink-1">
+        <h1 className="text-[26px] sm:text-[30px] font-bold tracking-tight leading-[1.05] text-gray-900 dark:text-gray-100">
           {title}
         </h1>
         {subtitle && (
-          <p className="text-[13.5px] text-ink-3 mt-1 max-w-prose">{subtitle}</p>
+          <p className="text-[13.5px] text-gray-500 dark:text-gray-400 mt-1 max-w-prose">{subtitle}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}

@@ -50,7 +50,7 @@ export function SkeletonList({ count = 4, className = '' }) {
 
 export function SkeletonRow({ className = '' }) {
   return (
-    <div className={cn('flex items-center gap-3 px-4 py-3 border-b border-line-2', className)}>
+    <div className={cn('flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800', className)}>
       <Skeleton className="h-4 w-20" />
       <Skeleton className="h-4 w-44 flex-1" />
       <Skeleton className="h-5 w-16" />

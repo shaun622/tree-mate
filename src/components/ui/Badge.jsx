@@ -1,11 +1,11 @@
 import { cn } from '../../lib/utils'
 
 /**
- * Badge — small mono pill with semantic tones.
+ * Badge — small status pill with semantic tones.
  *
- * FieldSuite spec: ~10.5px Geist Mono, lowercase or sentence case, tight
- * letter-spacing, semantic tones (good/warn/bad/accent/neutral). Used for
- * status pills on tables, list-row cards, KPI strips.
+ * AWC spec: ~10.5px Inter caps (font-semibold uppercase tracking-wider),
+ * semantic tones (good/warn/bad/accent/neutral). Used for status pills on
+ * tables, list-row cards, KPI strips.
  *
  * Filled variant uses solid accent for "won/paid" emphasis (e.g. Accepted).
  */
@@ -16,7 +16,7 @@ const VARIANTS = {
   warning: 'bg-amber-50 text-amber-700 ring-amber-200/50 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40',
   danger:  'bg-red-50 text-red-700 ring-red-200/50 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800/40',
   info:    'bg-sky-50 text-sky-700 ring-sky-200/50 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/40',
-  neutral: 'bg-shell-3 text-ink-3 ring-line dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700/50',
+  neutral: 'bg-gray-100 text-gray-600 ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700/50',
 
   // Filled accents (for high-emphasis "Accepted / Paid" states)
   'success-solid': 'bg-emerald-500 text-white ring-emerald-500/40',
@@ -39,8 +39,7 @@ export default function Badge({ children, variant = 'neutral', dot = false, clas
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-[3px] rounded-full text-[10.5px] font-medium ring-1 ring-inset',
-        'font-mono tracking-tight tabular-nums',
+        'inline-flex items-center gap-1.5 px-2 py-[3px] rounded-full text-[10.5px] font-semibold uppercase tracking-wider tabular-nums ring-1 ring-inset',
         v,
         className,
       )}
