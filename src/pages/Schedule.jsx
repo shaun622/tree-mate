@@ -567,7 +567,7 @@ export default function Schedule() {
   }
 
   return (
-    <PageWrapper width="wide">
+    <PageWrapper width="wide" className="!bg-slate-50 dark:!bg-gray-950">
       <div className="md:hidden">
         <Header title="Schedule" subtitle="Your daily site visits and jobs" />
       </div>
