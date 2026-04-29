@@ -106,7 +106,7 @@
    *  Used above page titles and as section labels.
    * ───────────────────────────────────────────────────────────────────── */
   .eyebrow {
-    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -127,7 +127,7 @@
 
   /* Eyebrow — neutral variant (gray, no accent) */
   .eyebrow-muted {
-    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -137,7 +137,7 @@
 
   /* Section title — mono caps, smaller, used above grouped content */
   .section-title {
-    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 10.5px;
     font-weight: 500;
     letter-spacing: 0.12em;

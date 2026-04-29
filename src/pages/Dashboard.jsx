@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useActivity } from '../hooks/useActivity'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Calendar, Briefcase, FileText, AlertTriangle, Wallet, Users } from 'lucide-react'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
@@ -112,36 +112,59 @@ export default function Dashboard() {
           title={business?.name || 'TreeMate'}
           subtitle={`For arborists who'd rather be in the bucket than at a laptop`}
           action={
-            <Button size="md" onClick={() => navigate('/jobs?new=1')}>
-              <span className="text-[13px]">+ New job</span>
-            </Button>
+            <button
+              onClick={() => navigate('/settings')}
+              className="brand-pill"
+              aria-label={`Open ${business?.name || 'TreeMate'} settings`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-3-3-7-6.5-7-10.5C5 6.5 8 3 12 3s7 3.5 7 7.5c0 4-4 7.5-7 10.5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M9 7l3-4 3 4M8 12l4-2 4 2" />
+              </svg>
+              <span>{business?.name || 'TreeMate'}</span>
+            </button>
           }
         />
 
-        {/* KPI strip — 4 stat cards */}
+        {/* KPI strip — 4 stat cards with brand-tinted icon-boxes top-right */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Jobs this week"  value={kpis.thisWeek} onClick={() => navigate('/schedule')} />
-          <StatCard label="Active jobs"     value={kpis.active}   onClick={() => navigate('/jobs')} />
-          <StatCard label="Pending quotes"  value={kpis.pending}  onClick={() => navigate('/quotes')} />
-          <StatCard label="Overdue"         value={kpis.overdue}  trend={kpis.overdue > 0 ? -1 : 0} trendLabel={kpis.overdue === 0 ? '— All caught up' : `${kpis.overdue} action needed`} onClick={() => navigate('/invoices')} />
+          <StatCard label="Jobs this week"  value={kpis.thisWeek} icon={Calendar}   onClick={() => navigate('/schedule')} />
+          <StatCard label="Active jobs"     value={kpis.active}   icon={Briefcase}  onClick={() => navigate('/jobs')} />
+          <StatCard label="Pending quotes"  value={kpis.pending}  icon={FileText}   onClick={() => navigate('/quotes')} />
+          <StatCard
+            label="Overdue"
+            value={kpis.overdue}
+            icon={AlertTriangle}
+            iconTone={kpis.overdue > 0 ? 'red' : 'brand'}
+            trend={kpis.overdue > 0 ? -1 : 0}
+            trendLabel={kpis.overdue === 0 ? '— All caught up' : `${kpis.overdue} action needed`}
+            onClick={() => navigate('/invoices')}
+          />
         </div>
 
         {/* Row: Revenue MTD (wide) + Clients (narrow) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2 card relative">
-            <div className="eyebrow mb-2">Revenue (Month to date)</div>
-            <div className="text-[34px] font-semibold tabular-nums tracking-tight text-ink-1 leading-none">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="eyebrow">Revenue (Month to date)</div>
+              <div className="w-8 h-8 rounded-card flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                <Wallet className="w-4 h-4" strokeWidth={2} />
+              </div>
+            </div>
+            <div className="text-[34px] font-bold tabular-nums tracking-tight text-ink-1 leading-none">
               {formatCurrency(revenue.completedValue)}
             </div>
             <div className="text-[12.5px] text-ink-3 mt-1.5">From completed jobs this month</div>
           </div>
 
-          <div className="card relative group cursor-pointer" onClick={() => navigate('/clients')}>
-            <div className="flex items-start justify-between mb-2">
+          <div className="card relative cursor-pointer" onClick={() => navigate('/clients')}>
+            <div className="flex items-start justify-between gap-2 mb-2">
               <div className="eyebrow-muted">Clients</div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-ink-4 opacity-60 group-hover:opacity-100 transition-opacity" strokeWidth={2} />
+              <div className="w-8 h-8 rounded-card flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                <Users className="w-4 h-4" strokeWidth={2} />
+              </div>
             </div>
-            <div className="text-[34px] font-semibold tabular-nums tracking-tight text-ink-1 leading-none">{clientCount}</div>
+            <div className="text-[34px] font-bold tabular-nums tracking-tight text-ink-1 leading-none">{clientCount}</div>
             <div className="text-[12.5px] text-ink-3 mt-1.5">Across active divisions</div>
             <div className="text-[12.5px] text-brand-600 dark:text-brand-400 font-medium mt-1.5">Open CRM →</div>
           </div>
