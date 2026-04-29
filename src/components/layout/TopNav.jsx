@@ -24,7 +24,7 @@ export default function TopNav() {
   }
 
   return (
-    <header className="hidden md:block sticky top-0 z-40 bg-canvas">
+    <header className="hidden md:block sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 pt-4">
         {/* Row 1: brand wordmark (left) · long centered GlobalSearch · theme + avatar (right) */}
         <div className="flex items-center gap-4 mb-3">
@@ -58,10 +58,10 @@ export default function TopNav() {
           </div>
         </div>
 
-        {/* Row 2: underline tabs */}
+        {/* Row 2: underline tabs — soft drop shadow below to define the header */}
         <nav
           aria-label="Primary"
-          className="flex items-center gap-1 overflow-x-auto scrollbar-none border-b border-gray-200/60 dark:border-gray-800/60"
+          className="flex items-center gap-1 overflow-x-auto scrollbar-none border-b border-gray-200/60 dark:border-gray-800/60 shadow-[0_4px_8px_-6px_rgba(15,17,24,0.08)]"
         >
           {TABS.map(tab => {
             const active = isActive(tab)
