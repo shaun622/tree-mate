@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  CalendarClock, Calendar, MapPin, Clock, ChevronLeft, ChevronRight,
+  Briefcase, Navigation, GripVertical, Map,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useStaff } from '../hooks/useStaff'
@@ -305,38 +309,42 @@ export default function Schedule() {
         onDragOver={enableDrag ? (e) => handleDragOver(e, job.id) : undefined}
         onDragEnd={enableDrag ? handleDragEnd : undefined}
         onDrop={enableDrag ? (e) => handleDrop(e, job.id) : undefined}
-        className={`relative bg-white dark:bg-gray-900 rounded-2xl shadow-card border-l-4 transition-colors duration-150 ${isDragging ? 'opacity-40 scale-95' : ''} ${isDragOver ? 'ring-2 ring-brand-400' : ''}`}
+        className={cn(
+          'relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card border-l-4 transition-all duration-150 hover:shadow-card-hover',
+          isDragging && 'opacity-40 scale-95',
+          isDragOver && 'ring-2 ring-brand-400',
+        )}
         style={{ borderLeftColor: sty.border }}
       >
         <div onClick={() => setOpenJobId(job.id)} className="p-4 cursor-pointer">
           <div className="flex items-start gap-3">
             {enableDrag && (
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${sty.bg} ${sty.text}`}>
+                <div className={cn('w-7 h-7 rounded-full text-xs font-bold tabular-nums flex items-center justify-center', sty.bg, sty.text)}>
                   {index + 1}
                 </div>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="touch-none p-1 text-gray-300 cursor-grab active:cursor-grabbing"
+                  className="touch-none p-1 text-gray-300 dark:text-gray-600 cursor-grab active:cursor-grabbing hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
                   aria-label="Drag to reorder"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm6-10a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2zm0 5a1 1 0 100 2 1 1 0 000-2z" /></svg>
+                  <GripVertical className="w-4 h-4" strokeWidth={2} />
                 </button>
               </div>
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
                 <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${sty.bg} ${sty.text}`}>
+                <span className={cn('text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap', sty.bg, sty.text)}>
                   {statusLabel(job.status)}
                 </span>
               </div>
-              {client && <p className="text-sm text-gray-600 dark:text-gray-500 truncate">{client.name}</p>}
+              {client && <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{client.name}</p>}
               {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{site.address}</p>}
               <div className="flex items-center gap-3 mt-2">
                 {job.scheduled_start && (
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300 inline-flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" strokeWidth={2.2} />
                     {formatTime(job.scheduled_start)}
                     {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
                   </span>
@@ -360,20 +368,20 @@ export default function Schedule() {
       <div
         key={job.id}
         onClick={() => setOpenJobId(job.id)}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-card border-l-4 p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
+        className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card border-l-4 p-4 cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
         style={{ borderLeftColor: STATUS_COLORS.site_visit.border }}
       >
         <div className="flex items-start justify-between gap-2 mb-1">
           <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{client?.name || 'Client'}</p>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-xl whitespace-nowrap bg-sky-50 text-sky-700 ring-1 ring-sky-200/50">
-            Site Visit
+          <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300">
+            Site visit
           </span>
         </div>
         {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{site.address}</p>}
         <div className="flex items-center gap-3 mt-2.5">
           {job.scheduled_start && (
-            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300 inline-flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" strokeWidth={2.2} />
               {formatTime(job.scheduled_start)}
             </span>
           )}
@@ -383,9 +391,9 @@ export default function Schedule() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1 transition-colors"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 inline-flex items-center gap-1 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <MapPin className="w-3.5 h-3.5" strokeWidth={2.2} />
               Navigate
             </a>
           )}
@@ -409,29 +417,33 @@ export default function Schedule() {
       <div className="space-y-4">
         {/* Mobile-only week nav — desktop nav lives in the PageHero action */}
         <div className="md:hidden flex items-center justify-end gap-1.5">
-          <button onClick={() => goToWeek(-1)} className="pill-ghost text-[12px]">‹ Prev</button>
+          <button onClick={() => goToWeek(-1)} className="pill-ghost text-[12px] inline-flex items-center gap-1">
+            <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} /> Prev
+          </button>
           <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="pill-ghost text-[12px] bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800/50 text-brand-700 dark:text-brand-300 hover:bg-brand-100">
             This week
           </button>
-          <button onClick={() => goToWeek(1)} className="pill-ghost text-[12px]">Next ›</button>
+          <button onClick={() => goToWeek(1)} className="pill-ghost text-[12px] inline-flex items-center gap-1">
+            Next <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+          </button>
         </div>
 
         {/* Desktop: 7-column horizontal grid */}
-        <div className="hidden md:block card !p-0 overflow-hidden">
+        <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card overflow-hidden">
           {/* Day headers row */}
-          <div className="grid grid-cols-7 border-b border-line-2">
+          <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-800">
             {days.map(day => {
               const dayStr = ymd(day)
               const isDayToday = dayStr === todayStr
               return (
-                <div key={dayStr} className="px-3 py-2.5 border-r last:border-r-0 border-line-2">
-                  <div className={cn('text-[10px] font-mono uppercase tracking-wider',
-                    isDayToday ? 'text-brand-600 dark:text-brand-400' : 'text-ink-3'
+                <div key={dayStr} className="px-3 py-2.5 border-r last:border-r-0 border-gray-100 dark:border-gray-800">
+                  <div className={cn('text-[10px] font-semibold uppercase tracking-wider',
+                    isDayToday ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'
                   )}>
                     {day.toLocaleDateString('en-AU', { weekday: 'short' })}
                   </div>
-                  <div className={cn('text-[20px] font-semibold tabular-nums leading-none mt-0.5',
-                    isDayToday ? 'text-brand-700 dark:text-brand-300' : 'text-ink-1'
+                  <div className={cn('text-[20px] font-bold tabular-nums leading-none mt-0.5',
+                    isDayToday ? 'text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-gray-100'
                   )}>
                     {day.getDate()}
                   </div>
@@ -447,9 +459,9 @@ export default function Schedule() {
               const dayJobs = weekJobs.filter(j => getJobDay(j) === dayStr)
 
               return (
-                <div key={dayStr} className="px-2 py-2 border-r last:border-r-0 border-line-2 space-y-1.5">
+                <div key={dayStr} className="px-2 py-2 border-r last:border-r-0 border-gray-100 dark:border-gray-800 space-y-1.5">
                   {dayJobs.length === 0 && (
-                    <div className="text-[10.5px] italic text-ink-4">—</div>
+                    <div className="text-[10.5px] italic text-gray-400 dark:text-gray-600">—</div>
                   )}
                   {dayJobs.map(job => {
                     const client = weekClients[job.client_id]
@@ -462,13 +474,13 @@ export default function Schedule() {
                         className="w-full text-left bg-brand-50 dark:bg-brand-950/30 border-l-2 border-brand-500 rounded-md px-2 py-1.5 hover:bg-brand-100 dark:hover:bg-brand-950/50 transition-colors"
                       >
                         {time && (
-                          <div className="text-[9.5px] font-mono font-medium text-brand-700 dark:text-brand-300">{time}</div>
+                          <div className="text-[9.5px] font-semibold tabular-nums text-brand-700 dark:text-brand-300">{time}</div>
                         )}
-                        <div className="text-[11px] font-semibold text-ink-1 leading-tight mt-0.5">
+                        <div className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 leading-tight mt-0.5">
                           {job.job_type || 'Job'}
                         </div>
                         {(client?.name || site?.address) && (
-                          <div className="text-[9.5px] text-ink-3 mt-0.5 truncate">
+                          <div className="text-[9.5px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                             {client?.name || site?.address}
                           </div>
                         )}
@@ -490,16 +502,16 @@ export default function Schedule() {
             return (
               <div key={dayStr}>
                 <div className="flex items-center gap-2 px-1 mb-1.5">
-                  <p className={cn('text-[10px] font-mono uppercase tracking-wider',
-                    isDayToday ? 'text-brand-600' : 'text-ink-3'
+                  <p className={cn('text-xs font-semibold uppercase tracking-wider',
+                    isDayToday ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'
                   )}>
                     {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </p>
-                  <div className="flex-1 h-px bg-line-2" />
-                  {dayJobs.length > 0 && <span className="text-[10px] font-mono tabular-nums text-ink-3">{dayJobs.length}</span>}
+                  <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                  {dayJobs.length > 0 && <span className="text-[10px] font-semibold tabular-nums text-gray-500 dark:text-gray-400">{dayJobs.length}</span>}
                 </div>
                 {dayJobs.length === 0 ? (
-                  <p className="text-[12px] text-ink-4 px-1 italic">No jobs</p>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-600 px-1 italic">No jobs</p>
                 ) : (
                   <div className="space-y-1.5">
                     {dayJobs.filter(j => j.status === 'site_visit').map(job => renderSiteVisitCard(job, weekSites[job.job_site_id], weekClients[job.client_id]))}
@@ -513,12 +525,15 @@ export default function Schedule() {
 
         {/* Today list (below the grid on desktop) */}
         {todayJobs.length > 0 && (
-          <div className="hidden md:block card !p-0 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-line-2 flex items-center justify-between">
-              <div className="eyebrow-muted">Today</div>
-              <span className="text-[10px] font-mono tabular-nums text-ink-3">{todayJobs.length}</span>
+          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <div className="eyebrow-muted">
+                <CalendarClock className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Today
+              </div>
+              <span className="text-[10px] font-semibold tabular-nums text-gray-500 dark:text-gray-400">{todayJobs.length}</span>
             </div>
-            <div className="divide-y divide-line-2">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {todayJobs.map(job => {
                 const client = weekClients[job.client_id]
                 const site = weekSites[job.job_site_id]
@@ -529,12 +544,12 @@ export default function Schedule() {
                   <button
                     key={job.id}
                     onClick={() => setOpenJobId(job.id)}
-                    className="w-full grid grid-cols-12 px-4 py-2.5 items-center hover:bg-surface-2 transition-colors text-left"
+                    className="w-full grid grid-cols-12 px-4 py-2.5 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left"
                   >
-                    <div className="col-span-2 text-[11px] font-mono font-medium text-brand-600 dark:text-brand-400 tabular-nums">{time}</div>
+                    <div className="col-span-2 text-[11px] font-semibold text-brand-600 dark:text-brand-400 tabular-nums">{time}</div>
                     <div className="col-span-7 min-w-0">
-                      <div className="text-[13px] font-semibold text-ink-1 truncate">{job.job_type || 'Job'}</div>
-                      <div className="text-[11.5px] text-ink-3 truncate">
+                      <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</div>
+                      <div className="text-[11.5px] text-gray-500 dark:text-gray-400 truncate">
                         {[site?.address, client?.name].filter(Boolean).join(' · ') || '—'}
                       </div>
                     </div>
@@ -558,7 +573,12 @@ export default function Schedule() {
       </div>
       <div className="hidden md:block px-4 md:px-6 pt-5">
         <PageHero
-          eyebrow={view === 'week' ? 'Week view' : view === 'today' ? 'Today' : view === 'upcoming' ? 'Upcoming' : 'Map view'}
+          eyebrow={
+            <span className="inline-flex items-center gap-2">
+              {view === 'map' ? <Map className="w-3.5 h-3.5" strokeWidth={2.5} /> : <CalendarClock className="w-3.5 h-3.5" strokeWidth={2.5} />}
+              {view === 'week' ? 'Week view' : view === 'today' ? 'Today' : view === 'upcoming' ? 'Upcoming' : 'Map view'}
+            </span>
+          }
           title={
             view === 'week'
               ? `${getWeekDays(selectedDate)[0].toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})} — ${getWeekDays(selectedDate)[6].toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`
@@ -569,9 +589,10 @@ export default function Schedule() {
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => view === 'week' ? goToWeek(-1) : goToDay(-1)}
-                className="pill-ghost text-[12px]"
+                className="pill-ghost text-[12px] inline-flex items-center gap-1"
+                aria-label="Previous"
               >
-                ‹ Prev
+                <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} /> Prev
               </button>
               <button
                 onClick={() => setSelectedDate(startOfDay(new Date()))}
@@ -581,12 +602,13 @@ export default function Schedule() {
               </button>
               <button
                 onClick={() => view === 'week' ? goToWeek(1) : goToDay(1)}
-                className="pill-ghost text-[12px]"
+                className="pill-ghost text-[12px] inline-flex items-center gap-1"
+                aria-label="Next"
               >
-                Next ›
+                Next <ChevronRight className="w-3.5 h-3.5" strokeWidth={2.5} />
               </button>
               <div className="h-5 w-px bg-line mx-1" />
-              {/* Tiny view selector — Week | Today | Map */}
+              {/* Tiny view selector — Week | Day | Map */}
               {['week','today','map'].map(v => {
                 const active = view === v
                 return (
@@ -594,10 +616,10 @@ export default function Schedule() {
                     key={v}
                     onClick={() => setView(v)}
                     className={cn(
-                      'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+                      'rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors',
                       active
                         ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                        : 'text-ink-3 hover:text-ink-1',
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
                     )}
                   >
                     {v === 'week' ? 'Week' : v === 'today' ? 'Day' : 'Map'}
@@ -615,19 +637,21 @@ export default function Schedule() {
           <div className="md:hidden">
             <Card className="!p-3">
               <div className="flex items-center justify-between gap-2">
-                <button onClick={() => goToDay(-1)} className="p-2 hover:bg-surface-2 rounded-card transition-colors active:scale-95">
-                  <svg className="w-5 h-5 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-card transition-colors active:scale-95">
+                  <ChevronLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.2} />
                 </button>
                 <div className="text-center flex-1">
-                  <p className="text-[10px] text-ink-3 uppercase tracking-wider font-mono">{isToday ? 'Today' : ''}</p>
-                  <p className="text-sm font-semibold text-ink-1">{dayLabel}</p>
+                  {isToday && (
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Today</p>
+                  )}
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{dayLabel}</p>
                 </div>
-                <button onClick={() => goToDay(1)} className="p-2 hover:bg-surface-2 rounded-card transition-colors active:scale-95">
-                  <svg className="w-5 h-5 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-card transition-colors active:scale-95">
+                  <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2.2} />
                 </button>
               </div>
               {!isToday && (
-                <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700 py-1">
+                <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 py-1">
                   Jump to today
                 </button>
               )}
@@ -644,10 +668,10 @@ export default function Schedule() {
                 key={v}
                 onClick={() => setView(v)}
                 className={cn(
-                  'shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors min-h-[34px]',
+                  'shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors min-h-[34px]',
                   active
                     ? 'bg-brand-500 text-white shadow-sm'
-                    : 'bg-surface-card border border-line text-ink-2 hover:bg-surface-2',
+                    : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
                 )}
               >
                 {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -658,14 +682,16 @@ export default function Schedule() {
 
         {/* Travel summary */}
         {(view === 'today' || view === 'map') && mapPoints.length > 1 && (
-          <div className="bg-gradient-to-r from-brand-500 to-brand-700 text-white rounded-2xl p-4 flex items-center gap-3 shadow-button">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+          <div className="rounded-2xl border border-brand-200/60 dark:border-brand-800/40 p-4 bg-gradient-brand-soft dark:bg-brand-950/20 shadow-card flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/40 flex items-center justify-center flex-shrink-0 text-brand-600 dark:text-brand-400">
+              <Navigation className="w-5 h-5" strokeWidth={2} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-white/80 uppercase tracking-wide font-semibold">Total Route</p>
-              <p className="text-base font-bold">{displayKm.toFixed(1)} km · ~{displayMin} min travel</p>
-              {roadRoute && <p className="text-[10px] text-white/70 mt-0.5">via road network</p>}
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">Total route</p>
+              <p className="mt-1 text-lg sm:text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">
+                {displayKm.toFixed(1)} km · ~{displayMin} min travel
+              </p>
+              {roadRoute && <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">via road network</p>}
             </div>
           </div>
         )}
@@ -676,7 +702,7 @@ export default function Schedule() {
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
           ) : jobs.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              icon={<Calendar className="w-8 h-8" strokeWidth={1.5} />}
               title="No jobs scheduled"
               description={`Nothing on the calendar for ${isToday ? 'today' : dayLabel}`}
               actionLabel="Create Job"
@@ -688,9 +714,12 @@ export default function Schedule() {
               {siteVisits.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 px-1">
-                    <p className="text-xs font-bold uppercase tracking-wide text-sky-600">Site Visits</p>
-                    <div className="flex-1 h-px bg-sky-200" />
-                    <span className="text-[10px] font-semibold text-sky-500">{siteVisits.length}</span>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400 inline-flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      Site visits
+                    </p>
+                    <div className="flex-1 h-px bg-sky-200/70 dark:bg-sky-800/40" />
+                    <span className="text-[10px] font-semibold tabular-nums text-sky-500 dark:text-sky-400">{siteVisits.length}</span>
                   </div>
                   {siteVisits.map(job => renderSiteVisitCard(job, sites[job.job_site_id], clients[job.client_id]))}
                 </div>
@@ -701,9 +730,12 @@ export default function Schedule() {
                 <div className="space-y-2">
                   {siteVisits.length > 0 && (
                     <div className="flex items-center gap-2 px-1">
-                      <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Jobs</p>
-                      <div className="flex-1 h-px bg-brand-200" />
-                      <span className="text-[10px] font-semibold text-brand-500">{scheduledJobs.length}</span>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 inline-flex items-center gap-1.5">
+                        <Briefcase className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        Jobs
+                      </p>
+                      <div className="flex-1 h-px bg-brand-200/70 dark:bg-brand-800/40" />
+                      <span className="text-[10px] font-semibold tabular-nums text-brand-500 dark:text-brand-400">{scheduledJobs.length}</span>
                     </div>
                   )}
                   {scheduledJobs.map((job, index) => renderJobCard(job, sites[job.job_site_id], clients[job.client_id], index, true))}
@@ -720,7 +752,7 @@ export default function Schedule() {
         {view === 'upcoming' && (
           upcomingJobs.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              icon={<Calendar className="w-8 h-8" strokeWidth={1.5} />}
               title="No upcoming jobs"
               description="Nothing scheduled ahead"
               actionLabel="Create Job"
@@ -742,9 +774,12 @@ export default function Schedule() {
                 return (
                   <div key={dateKey} className="space-y-2">
                     <div className="flex items-center gap-2 px-1">
-                      <p className="text-xs font-bold uppercase tracking-wide text-brand-500/80">{isDayToday ? 'Today' : dayLbl}</p>
-                      <div className="flex-1 h-px bg-brand-200/60" />
-                      <span className="text-[10px] font-semibold text-brand-500/70">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 inline-flex items-center gap-1.5">
+                        <CalendarClock className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        {isDayToday ? 'Today' : dayLbl}
+                      </p>
+                      <div className="flex-1 h-px bg-brand-200/60 dark:bg-brand-800/40" />
+                      <span className="text-[10px] font-semibold tabular-nums text-brand-500 dark:text-brand-400">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
                     </div>
                     {dayJobs.map(job => {
                       const site = upcomingSites[job.job_site_id]
@@ -753,19 +788,19 @@ export default function Schedule() {
                         <div
                           key={job.id}
                           onClick={() => setOpenJobId(job.id)}
-                          className="bg-white dark:bg-gray-900 border border-gray-100/80 rounded-2xl shadow-card p-4 cursor-pointer transition-colors duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
+                          className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-card p-4 cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="font-semibold text-brand-800/90 truncate">{job.job_type || 'Job'}</p>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap bg-white/70 text-brand-600/80">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300">
                               {statusLabel(job.status)}
                             </span>
                           </div>
-                          {client && <p className="text-sm text-brand-700/70 truncate">{client.name}</p>}
-                          {site?.address && <p className="text-xs text-brand-600/60 truncate">{site.address}</p>}
+                          {client && <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{client.name}</p>}
+                          {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{site.address}</p>}
                           {job.scheduled_start && (
-                            <p className="text-xs font-semibold text-brand-600/80 mt-1.5 flex items-center gap-1">
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <p className="text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300 mt-1.5 inline-flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" strokeWidth={2.2} />
                               {formatTime(job.scheduled_start)}
                               {job.scheduled_end && ` – ${formatTime(job.scheduled_end)}`}
                             </p>
@@ -786,7 +821,7 @@ export default function Schedule() {
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
           ) : jobs.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+              icon={<Calendar className="w-8 h-8" strokeWidth={1.5} />}
               title="No jobs scheduled"
               description={`Nothing on the calendar for ${isToday ? 'today' : dayLabel}`}
               actionLabel="Create Job"
