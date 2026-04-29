@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Download, BarChart3, Wallet, TrendingUp, Clock, Wrench, Trophy } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import PageWrapper from '../components/layout/PageWrapper'
@@ -6,7 +7,6 @@ import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
 import { formatCurrency, cn } from '../lib/utils'
 import { useStaff } from '../hooks/useStaff'
-import { Download } from 'lucide-react'
 
 export default function Reports() {
   const { business } = useBusiness()
@@ -91,39 +91,54 @@ export default function Reports() {
   const trendPct = prevMonth > 0 ? Math.round(((totalMTD - prevMonth) / prevMonth) * 100) : 0
 
   return (
-    <PageWrapper width="wide">
+    <PageWrapper width="wide" className="!bg-slate-50 dark:!bg-gray-950">
       <div className="md:hidden">
-        <Header title="Analytics" back="/settings" />
+        <Header title="Analytics" />
       </div>
 
-      <div className="px-4 md:px-6 py-5 md:py-6 space-y-4">
+      <div className="px-4 md:px-6 py-5 md:py-6 space-y-5">
         <div className="hidden md:block">
           <PageHero
-            eyebrow="Last 6 months"
+            eyebrow={
+              <span className="inline-flex items-center gap-2">
+                <BarChart3 className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Last 6 months
+              </span>
+            }
             title="Revenue · jobs · crew utilisation"
             subtitle={null}
             action={
-              <button className="pill-ghost text-[12px]"><Download className="w-3.5 h-3.5" /> Export CSV</button>
+              <button className="pill-ghost text-[12px] inline-flex items-center gap-1.5">
+                <Download className="w-3.5 h-3.5" strokeWidth={2.5} /> Export CSV
+              </button>
             }
           />
         </div>
 
         {/* KPI strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard label="Avg job value" value={formatCurrency(kpis.avgJobValue)} delta={`+12% vs Mar`} positive />
-          <KpiCard label="Quote → won"  value={`${kpis.quoteWon}%`} delta={`+8%`} positive />
-          <KpiCard label="On-time arrival" value={`${kpis.onTime}%`} delta={`+2%`} positive />
-          <KpiCard label="Equipment hrs/job" value={`${kpis.equipmentHrs}`} delta="—" />
+          <KpiCard label="Avg job value"     value={formatCurrency(kpis.avgJobValue)} delta="+12% vs Mar" positive Icon={Wallet} />
+          <KpiCard label="Quote → won"       value={`${kpis.quoteWon}%`}              delta="+8%"         positive Icon={TrendingUp} />
+          <KpiCard label="On-time arrival"   value={`${kpis.onTime}%`}                delta="+2%"         positive Icon={Clock} />
+          <KpiCard label="Equipment hrs/job" value={`${kpis.equipmentHrs}`}           delta="—"                    Icon={Wrench} />
         </div>
 
         {/* Revenue chart + Revenue mix */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2 card !p-5">
             <div className="flex items-center justify-between mb-4">
-              <div className="eyebrow-muted">Revenue · 6mo</div>
-              <div className="text-[12px] font-mono tabular-nums text-ink-3">
-                {formatCurrency(totalMTD)}{' '}
-                <span className={trendPct > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+              <div className="eyebrow-muted">
+                <BarChart3 className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Revenue · 6 months
+              </div>
+              <div className="text-[12px] tabular-nums text-gray-500 dark:text-gray-400 inline-flex items-center gap-1.5">
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(totalMTD)}</span>
+                <span className={cn(
+                  'font-semibold',
+                  trendPct > 0 ? 'text-emerald-600 dark:text-emerald-400'
+                    : trendPct < 0 ? 'text-red-600 dark:text-red-400'
+                    : 'text-gray-500 dark:text-gray-400',
+                )}>
                   {trendPct > 0 ? '+' : ''}{trendPct}%
                 </span>
               </div>
@@ -136,7 +151,7 @@ export default function Reports() {
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2">
                     {isLast && val > 0 && (
-                      <div className="text-[10px] font-mono font-medium text-brand-600 dark:text-brand-400 tabular-nums">
+                      <div className="text-[10px] font-semibold tabular-nums text-brand-600 dark:text-brand-400">
                         {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
                       </div>
                     )}
@@ -147,7 +162,7 @@ export default function Reports() {
                       )}
                       style={{ height: `${height}px` }}
                     />
-                    <div className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">{revenueLabels[i]}</div>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{revenueLabels[i]}</div>
                   </div>
                 )
               })}
@@ -158,14 +173,14 @@ export default function Reports() {
             <div className="eyebrow-muted mb-4">Revenue mix</div>
             <div className="space-y-3">
               {breakdown.length === 0 ? (
-                <div className="text-[12px] text-ink-4 italic">No data yet</div>
+                <div className="text-[12px] text-gray-400 dark:text-gray-600 italic">No data yet</div>
               ) : breakdown.map(b => (
                 <div key={b.name}>
                   <div className="flex items-center justify-between mb-1 text-[11.5px]">
-                    <span className="text-ink-2 truncate">{b.name}</span>
-                    <span className="font-mono tabular-nums text-ink-3">{b.pct}%</span>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">{b.name}</span>
+                    <span className="tabular-nums font-semibold text-gray-500 dark:text-gray-400">{b.pct}%</span>
                   </div>
-                  <div className="h-1.5 bg-shell-3 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                     <div className="h-full bg-brand-500 rounded-full" style={{ width: `${b.pct}%` }} />
                   </div>
                 </div>
@@ -175,22 +190,25 @@ export default function Reports() {
         </div>
 
         {/* Crew leaderboard */}
-        <div className="card !p-0 overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-line-2 flex items-center justify-between">
-            <div className="eyebrow-muted">Crew leaderboard · {new Date().toLocaleDateString('en-AU', { month: 'long' })}</div>
-            <div className="text-[10px] font-mono text-ink-3">{leaderboard.length} active</div>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-card overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <div className="eyebrow-muted">
+              <Trophy className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Crew leaderboard · {new Date().toLocaleDateString('en-AU', { month: 'long' })}
+            </div>
+            <div className="text-[10px] font-semibold tabular-nums text-gray-500 dark:text-gray-400">{leaderboard.length} active</div>
           </div>
           {leaderboard.length === 0 ? (
-            <div className="px-4 py-8 text-center text-ink-3 text-[13px]">No crew data yet</div>
+            <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-[13px]">No crew data yet</div>
           ) : (
-            <div className="divide-y divide-line-2">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {leaderboard.map((c, i) => (
                 <div key={i} className="grid grid-cols-12 px-4 py-2.5 items-center text-[13px]">
-                  <div className="col-span-1 text-[10px] font-mono font-medium text-ink-3 tabular-nums">{String(i + 1).padStart(2, '0')}</div>
-                  <div className="col-span-4 font-medium text-ink-1 truncate">{c.name}</div>
-                  <div className="col-span-3 text-ink-3 truncate">{c.role}</div>
-                  <div className="col-span-2 text-ink-2 font-mono tabular-nums">{c.jobs} jobs</div>
-                  <div className="col-span-2 text-ink-1 font-medium font-mono tabular-nums text-right">{formatCurrency(c.value)}</div>
+                  <div className="col-span-1 text-[10px] font-semibold tabular-nums text-gray-500 dark:text-gray-400">{String(i + 1).padStart(2, '0')}</div>
+                  <div className="col-span-4 font-semibold text-gray-900 dark:text-gray-100 truncate">{c.name}</div>
+                  <div className="col-span-3 text-gray-500 dark:text-gray-400 truncate">{c.role}</div>
+                  <div className="col-span-2 text-gray-700 dark:text-gray-300 tabular-nums">{c.jobs} jobs</div>
+                  <div className="col-span-2 text-gray-900 dark:text-gray-100 font-semibold tabular-nums text-right">{formatCurrency(c.value)}</div>
                 </div>
               ))}
             </div>
@@ -201,19 +219,29 @@ export default function Reports() {
   )
 }
 
-function KpiCard({ label, value, delta, positive }) {
+function KpiCard({ label, value, delta, positive, Icon }) {
   return (
     <div className="card relative">
-      <div className="eyebrow-muted mb-3">{label}</div>
-      <div className="text-[26px] font-semibold tabular-nums tracking-tight text-ink-1 leading-none">{value}</div>
-      {delta && (
-        <div className={cn(
-          'mt-2 text-[11px] font-mono tabular-nums',
-          positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-3',
-        )}>
-          {delta}
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">{value}</p>
+          {delta && (
+            <div className={cn(
+              'mt-1.5 text-[11px] font-medium tabular-nums inline-flex items-center gap-1',
+              positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400',
+            )}>
+              {positive && <TrendingUp className="w-3 h-3" strokeWidth={2.5} />}
+              {delta}
+            </div>
+          )}
         </div>
-      )}
+        {Icon && (
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+            <Icon className="w-5 h-5" strokeWidth={2} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
