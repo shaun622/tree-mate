@@ -114,7 +114,7 @@ export default function GlobalSearch({ className }) {
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
-          placeholder="Search jobs, clients, quotes, invoices…"
+          placeholder="Search jobs, clients, quotes, invoices..."
           className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 pl-9 pr-14 text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 dark:text-gray-100"
           style={{ fontSize: '14px' }}
         />

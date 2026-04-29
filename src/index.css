@@ -102,48 +102,23 @@
 
 @layer components {
   /* ─── Eyebrow ─────────────────────────────────────────────────────────
-   *  Tiny mono caps + accent colour + 18×1px horizontal line prefix.
-   *  Used above page titles and as section labels.
+   *  Inter caps. Brand-coloured for "GOOD AFTERNOON"-style greetings,
+   *  gray for "JOBS THIS WEEK"-style stat labels and section headings.
+   *  Per AWC visual handoff §7. Inter, NOT mono — that was wrong.
    * ───────────────────────────────────────────────────────────────────── */
   .eyebrow {
-    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(var(--brand-600));
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-feature-settings: "ss01", "ss02";
-  }
-  .dark .eyebrow { color: rgb(var(--brand-400)); }
-  .eyebrow::before {
-    content: "";
-    width: 18px;
-    height: 1px;
-    background: currentColor;
-    display: inline-block;
+    @apply text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400
+           inline-flex items-center gap-2;
   }
 
-  /* Eyebrow — neutral variant (gray, no accent) */
   .eyebrow-muted {
-    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-feature-settings: "ss01", "ss02";
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400
+           inline-flex items-center gap-2;
   }
 
-  /* Section title — mono caps, smaller, used above grouped content */
+  /* Section title — same shape, used above grouped content */
   .section-title {
-    font-family: 'Geist Mono Variable', 'JetBrains Mono Variable', ui-monospace, monospace;
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-feature-settings: "ss01", "ss02";
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400;
   }
 
   /* ─── Form inputs — 16px enforced to stop iOS auto-zoom ─────────────── */
@@ -155,24 +130,11 @@
     font-size: 16px;
   }
 
-  /* ─── Card — 10px radius. PURE WHITE on cream/slate surface.
-   * No border outline — floats on shadow + a subtle 4% black ring for edge
-   * definition. Matches AWC. ────────────────────────────────────────────── */
+  /* ─── Card — AWC spec exactly: rounded-2xl (16px), border-gray-100
+   * hairline, multi-layer shadow-card. White on slate. */
   .card {
-    background: rgb(var(--surface-card));
-    border-radius: 10px;
-    padding: 14px;
-    box-shadow:
-      0 1px 3px 0 rgba(0,0,0,0.04),
-      0 1px 2px -1px rgba(0,0,0,0.03),
-      inset 0 0 0 1px rgba(0,0,0,0.04);
-    transition: box-shadow 0.2s var(--ease-out-expo), transform 0.2s;
-  }
-  .dark .card {
-    box-shadow:
-      0 1px 3px 0 rgba(0,0,0,0.20),
-      0 1px 2px -1px rgba(0,0,0,0.10),
-      inset 0 0 0 1px rgba(255,255,255,0.06);
+    @apply bg-white rounded-2xl border border-gray-100 p-4 shadow-card transition-all duration-200
+           dark:bg-gray-900 dark:border-gray-800;
   }
   .card-interactive {
     cursor: pointer;

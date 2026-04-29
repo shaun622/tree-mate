@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useActivity } from '../hooks/useActivity'
-import { ArrowUpRight, Calendar, Briefcase, FileText, AlertTriangle, Wallet, Users } from 'lucide-react'
+import { ArrowRight, CalendarClock, Briefcase, Receipt, AlertTriangle, Wallet, Users, Activity, Sparkles } from 'lucide-react'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
@@ -108,29 +108,21 @@ export default function Dashboard() {
       <div className="px-4 md:px-6 py-5 md:py-6 space-y-5">
         {/* Hero — eyebrow + big title + right-aligned New Job action pill */}
         <PageHero
-          eyebrow={greeting}
+          eyebrow={
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
+              {greeting}
+            </span>
+          }
           title={business?.name || 'TreeMate'}
           subtitle={`For arborists who'd rather be in the bucket than at a laptop`}
-          action={
-            <button
-              onClick={() => navigate('/settings')}
-              className="brand-pill"
-              aria-label={`Open ${business?.name || 'TreeMate'} settings`}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-3-3-7-6.5-7-10.5C5 6.5 8 3 12 3s7 3.5 7 7.5c0 4-4 7.5-7 10.5z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M9 7l3-4 3 4M8 12l4-2 4 2" />
-              </svg>
-              <span>{business?.name || 'TreeMate'}</span>
-            </button>
-          }
         />
 
-        {/* KPI strip — 4 stat cards with brand-tinted icon-boxes top-right */}
+        {/* KPI strip — AWC-spec icons + standard StatCard */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Jobs this week"  value={kpis.thisWeek} icon={Calendar}   onClick={() => navigate('/schedule')} />
-          <StatCard label="Active jobs"     value={kpis.active}   icon={Briefcase}  onClick={() => navigate('/jobs')} />
-          <StatCard label="Pending quotes"  value={kpis.pending}  icon={FileText}   onClick={() => navigate('/quotes')} />
+          <StatCard label="Jobs this week"  value={kpis.thisWeek} icon={CalendarClock} onClick={() => navigate('/schedule')} />
+          <StatCard label="Active jobs"     value={kpis.active}   icon={Briefcase}     onClick={() => navigate('/jobs')} />
+          <StatCard label="Pending quotes"  value={kpis.pending}  icon={Receipt}       onClick={() => navigate('/quotes')} />
           <StatCard
             label="Overdue"
             value={kpis.overdue}
@@ -142,54 +134,60 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Row: Revenue MTD (wide) + Clients (narrow) */}
+        {/* Row: Revenue MTD (gradient-brand-soft, spans 2) + Clients (regular card) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2 card relative">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="eyebrow">Revenue (Month to date)</div>
-              <div className="w-8 h-8 rounded-card flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
-                <Wallet className="w-4 h-4" strokeWidth={2} />
-              </div>
-            </div>
-            <div className="text-[34px] font-bold tabular-nums tracking-tight text-ink-1 leading-none">
+          <div className="lg:col-span-2 rounded-2xl border border-brand-200/60 dark:border-brand-800/40 p-4 bg-gradient-brand-soft dark:bg-brand-950/20 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+              Revenue (Month to date)
+            </p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">
               {formatCurrency(revenue.completedValue)}
-            </div>
-            <div className="text-[12.5px] text-ink-3 mt-1.5">From completed jobs this month</div>
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">From completed jobs this month</p>
           </div>
 
-          <div className="card relative cursor-pointer" onClick={() => navigate('/clients')}>
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="eyebrow-muted">Clients</div>
-              <div className="w-8 h-8 rounded-card flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
-                <Users className="w-4 h-4" strokeWidth={2} />
+          <div className="card cursor-pointer" onClick={() => navigate('/clients')}>
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Clients</p>
+                <p className="mt-2 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">
+                  {clientCount}
+                </p>
+                <button className="mt-2 text-xs font-semibold text-brand-600 dark:text-brand-400 inline-flex items-center gap-1 hover:gap-1.5 transition-all">
+                  Open CRM <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </button>
+              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                <Users className="w-5 h-5" strokeWidth={2} />
               </div>
             </div>
-            <div className="text-[34px] font-bold tabular-nums tracking-tight text-ink-1 leading-none">{clientCount}</div>
-            <div className="text-[12.5px] text-ink-3 mt-1.5">Across active divisions</div>
-            <div className="text-[12.5px] text-brand-600 dark:text-brand-400 font-medium mt-1.5">Open CRM →</div>
           </div>
         </div>
 
         {/* Row: Today + Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="card">
-            <div className="eyebrow-muted mb-3">Today</div>
+            <div className="eyebrow-muted mb-3">
+              <CalendarClock className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Today
+            </div>
             <div className="space-y-2.5">
               <TodayRow label="Scheduled" count={scheduledForToday} />
               <TodayRow label="Completed" count={todayStats.completed} />
               <TodayRow label="Overdue"   count={revenue.overdueCount} />
             </div>
-            <button onClick={() => navigate('/schedule')} className="text-[12.5px] text-brand-600 dark:text-brand-400 font-medium mt-4 hover:text-brand-700 transition-colors">
-              Open schedule →
+            <button onClick={() => navigate('/schedule')} className="mt-4 text-xs font-semibold text-brand-600 dark:text-brand-400 inline-flex items-center gap-1 hover:gap-1.5 transition-all">
+              Open schedule <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
             </button>
           </div>
 
           <div className="lg:col-span-2 card">
             <div className="flex items-center justify-between mb-3">
-              <div className="eyebrow-muted flex items-center gap-2">
+              <div className="eyebrow-muted">
+                <Activity className="w-3.5 h-3.5" strokeWidth={2.5} />
                 Recent activity
                 {unreadCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-brand-500 text-white rounded-full tabular-nums">{unreadCount}</span>
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-brand-500 text-white rounded-full tabular-nums ml-1">{unreadCount}</span>
                 )}
               </div>
               {unreadCount > 0 && (
@@ -207,8 +205,8 @@ export default function Dashboard() {
 function TodayRow({ label, count }) {
   return (
     <div className="flex items-center justify-between py-1">
-      <span className="text-[13px] text-ink-2">{label}</span>
-      <span className="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full bg-surface-3 text-[11px] font-mono font-medium tabular-nums text-ink-2">
+      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+      <span className="inline-flex items-center justify-center min-w-[26px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300">
         {count}
       </span>
     </div>

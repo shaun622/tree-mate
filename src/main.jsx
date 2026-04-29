@@ -4,9 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/jetbrains-mono'
-// Geist Mono is used ONLY for the editorial eyebrow / mono labels.
-// Body stays on Inter Variable.
-import '@fontsource-variable/geist-mono'
 import 'leaflet/dist/leaflet.css'
 import './index.css'
 
