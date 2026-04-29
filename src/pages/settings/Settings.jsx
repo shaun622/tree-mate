@@ -104,11 +104,6 @@ export default function Settings() {
             eyebrow="Settings"
             title={activeItem.label}
             subtitle={null}
-            action={
-              <button className="pill-ghost text-[12px] text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800/50 bg-brand-50 dark:bg-brand-950/30 hover:bg-brand-100">
-                Save changes
-              </button>
-            }
           />
         </div>
 
