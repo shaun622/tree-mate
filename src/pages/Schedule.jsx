@@ -62,7 +62,9 @@ export default function Schedule() {
   const { staff } = useStaff(business?.id)
   const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()))
-  const [view, setView] = useState('today') // 'today' | 'week' | 'upcoming' | 'map'
+  const [view, setView] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 'week' : 'today'
+  ) // 'today' | 'week' | 'upcoming' | 'map'
   const [jobs, setJobs] = useState([])
   const [weekJobs, setWeekJobs] = useState([])
   const [weekSites, setWeekSites] = useState({})
@@ -405,8 +407,8 @@ export default function Schedule() {
 
     return (
       <div className="space-y-4">
-        {/* Week navigation — ghost pills (Prev / This week / Next) */}
-        <div className="flex items-center justify-end gap-1.5">
+        {/* Mobile-only week nav — desktop nav lives in the PageHero action */}
+        <div className="md:hidden flex items-center justify-end gap-1.5">
           <button onClick={() => goToWeek(-1)} className="pill-ghost text-[12px]">‹ Prev</button>
           <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="pill-ghost text-[12px] bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800/50 text-brand-700 dark:text-brand-300 hover:bg-brand-100">
             This week
@@ -563,35 +565,78 @@ export default function Schedule() {
               : selectedDate.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
           }
           subtitle={null}
+          action={
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => view === 'week' ? goToWeek(-1) : goToDay(-1)}
+                className="pill-ghost text-[12px]"
+              >
+                ‹ Prev
+              </button>
+              <button
+                onClick={() => setSelectedDate(startOfDay(new Date()))}
+                className="pill-ghost text-[12px] bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800/50 text-brand-700 dark:text-brand-300 hover:bg-brand-100"
+              >
+                {view === 'week' ? 'This week' : 'Today'}
+              </button>
+              <button
+                onClick={() => view === 'week' ? goToWeek(1) : goToDay(1)}
+                className="pill-ghost text-[12px]"
+              >
+                Next ›
+              </button>
+              <div className="h-5 w-px bg-line mx-1" />
+              {/* Tiny view selector — Week | Today | Map */}
+              {['week','today','map'].map(v => {
+                const active = view === v
+                return (
+                  <button
+                    key={v}
+                    onClick={() => setView(v)}
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+                      active
+                        ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                        : 'text-ink-3 hover:text-ink-1',
+                    )}
+                  >
+                    {v === 'week' ? 'Week' : v === 'today' ? 'Day' : 'Map'}
+                  </button>
+                )
+              })}
+            </div>
+          }
         />
       </div>
 
-      <div className="px-4 py-4 space-y-4">
-        {/* Day picker (for today + map views) */}
+      <div className="px-4 md:px-6 py-4 space-y-4">
+        {/* Day picker — mobile only when in today/map (desktop nav lives in PageHero action) */}
         {(view === 'today' || view === 'map') && (
-          <Card className="p-3">
-            <div className="flex items-center justify-between gap-2">
-              <button onClick={() => goToDay(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <div className="text-center flex-1">
-                <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">{isToday ? 'Today' : ''}</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{dayLabel}</p>
+          <div className="md:hidden">
+            <Card className="!p-3">
+              <div className="flex items-center justify-between gap-2">
+                <button onClick={() => goToDay(-1)} className="p-2 hover:bg-surface-2 rounded-card transition-colors active:scale-95">
+                  <svg className="w-5 h-5 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <div className="text-center flex-1">
+                  <p className="text-[10px] text-ink-3 uppercase tracking-wider font-mono">{isToday ? 'Today' : ''}</p>
+                  <p className="text-sm font-semibold text-ink-1">{dayLabel}</p>
+                </div>
+                <button onClick={() => goToDay(1)} className="p-2 hover:bg-surface-2 rounded-card transition-colors active:scale-95">
+                  <svg className="w-5 h-5 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
               </div>
-              <button onClick={() => goToDay(1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
-                <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
-            </div>
-            {!isToday && (
-              <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700 py-1">
-                Jump to today
-              </button>
-            )}
-          </Card>
+              {!isToday && (
+                <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="w-full mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700 py-1">
+                  Jump to today
+                </button>
+              )}
+            </Card>
+          </div>
         )}
 
-        {/* View toggle — Today | Week | Upcoming | Map */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        {/* View toggle — mobile only (desktop has tiny pills in PageHero action) */}
+        <div className="md:hidden flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {['today', 'week', 'upcoming', 'map'].map(v => {
             const active = view === v
             return (
