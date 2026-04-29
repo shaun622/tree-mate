@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Loader2, Check, FileText } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Loader2, Check, FileText, Upload, Trash2, Image as ImageIcon } from 'lucide-react'
 import { useBusiness } from '../../../hooks/useBusiness'
 import { useAuth } from '../../../hooks/useAuth'
 import { useToast } from '../../../contexts/ToastContext'
+import { supabase } from '../../../lib/supabase'
 import { cn } from '../../../lib/utils'
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/
@@ -32,6 +33,8 @@ export default function OrganisationPane() {
   const [saving, setSaving] = useState(false)
   const [hexInput, setHexInput] = useState('#22c55e')
   const [generatingPDF, setGeneratingPDF] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const fileInputRef = useRef(null)
 
   // Hydrate from business when it loads/changes
   useEffect(() => {
@@ -91,13 +94,62 @@ export default function OrganisationPane() {
     }
   }
 
+  // Logo upload — uploads to logos/{userId}/logo.{ext}, saves URL on the business.
+  // Auto-saves immediately (doesn't wait for the Save changes button).
+  const handleLogoFile = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // reset so re-uploading the same file still fires onChange
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file')
+      return
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('Logo too large', { description: 'Max 4 MB' })
+      return
+    }
+    setUploadingLogo(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+      const path = `${user.id}/logo.${ext}`
+      const { error: upErr } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+      if (upErr) throw upErr
+      const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
+      // Cache-bust so the new logo shows up immediately even if path is unchanged
+      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`
+      const { error: saveErr } = await updateBusiness({ logo_url: cacheBustedUrl })
+      if (saveErr) throw saveErr
+      toast.success('Logo updated')
+    } catch (err) {
+      console.error('Logo upload failed:', err)
+      toast.error('Upload failed', { description: err?.message })
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleLogoRemove = async () => {
+    if (uploadingLogo) return
+    setUploadingLogo(true)
+    try {
+      const { error } = await updateBusiness({ logo_url: null })
+      if (error) throw error
+      toast.success('Logo removed')
+    } catch (err) {
+      console.error('Logo remove failed:', err)
+      toast.error('Could not remove logo', { description: err?.message })
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Pane header with right-aligned save button */}
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="eyebrow mb-2">Branding · what your customers see</div>
-          <p className="text-[12px] text-ink-3 max-w-prose">
+          <p className="text-[12px] text-gray-500 dark:text-gray-400 max-w-prose">
             Trading name, public email and your accreditation appear on every quote, invoice and customer portal page.
           </p>
         </div>
@@ -148,6 +200,62 @@ export default function OrganisationPane() {
         />
       </div>
 
+      {/* Logo upload */}
+      <div>
+        <div className="eyebrow mb-2">Logo · shown on PDFs, the customer portal, your invoices</div>
+        <div className="card !p-4 flex items-center gap-4 mt-3">
+          {/* Preview */}
+          <div className="w-16 h-16 rounded-card border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center overflow-hidden shrink-0">
+            {business?.logo_url ? (
+              <img src={business.logo_url} alt="Business logo" className="w-full h-full object-contain" />
+            ) : (
+              <ImageIcon className="w-6 h-6 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
+            )}
+          </div>
+
+          {/* Copy + actions */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+              {business?.logo_url ? 'Logo set' : 'No logo yet'}
+            </p>
+            <p className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-0.5">
+              Square PNG or SVG works best · max 4 MB
+            </p>
+          </div>
+
+          {/* Hidden file input + styled buttons */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleLogoFile}
+            className="hidden"
+          />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {business?.logo_url && (
+              <button
+                onClick={handleLogoRemove}
+                disabled={uploadingLogo}
+                className="pill-ghost text-[12px] inline-flex items-center gap-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200/60 disabled:opacity-50"
+                aria-label="Remove logo"
+              >
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
+                Remove
+              </button>
+            )}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingLogo}
+              className="pill-ghost text-[12px] inline-flex items-center gap-1.5 disabled:opacity-50"
+            >
+              {uploadingLogo
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2.2} /> Uploading…</>
+                : <><Upload className="w-3.5 h-3.5" strokeWidth={2} /> {business?.logo_url ? 'Replace' : 'Upload logo'}</>}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Brand colour — swatches + hex input + native picker */}
       <div>
         <div className="eyebrow mb-2">Brand colour · used on PDFs, the customer portal, your invoices</div>
@@ -162,8 +270,8 @@ export default function OrganisationPane() {
                 className={cn(
                   'w-9 h-9 rounded-card border-2 transition-all',
                   selected
-                    ? 'border-ink-1 ring-2 ring-brand-200/50 scale-105'
-                    : 'border-line hover:border-ink-3',
+                    ? 'border-gray-900 dark:border-gray-100 ring-2 ring-brand-200/50 scale-105'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500',
                 )}
                 style={{ backgroundColor: c.value }}
               />
@@ -171,7 +279,7 @@ export default function OrganisationPane() {
           })}
 
           {/* Vertical divider */}
-          <div className="h-6 w-px bg-line mx-1" />
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
 
           {/* Custom hex input — paired with the native colour picker */}
           <label className="relative">
@@ -179,25 +287,25 @@ export default function OrganisationPane() {
               type="color"
               value={HEX_RE.test(hexInput) ? hexInput : '#22c55e'}
               onChange={e => { setHexInput(e.target.value); update('brand_colour', e.target.value) }}
-              className="w-9 h-9 rounded-card border-2 border-line hover:border-ink-3 cursor-pointer p-0 appearance-none"
+              className="w-9 h-9 rounded-card border-2 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer p-0 appearance-none"
               aria-label="Pick custom colour"
               style={{ backgroundColor: HEX_RE.test(hexInput) ? hexInput : '#ffffff' }}
             />
           </label>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-mono text-ink-4">#</span>
+            <span className="text-[11px] tabular-nums text-gray-400 dark:text-gray-500">#</span>
             <input
               type="text"
               value={hexInput.replace(/^#/, '')}
               onChange={e => handleHexChange(e.target.value)}
               placeholder="22c55e"
               maxLength={6}
-              className="w-[88px] h-9 rounded-card border border-line bg-surface-card px-2 text-[13px] font-mono tabular-nums text-ink-1 placeholder:text-ink-4 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 uppercase"
+              className="w-[88px] h-9 rounded-card border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 text-[13px] tabular-nums text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 uppercase"
             />
           </div>
 
-          <span className="ml-2 text-[11px] font-mono text-ink-3 tabular-nums">
+          <span className="ml-2 text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
             {HEX_RE.test(hexInput) ? `Selected · ${hexInput.toLowerCase()}` : 'Enter a 6-digit hex'}
           </span>
         </div>
@@ -209,19 +317,21 @@ export default function OrganisationPane() {
         <div className="card !p-4 flex items-center justify-between mt-3">
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className="w-10 h-10 rounded-card flex items-center justify-center text-white font-bold shrink-0"
-              style={{ backgroundColor: form.brand_colour }}
+              className="w-10 h-10 rounded-card flex items-center justify-center text-white font-bold shrink-0 overflow-hidden"
+              style={{ backgroundColor: business?.logo_url ? 'transparent' : form.brand_colour }}
             >
-              {(form.name || 'T').charAt(0).toUpperCase()}
+              {business?.logo_url
+                ? <img src={business.logo_url} alt="" className="w-full h-full object-contain" />
+                : (form.name || 'T').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] font-mono uppercase tracking-wider" style={{ color: form.brand_colour }}>
+              <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: form.brand_colour }}>
                 AS 4373 ready certified
               </div>
-              <div className="text-[14px] font-semibold text-ink-1 mt-0.5 truncate">
+              <div className="text-[14px] font-semibold text-gray-900 dark:text-gray-100 mt-0.5 truncate">
                 {form.name || 'Your Tree Services Ltd'}
               </div>
-              <div className="text-[11.5px] text-ink-3">
+              <div className="text-[11.5px] text-gray-500 dark:text-gray-400">
                 Site visit report · sample · REF TM-2041
               </div>
             </div>
@@ -244,7 +354,7 @@ export default function OrganisationPane() {
 function Field({ label, value, onChange, placeholder, type = 'text' }) {
   return (
     <div>
-      <label className="block text-[10px] font-mono uppercase tracking-wider text-ink-3 mb-1.5">
+      <label className="block text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
         {label}
       </label>
       <input
