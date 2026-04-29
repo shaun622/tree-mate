@@ -12,6 +12,7 @@ import { Plus } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
+import { SkeletonList } from '../components/ui/Skeleton'
 import { statusLabel, formatDate, formatCurrency, cn } from '../lib/utils'
 
 export default function Quotes() {
@@ -92,7 +93,7 @@ export default function Quotes() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
+          <SkeletonList count={5} />
         ) : quotes.length === 0 ? (
           <EmptyState title="No quotes" description="Create your first quote" actionLabel="New Quote" onAction={() => navigate('/quotes/new')} />
         ) : (

@@ -7,12 +7,13 @@ import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
 import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
 import ScheduleMap from '../components/schedule/ScheduleMap'
 import JobDetailView, { useJobDetail } from '../components/jobs/JobDetailView'
 import { geocodeAddress, totalRouteKm, estimateTravelMinutes, getRoadRoute } from '../lib/geocode'
-import { statusLabel } from '../lib/utils'
+import { statusLabel, cn } from '../lib/utils'
 
 const STATUS_COLORS = {
   enquiry: { border: '#a855f7', bg: 'bg-purple-50', text: 'text-purple-700', pin: '#a855f7' },
@@ -392,62 +393,158 @@ export default function Schedule() {
   }
 
   // Week view
+  // ── FieldSuite Week View ────────────────────────────────────────────────────
+  // Horizontal 7-column grid on desktop (mono day headers + bold day numbers,
+  // accent-tint job blocks with brand left border). Stacked-by-day on mobile.
   const renderWeekView = () => {
     const days = getWeekDays(selectedDate)
     const todayStr = ymd(new Date())
 
+    // Build a "Today" list of jobs for the day list below the grid
+    const todayJobs = weekJobs.filter(j => getJobDay(j) === todayStr)
+
     return (
       <div className="space-y-4">
-        {/* Week navigation */}
-        <Card className="p-3">
-          <div className="flex items-center justify-between gap-2">
-            <button onClick={() => goToWeek(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div className="text-center flex-1">
-              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
-            </div>
-            <button onClick={() => goToWeek(1)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-xl transition-colors duration-150 active:scale-95">
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
+        {/* Week navigation — ghost pills (Prev / This week / Next) */}
+        <div className="flex items-center justify-end gap-1.5">
+          <button onClick={() => goToWeek(-1)} className="pill-ghost text-[12px]">‹ Prev</button>
+          <button onClick={() => setSelectedDate(startOfDay(new Date()))} className="pill-ghost text-[12px] bg-brand-50 dark:bg-brand-950/30 border-brand-200 dark:border-brand-800/50 text-brand-700 dark:text-brand-300 hover:bg-brand-100">
+            This week
+          </button>
+          <button onClick={() => goToWeek(1)} className="pill-ghost text-[12px]">Next ›</button>
+        </div>
+
+        {/* Desktop: 7-column horizontal grid */}
+        <div className="hidden md:block card !p-0 overflow-hidden">
+          {/* Day headers row */}
+          <div className="grid grid-cols-7 border-b border-line-2">
+            {days.map(day => {
+              const dayStr = ymd(day)
+              const isDayToday = dayStr === todayStr
+              return (
+                <div key={dayStr} className="px-3 py-2.5 border-r last:border-r-0 border-line-2">
+                  <div className={cn('text-[10px] font-mono uppercase tracking-wider',
+                    isDayToday ? 'text-brand-600 dark:text-brand-400' : 'text-ink-3'
+                  )}>
+                    {day.toLocaleDateString('en-AU', { weekday: 'short' })}
+                  </div>
+                  <div className={cn('text-[20px] font-semibold tabular-nums leading-none mt-0.5',
+                    isDayToday ? 'text-brand-700 dark:text-brand-300' : 'text-ink-1'
+                  )}>
+                    {day.getDate()}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </Card>
 
-        {days.map(day => {
-          const dayStr = ymd(day)
-          const isDayToday = dayStr === todayStr
-          const dayJobs = weekJobs.filter(j => getJobDay(j) === dayStr)
-          const daySiteVisits = dayJobs.filter(j => j.status === 'site_visit')
-          const dayWork = dayJobs.filter(j => j.status !== 'site_visit')
+          {/* Day cells row */}
+          <div className="grid grid-cols-7 min-h-[180px]">
+            {days.map(day => {
+              const dayStr = ymd(day)
+              const dayJobs = weekJobs.filter(j => getJobDay(j) === dayStr)
 
-          if (dayJobs.length === 0) return (
-            <div key={dayStr} className="space-y-1">
-              <div className="flex items-center gap-2 px-1">
-                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-brand-600' : 'text-gray-400 dark:text-gray-500'}`}>
-                  {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </p>
-                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+              return (
+                <div key={dayStr} className="px-2 py-2 border-r last:border-r-0 border-line-2 space-y-1.5">
+                  {dayJobs.length === 0 && (
+                    <div className="text-[10.5px] italic text-ink-4">—</div>
+                  )}
+                  {dayJobs.map(job => {
+                    const client = weekClients[job.client_id]
+                    const site = weekSites[job.job_site_id]
+                    const time = job.scheduled_start ? formatTime(job.scheduled_start) : null
+                    return (
+                      <button
+                        key={job.id}
+                        onClick={() => setOpenJobId(job.id)}
+                        className="w-full text-left bg-brand-50 dark:bg-brand-950/30 border-l-2 border-brand-500 rounded-md px-2 py-1.5 hover:bg-brand-100 dark:hover:bg-brand-950/50 transition-colors"
+                      >
+                        {time && (
+                          <div className="text-[9.5px] font-mono font-medium text-brand-700 dark:text-brand-300">{time}</div>
+                        )}
+                        <div className="text-[11px] font-semibold text-ink-1 leading-tight mt-0.5">
+                          {job.job_type || 'Job'}
+                        </div>
+                        {(client?.name || site?.address) && (
+                          <div className="text-[9.5px] text-ink-3 mt-0.5 truncate">
+                            {client?.name || site?.address}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Mobile: stacked-by-day list */}
+        <div className="md:hidden space-y-3">
+          {days.map(day => {
+            const dayStr = ymd(day)
+            const isDayToday = dayStr === todayStr
+            const dayJobs = weekJobs.filter(j => getJobDay(j) === dayStr)
+            return (
+              <div key={dayStr}>
+                <div className="flex items-center gap-2 px-1 mb-1.5">
+                  <p className={cn('text-[10px] font-mono uppercase tracking-wider',
+                    isDayToday ? 'text-brand-600' : 'text-ink-3'
+                  )}>
+                    {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
+                  </p>
+                  <div className="flex-1 h-px bg-line-2" />
+                  {dayJobs.length > 0 && <span className="text-[10px] font-mono tabular-nums text-ink-3">{dayJobs.length}</span>}
+                </div>
+                {dayJobs.length === 0 ? (
+                  <p className="text-[12px] text-ink-4 px-1 italic">No jobs</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {dayJobs.filter(j => j.status === 'site_visit').map(job => renderSiteVisitCard(job, weekSites[job.job_site_id], weekClients[job.client_id]))}
+                    {dayJobs.filter(j => j.status !== 'site_visit').map((job, i) => renderJobCard(job, weekSites[job.job_site_id], weekClients[job.client_id], i, false))}
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 px-1">No jobs</p>
-            </div>
-          )
+            )
+          })}
+        </div>
 
-          return (
-            <div key={dayStr} className="space-y-2">
-              <div className="flex items-center gap-2 px-1">
-                <p className={`text-xs font-bold uppercase tracking-wide ${isDayToday ? 'text-brand-600' : 'text-gray-500 dark:text-gray-500'}`}>
-                  {isDayToday ? 'Today' : day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </p>
-                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
-                <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">{dayJobs.length} job{dayJobs.length > 1 ? 's' : ''}</span>
-              </div>
-              {daySiteVisits.length > 0 && daySiteVisits.map(job => renderSiteVisitCard(job, weekSites[job.job_site_id], weekClients[job.client_id]))}
-              {dayWork.map((job, i) => renderJobCard(job, weekSites[job.job_site_id], weekClients[job.client_id], i, false))}
+        {/* Today list (below the grid on desktop) */}
+        {todayJobs.length > 0 && (
+          <div className="hidden md:block card !p-0 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-line-2 flex items-center justify-between">
+              <div className="eyebrow-muted">Today</div>
+              <span className="text-[10px] font-mono tabular-nums text-ink-3">{todayJobs.length}</span>
             </div>
-          )
-        })}
+            <div className="divide-y divide-line-2">
+              {todayJobs.map(job => {
+                const client = weekClients[job.client_id]
+                const site = weekSites[job.job_site_id]
+                const time = job.scheduled_start ? formatTime(job.scheduled_start) : '—'
+                const stateLabel = job.status === 'in_progress' ? 'In progress' : statusLabel(job.status)
+                const stateVariant = job.status === 'in_progress' ? 'warning' : 'neutral'
+                return (
+                  <button
+                    key={job.id}
+                    onClick={() => setOpenJobId(job.id)}
+                    className="w-full grid grid-cols-12 px-4 py-2.5 items-center hover:bg-surface-2 transition-colors text-left"
+                  >
+                    <div className="col-span-2 text-[11px] font-mono font-medium text-brand-600 dark:text-brand-400 tabular-nums">{time}</div>
+                    <div className="col-span-7 min-w-0">
+                      <div className="text-[13px] font-semibold text-ink-1 truncate">{job.job_type || 'Job'}</div>
+                      <div className="text-[11.5px] text-ink-3 truncate">
+                        {[site?.address, client?.name].filter(Boolean).join(' · ') || '—'}
+                      </div>
+                    </div>
+                    <div className="col-span-3 flex justify-end">
+                      <Badge variant={stateVariant}>{stateLabel}</Badge>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -494,16 +591,24 @@ export default function Schedule() {
         )}
 
         {/* View toggle — Today | Week | Upcoming | Map */}
-        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
-          {['today', 'week', 'upcoming', 'map'].map(v => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors duration-150 ${view === v ? 'bg-white dark:bg-gray-900 text-brand-600 shadow-card' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300'}`}
-            >
-              {v.charAt(0).toUpperCase() + v.slice(1)}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          {['today', 'week', 'upcoming', 'map'].map(v => {
+            const active = view === v
+            return (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={cn(
+                  'shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors min-h-[34px]',
+                  active
+                    ? 'bg-brand-500 text-white shadow-sm'
+                    : 'bg-surface-card border border-line text-ink-2 hover:bg-surface-2',
+                )}
+              >
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            )
+          })}
         </div>
 
         {/* Travel summary */}

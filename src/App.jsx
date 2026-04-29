@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import { BusinessProvider, useBusiness } from './hooks/useBusiness'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ConfirmProvider } from './contexts/ConfirmContext'
+import { ToastProvider } from './contexts/ToastContext'
 import BottomNav from './components/layout/BottomNav'
 import TopNav from './components/layout/TopNav'
 import { isTrialExpired, trialDaysLeft } from './lib/plans'
@@ -134,11 +135,12 @@ function BusinessGuard() {
 export default function App() {
   return (
     <ThemeProvider>
-      <ConfirmProvider>
-        <AuthProvider>
-          <BusinessProvider>
-            <ScrollToTop />
-            <Suspense fallback={<LoadingSpinner />}>
+      <ToastProvider>
+        <ConfirmProvider>
+          <AuthProvider>
+            <BusinessProvider>
+              <ScrollToTop />
+              <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             {/* Public */}
             <Route path="/portal/login" element={<PortalLogin />} />
@@ -184,12 +186,13 @@ export default function App() {
                 <Route path="/subscription" element={<Subscription />} />
               </Route>
             </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-          </BusinessProvider>
-        </AuthProvider>
-      </ConfirmProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+            </BusinessProvider>
+          </AuthProvider>
+        </ConfirmProvider>
+      </ToastProvider>
     </ThemeProvider>
   )
 }

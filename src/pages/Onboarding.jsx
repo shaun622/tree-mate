@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Button from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
+import { useToast } from '../contexts/ToastContext'
 
 export default function Onboarding() {
   const [step, setStep] = useState(1)
@@ -13,6 +14,7 @@ export default function Onboarding() {
   const { createBusiness, business, loading: bizLoading } = useBusiness()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
 
   // If user already has a business, skip onboarding
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function Onboarding() {
     const ext = file.name.split('.').pop()
     const path = `${user.id}/logo.${ext}`
     const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
-    if (error) { alert('Upload failed'); return }
+    if (error) { toast.error('Upload failed', { description: error.message }); return }
     const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
     update('logo_url', publicUrl)
   }
@@ -35,8 +37,8 @@ export default function Onboarding() {
   const handleFinish = async () => {
     setLoading(true)
     const { error } = await createBusiness(form)
-    if (error) alert(error.message)
-    else navigate('/')
+    if (error) toast.error('Could not create business', { description: error.message })
+    else { toast.success("You're all set!"); navigate('/') }
     setLoading(false)
   }
 
