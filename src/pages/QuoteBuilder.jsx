@@ -35,6 +35,9 @@ export default function QuoteBuilder() {
     client_id: '', job_site_id: '', scope: '', terms: 'Payment due within 14 days of invoice.\nAll prices include GST.\nQuote valid for 30 days.',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
     inclusions: '', exclusions: '',
+    // Tree-domain fields (AS 4373)
+    species: '', dbh_cm: '', height_m: '', spread_m: '', prune_code: '',
+    hazards: [],
   })
 
   // Load existing quote for editing
@@ -50,6 +53,12 @@ export default function QuoteBuilder() {
             line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
             inclusions: data.inclusions || '',
             exclusions: data.exclusions || '',
+            species: data.species || '',
+            dbh_cm: data.dbh_cm ?? '',
+            height_m: data.height_m ?? '',
+            spread_m: data.spread_m ?? '',
+            prune_code: data.prune_code || '',
+            hazards: Array.isArray(data.hazards) ? data.hazards : [],
           })
           setQuoteStatus(data.status)
           if (data.job_id) setLinkedJobId(data.job_id)
@@ -121,6 +130,13 @@ export default function QuoteBuilder() {
       inclusions: form.inclusions || null,
       exclusions: form.exclusions || null,
       job_id: linkedJobId || null,
+      // Tree-domain fields (AS 4373)
+      species: form.species || null,
+      dbh_cm: form.dbh_cm ? Number(form.dbh_cm) : null,
+      height_m: form.height_m ? Number(form.height_m) : null,
+      spread_m: form.spread_m ? Number(form.spread_m) : null,
+      prune_code: form.prune_code || null,
+      hazards: form.hazards || [],
     }
     if (id) {
       await supabase.from('quotes').update(payload).eq('id', id)
@@ -297,6 +313,39 @@ export default function QuoteBuilder() {
             <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
             <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
+          </div>
+        </Card>
+
+        {/* Tree-domain (AS 4373) — species, dimensions, hazards */}
+        <Card className="p-4 space-y-3">
+          <div className="eyebrow mb-2">Tree details · AS 4373</div>
+          <Input
+            label="Species"
+            placeholder="e.g. Spotted Gum (Corymbia maculata)"
+            value={form.species}
+            onChange={e => setForm(p => ({ ...p, species: e.target.value }))}
+          />
+          <div className="grid grid-cols-3 gap-3">
+            <Input label="DBH (cm)" type="number" inputMode="decimal" placeholder="72" value={form.dbh_cm} onChange={e => setForm(p => ({ ...p, dbh_cm: e.target.value }))} />
+            <Input label="Height (m)" type="number" inputMode="decimal" placeholder="24" value={form.height_m} onChange={e => setForm(p => ({ ...p, height_m: e.target.value }))} />
+            <Input label="Spread (m)" type="number" inputMode="decimal" placeholder="14" value={form.spread_m} onChange={e => setForm(p => ({ ...p, spread_m: e.target.value }))} />
+          </div>
+          <Input
+            label="AS 4373 prune code"
+            placeholder="e.g. Type 2 — Selective prune"
+            value={form.prune_code}
+            onChange={e => setForm(p => ({ ...p, prune_code: e.target.value }))}
+          />
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-wider text-ink-3 mb-1.5">Hazards</label>
+            <input
+              type="text"
+              placeholder="Comma-separated, e.g. Power lines (0.8m), Heritage status: no"
+              defaultValue={(form.hazards || []).join(', ')}
+              onBlur={e => setForm(p => ({ ...p, hazards: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+              className="input"
+              style={{ fontSize: '14px' }}
+            />
           </div>
         </Card>
 

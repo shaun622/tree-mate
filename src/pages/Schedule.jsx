@@ -457,8 +457,16 @@ export default function Schedule() {
       <div className="md:hidden">
         <Header title="Schedule" subtitle="Your daily site visits and jobs" />
       </div>
-      <div className="hidden md:block px-4 md:px-0 pt-4">
-        <PageHero title="Schedule" subtitle="Your daily site visits and jobs" />
+      <div className="hidden md:block px-4 md:px-6 pt-5">
+        <PageHero
+          eyebrow={view === 'week' ? 'Week view' : view === 'today' ? 'Today' : view === 'upcoming' ? 'Upcoming' : 'Map view'}
+          title={
+            view === 'week'
+              ? `${getWeekDays(selectedDate)[0].toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})} — ${getWeekDays(selectedDate)[6].toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}`
+              : selectedDate.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+          }
+          subtitle={null}
+        />
       </div>
 
       <div className="px-4 py-4 space-y-4">

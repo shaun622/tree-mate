@@ -19,7 +19,7 @@ import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import JobDetailView from '../components/jobs/JobDetailView'
 import Card from '../components/ui/Card'
-import { statusLabel, statusColor, formatCurrency, calculateGST, PRIORITY_STYLES } from '../lib/utils'
+import { statusLabel, statusColor, formatCurrency, calculateGST, PRIORITY_STYLES, cn } from '../lib/utils'
 
 // 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
 const LIST_FILTERS = [
@@ -48,7 +48,9 @@ export default function Jobs() {
     const filterForStatus = LIST_FILTERS.find(f => f.statuses?.includes(param))
     return filterForStatus ? filterForStatus.key : 'quoted'
   })
-  const [viewMode, setViewMode] = useState('list') // 'list' | 'pipeline'
+  const [viewMode, setViewMode] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 'pipeline' : 'list'
+  ) // 'list' | 'pipeline'
   const [showModal, setShowModal] = useState(!!searchParams.get('new'))
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -613,33 +615,69 @@ export default function Jobs() {
 
   // ── Pipeline Kanban View ──────────────────────────────────────────────────
   const PipelineView = () => {
-    const columns = LIST_FILTERS
+    const columns = [
+      { key: 'quoted',    label: 'Quoted',                 statuses: ['enquiry','site_visit','quoted','approved'] },
+      { key: 'scheduled', label: 'Scheduled',              statuses: ['scheduled','in_progress'] },
+      { key: 'progress',  label: 'In progress',            statuses: ['in_progress'] },
+      { key: 'done',      label: 'Done · awaiting invoice',statuses: ['completed','invoiced'] },
+    ]
+    // Avoid scheduled+in_progress duplicating — separate them properly:
+    const filteredColumns = [
+      { key: 'quoted',    label: 'Quoted',                 statuses: ['enquiry','site_visit','quoted','approved'] },
+      { key: 'scheduled', label: 'Scheduled',              statuses: ['scheduled'] },
+      { key: 'progress',  label: 'In progress',            statuses: ['in_progress'] },
+      { key: 'done',      label: 'Done · awaiting invoice',statuses: ['completed','invoiced'] },
+    ]
     return (
-      <div className="overflow-x-auto -mx-4 px-4 pb-2">
-        <div className="flex gap-3" style={{ minWidth: `${columns.length * 240}px` }}>
-          {columns.map(col => {
-            const colJobs = jobs.filter(j => col.statuses.includes(j.status))
-            return (
-              <div key={col.key} className="w-[220px] flex-shrink-0">
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide bg-brand-100 text-brand-700 px-2 py-1 rounded-lg">
-                    {col.label}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 font-semibold">{colJobs.length}</span>
-                </div>
-                <div className="space-y-2 min-h-[100px]">
-                  {colJobs.length === 0 ? (
-                    <div className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl h-20 flex items-center justify-center">
-                      <p className="text-xs text-gray-300">No jobs</p>
-                    </div>
-                  ) : (
-                    colJobs.map(job => <JobCard key={job.id} job={job} compact />)
-                  )}
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        {filteredColumns.map(col => {
+          const colJobs = jobs.filter(j => col.statuses.includes(j.status))
+          return (
+            <div key={col.key} className="bg-shell-2 rounded-card border border-line p-3 min-h-[280px]">
+              <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-line-2">
+                <div className="eyebrow-muted">{col.label}</div>
+                <span className="text-[11px] font-mono tabular-nums text-ink-3">{colJobs.length}</span>
               </div>
-            )
-          })}
-        </div>
+              <div className="space-y-2">
+                {colJobs.length === 0 ? (
+                  <div className="text-[11px] text-ink-4 italic px-1 py-2">—</div>
+                ) : (
+                  colJobs.map(job => {
+                    const ref = `TM-${String(job.id).slice(0, 4).toUpperCase()}`
+                    const value = quotes[job.quote_id]?.total
+                    const tinted = col.key === 'progress'
+                    return (
+                      <div
+                        key={job.id}
+                        onClick={() => openPreview(job)}
+                        className={cn(
+                          'cursor-pointer rounded-card border p-3 transition-all hover:-translate-y-0.5',
+                          tinted
+                            ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200/60 dark:border-brand-800/40 hover:shadow-card-hover'
+                            : 'bg-shell border-line hover:shadow-card-hover'
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-mono font-medium text-brand-600 dark:text-brand-400 tracking-wider">{ref}</span>
+                        </div>
+                        <p className="text-[13px] font-semibold text-ink-1 leading-snug mb-1">
+                          {job.job_type || 'Job'}
+                        </p>
+                        <p className="text-[11.5px] text-ink-3 mb-2">{clientMap[job.client_id]?.name || '—'}</p>
+                        <div className="flex items-center justify-between text-[10.5px] font-mono text-ink-3 tabular-nums">
+                          <span className="text-ink-2 font-medium">
+                            {value != null ? formatCurrency(value) : (job.scheduled_date || job.scheduled_start ? new Date(job.scheduled_start || job.scheduled_date).toLocaleDateString('en-AU', { weekday:'short', hour:'2-digit', minute:'2-digit' }) : '—')}
+                          </span>
+                          <span>{job.staff_id ? '·' : (job.created_at ? `${Math.floor((Date.now() - new Date(job.created_at).getTime()) / 86400000)}d` : '')}</span>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -675,12 +713,21 @@ export default function Jobs() {
         {/* Desktop hero — mobile uses Header above */}
         <div className="hidden md:block">
           <PageHero
-            title="Jobs"
-            subtitle={`${jobs.length} job${jobs.length === 1 ? '' : 's'} · ${jobs.filter(j => LIST_FILTERS[0].statuses.includes(j.status)).length} in pipeline`}
+            eyebrow="Jobs board"
+            title={(() => {
+              const active = jobs.filter(j => !['paid','completed','invoiced'].includes(j.status)).length
+              const distinctClients = new Set(jobs.map(j => j.client_id).filter(Boolean)).size
+              return `${active} active across ${distinctClients} client${distinctClients === 1 ? '' : 's'}`
+            })()}
             action={
-              <Button leftIcon={({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>} onClick={() => setShowModal(true)}>
-                New Job
-              </Button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setViewMode(viewMode === 'list' ? 'pipeline' : 'list')} className="pill-ghost">
+                  {viewMode === 'pipeline' ? 'List' : 'Board'}
+                </button>
+                <Button onClick={() => setShowModal(true)}>
+                  <span className="text-[13px]">+ New job</span>
+                </Button>
+              </div>
             }
           />
         </div>

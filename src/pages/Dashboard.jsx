@@ -3,23 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useActivity } from '../hooks/useActivity'
+import { ArrowUpRight } from 'lucide-react'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
+import PageHero from '../components/layout/PageHero'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import StatCard from '../components/ui/StatCard'
+import Badge from '../components/ui/Badge'
 import ActivityPanel from '../components/ui/ActivityPanel'
-import { Calendar, CheckCircle2, ClipboardList, Wallet } from 'lucide-react'
-import { formatCurrency, statusLabel } from '../lib/utils'
-
-const PIPELINE_STAGES = [
-  { key: 'enquiry', label: 'Enquiries', color: 'bg-purple-500', lightBg: 'bg-purple-50', text: 'text-purple-700' },
-  { key: 'site_visit', label: 'Site Visits', color: 'bg-sky-500', lightBg: 'bg-sky-50', text: 'text-sky-700' },
-  { key: 'quoted', label: 'Quoted', color: 'bg-indigo-500', lightBg: 'bg-indigo-50', text: 'text-indigo-700', attention: true },
-  { key: 'approved', label: 'Approved', color: 'bg-teal-500', lightBg: 'bg-teal-50', text: 'text-teal-700' },
-  { key: 'scheduled', label: 'Scheduled', color: 'bg-green-500', lightBg: 'bg-green-50', text: 'text-green-700' },
-  { key: 'in_progress', label: 'In Progress', color: 'bg-blue-500', lightBg: 'bg-blue-50', text: 'text-blue-700' },
-]
+import { formatCurrency } from '../lib/utils'
 
 export default function Dashboard() {
   const { business } = useBusiness()
@@ -28,250 +21,171 @@ export default function Dashboard() {
   const [pipelineCounts, setPipelineCounts] = useState({})
   const [todayStats, setTodayStats] = useState({ siteVisits: 0, jobs: 0, completed: 0, total: 0 })
   const [revenue, setRevenue] = useState({ completedValue: 0, pendingQuotes: 0, overdueInvoices: 0, overdueCount: 0 })
+  const [clientCount, setClientCount] = useState(0)
+  const [kpis, setKpis] = useState({ thisWeek: 0, active: 0, pending: 0, overdue: 0 })
 
   useEffect(() => {
     if (!business?.id) return
     const fetchDashboard = async () => {
-      // Pipeline counts
-      const countPromises = PIPELINE_STAGES.map(stage =>
+      // Pipeline counts (legacy structure for back-compat)
+      const stages = ['enquiry','site_visit','quoted','approved','scheduled','in_progress']
+      const countPromises = stages.map(s =>
         supabase.from('jobs').select('id', { count: 'exact', head: true })
-          .eq('business_id', business.id).eq('status', stage.key)
+          .eq('business_id', business.id).eq('status', s)
       )
 
-      // Today's stats
       const today = new Date()
       const todayStr = today.toISOString().split('T')[0]
-      const todayStart = new Date(today); todayStart.setHours(0, 0, 0, 0)
-      const todayEnd = new Date(today); todayEnd.setHours(23, 59, 59, 999)
+      const todayStart = new Date(today); todayStart.setHours(0,0,0,0)
+      const todayEnd = new Date(today); todayEnd.setHours(23,59,59,999)
+      // Week boundaries (Mon → Sun)
+      const weekStart = new Date(today); const day = weekStart.getDay() || 7
+      weekStart.setDate(weekStart.getDate() - (day - 1)); weekStart.setHours(0,0,0,0)
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7)
 
-      const [
-        ...pipelineResults
-      ] = await Promise.all(countPromises)
-
-      const counts = {}
-      PIPELINE_STAGES.forEach((stage, i) => {
-        counts[stage.key] = pipelineResults[i].count || 0
-      })
+      const [...pipelineResults] = await Promise.all(countPromises)
+      const counts = {}; stages.forEach((s,i) => { counts[s] = pipelineResults[i].count || 0 })
       setPipelineCounts(counts)
 
       // Today's jobs
       const { data: todayJobs } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('business_id', business.id)
+        .from('jobs').select('*').eq('business_id', business.id)
         .or(`scheduled_date.eq.${todayStr},site_visit_date.eq.${todayStr},and(scheduled_start.gte.${todayStart.toISOString()},scheduled_start.lte.${todayEnd.toISOString()})`)
+      const tj = todayJobs || []
+      setTodayStats({
+        siteVisits: tj.filter(j => j.status === 'site_visit').length,
+        jobs:       tj.filter(j => j.status !== 'site_visit').length,
+        completed:  tj.filter(j => j.status === 'completed').length,
+        total:      tj.length,
+      })
 
-      const tjList = todayJobs || []
-      const siteVisitsToday = tjList.filter(j => j.status === 'site_visit').length
-      const jobsToday = tjList.filter(j => j.status !== 'site_visit').length
-      const completedToday = tjList.filter(j => j.status === 'completed').length
-      setTodayStats({ siteVisits: siteVisitsToday, jobs: jobsToday, completed: completedToday, total: tjList.length })
-
-      // Revenue: this month's completed work value
+      // Revenue this month
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
       const [completedRes, quotesRes, invoicesRes] = await Promise.all([
-        supabase.from('quotes').select('total')
-          .eq('business_id', business.id)
-          .in('status', ['accepted'])
-          .gte('created_at', monthStart),
-        supabase.from('quotes').select('total')
-          .eq('business_id', business.id)
-          .in('status', ['sent', 'viewed', 'follow_up']),
-        supabase.from('invoices').select('total, due_date')
-          .eq('business_id', business.id)
-          .eq('status', 'sent'),
+        supabase.from('quotes').select('total').eq('business_id', business.id).eq('status', 'accepted').gte('created_at', monthStart),
+        supabase.from('quotes').select('total').eq('business_id', business.id).in('status', ['sent','viewed','follow_up']),
+        supabase.from('invoices').select('total, due_date').eq('business_id', business.id).eq('status', 'sent'),
       ])
+      const completedValue = (completedRes.data || []).reduce((s, q) => s + (q.total || 0), 0)
+      const pendingQuotes  = (quotesRes.data || []).reduce((s, q) => s + (q.total || 0), 0)
+      const overdueList    = (invoicesRes.data || []).filter(i => i.due_date && new Date(i.due_date) < today)
+      const overdueValue   = overdueList.reduce((s, i) => s + (i.total || 0), 0)
+      setRevenue({ completedValue, pendingQuotes, overdueInvoices: overdueValue, overdueCount: overdueList.length })
 
-      const completedValue = (completedRes.data || []).reduce((sum, q) => sum + (q.total || 0), 0)
-      const pendingQuotes = (quotesRes.data || []).reduce((sum, q) => sum + (q.total || 0), 0)
-      const overdueInvoicesList = (invoicesRes.data || []).filter(inv => inv.due_date && new Date(inv.due_date) < today)
-      const overdueValue = overdueInvoicesList.reduce((sum, inv) => sum + (inv.total || 0), 0)
-
-      setRevenue({
-        completedValue,
-        pendingQuotes,
-        overdueInvoices: overdueValue,
-        overdueCount: overdueInvoicesList.length,
+      // Top KPIs
+      const [weekJobs, activeJobs, clientsCount] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('business_id', business.id)
+          .gte('scheduled_start', weekStart.toISOString()).lt('scheduled_start', weekEnd.toISOString()),
+        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('business_id', business.id)
+          .in('status', ['scheduled','in_progress','approved']),
+        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('business_id', business.id),
+      ])
+      setKpis({
+        thisWeek: weekJobs.count || 0,
+        active:   activeJobs.count || 0,
+        pending:  (quotesRes.data || []).length,
+        overdue:  overdueList.length,
       })
+      setClientCount(clientsCount.count || 0)
     }
     fetchDashboard()
   }, [business?.id])
 
-  const scheduledForToday = todayStats.jobs + todayStats.siteVisits
-  const completedOfTotal = todayStats.completed
-  const progressPct = scheduledForToday > 0 ? Math.round((completedOfTotal / scheduledForToday) * 100) : 0
-
   const today = new Date()
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 17 ? 'Good afternoon' : 'Good evening'
-  const dateStr = today.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const scheduledForToday = todayStats.jobs + todayStats.siteVisits
 
   return (
     <PageWrapper width="wide">
       <div className="md:hidden">
-      <Header title="TreePro" rightAction={
-        <button onClick={() => navigate('/settings')} className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150 active:scale-95">
-          <svg className="w-5 h-5 text-gray-500 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        </button>
-      } />
+        <Header title="TreeMate" rightAction={
+          <button onClick={() => navigate('/settings')} className="p-2 hover:bg-black/5 rounded-xl transition-colors">
+            <svg className="w-5 h-5 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </button>
+        } />
       </div>
 
-      <div className="px-4 md:px-0 py-4 space-y-6">
-        {/* Hero Section */}
-        <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 md:p-8 text-white">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <p className="text-brand-200 text-sm font-medium">{greeting}</p>
-              <h2 className="text-2xl md:text-3xl font-bold mt-1">{business?.name || 'TreePro'}</h2>
-              <p className="text-brand-200 text-sm mt-1">{dateStr}</p>
+      <div className="px-4 md:px-6 py-5 md:py-6 space-y-5">
+        {/* Hero — eyebrow + big title + right-aligned New Job action pill */}
+        <PageHero
+          eyebrow={greeting}
+          title={business?.name || 'TreeMate'}
+          subtitle={`For arborists who'd rather be in the bucket than at a laptop`}
+          action={
+            <Button size="md" onClick={() => navigate('/jobs?new=1')}>
+              <span className="text-[13px]">+ New job</span>
+            </Button>
+          }
+        />
+
+        {/* KPI strip — 4 stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard label="Jobs this week"  value={kpis.thisWeek} onClick={() => navigate('/schedule')} />
+          <StatCard label="Active jobs"     value={kpis.active}   onClick={() => navigate('/jobs')} />
+          <StatCard label="Pending quotes"  value={kpis.pending}  onClick={() => navigate('/quotes')} />
+          <StatCard label="Overdue"         value={kpis.overdue}  trend={kpis.overdue > 0 ? -1 : 0} trendLabel={kpis.overdue === 0 ? '— All caught up' : `${kpis.overdue} action needed`} onClick={() => navigate('/invoices')} />
+        </div>
+
+        {/* Row: Revenue MTD (wide) + Clients (narrow) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2 card relative">
+            <div className="eyebrow mb-2">Revenue (Month to date)</div>
+            <div className="text-[34px] font-semibold tabular-nums tracking-tight text-ink-1 leading-none">
+              {formatCurrency(revenue.completedValue)}
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => navigate('/schedule')} className="px-5 py-2.5 bg-white dark:bg-gray-900 text-brand-700 rounded-xl text-sm font-semibold hover:bg-brand-50 transition-colors">
-                View Schedule
-              </button>
-              <button onClick={() => navigate('/jobs')} className="px-5 py-2.5 border border-white/30 text-white rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors">
-                Jobs
-              </button>
+            <div className="text-[12.5px] text-ink-3 mt-1.5">From completed jobs this month</div>
+          </div>
+
+          <div className="card relative group cursor-pointer" onClick={() => navigate('/clients')}>
+            <div className="flex items-start justify-between mb-2">
+              <div className="eyebrow-muted">Clients</div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-ink-4 opacity-60 group-hover:opacity-100 transition-opacity" strokeWidth={2} />
             </div>
+            <div className="text-[34px] font-semibold tabular-nums tracking-tight text-ink-1 leading-none">{clientCount}</div>
+            <div className="text-[12.5px] text-ink-3 mt-1.5">Across active divisions</div>
+            <div className="text-[12.5px] text-brand-600 dark:text-brand-400 font-medium mt-1.5">Open CRM →</div>
           </div>
         </div>
 
-        {/* Two-column desktop layout */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left column — 60% */}
-          <div className="flex-1 lg:w-3/5 space-y-6">
-            {/* Pipeline Snapshot */}
-            <Card className="p-4 md:p-6">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">Pipeline</h3>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-                {PIPELINE_STAGES.map(stage => {
-                  const count = pipelineCounts[stage.key] || 0
-                  const needsAttention = stage.attention && count > 0
-                  return (
-                    <button
-                      key={stage.key}
-                      onClick={() => navigate(`/jobs?status=${stage.key}`)}
-                      className={`rounded-2xl p-3 text-center transition-colors duration-150 active:scale-95 hover:shadow-card-hover ${needsAttention ? 'ring-2 ring-amber-300 bg-amber-50' : stage.lightBg}`}
-                    >
-                      <p className={`text-2xl font-bold ${needsAttention ? 'text-amber-700' : stage.text}`}>{count}</p>
-                      <p className={`text-[10px] font-semibold mt-0.5 ${needsAttention ? 'text-amber-600' : stage.text} opacity-70`}>{stage.label}</p>
-                    </button>
-                  )
-                })}
-              </div>
-            </Card>
-
-            {/* Today's Summary */}
-            <Card className="p-4 md:p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Today's Summary</h3>
-                  <p className="text-xs text-gray-300 mt-0.5">{today.toLocaleDateString('en-AU')}</p>
-                </div>
-                <button onClick={() => navigate('/schedule')} className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors">View Schedule</button>
-              </div>
-
-              {/* Progress bar */}
-              {scheduledForToday > 0 ? (
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm text-gray-600 dark:text-gray-500">{completedOfTotal} of {scheduledForToday} completed</p>
-                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{progressPct}%</p>
-                  </div>
-                  <div className="w-full h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-brand-400 to-brand-600 rounded-full transition-all duration-700 ease-out" style={{ width: `${progressPct}%` }} />
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 dark:text-gray-500">No jobs scheduled for today</p>
-              )}
-
-              {/* Stat pills */}
-              <div className="flex gap-2">
-                <div className="flex-1 bg-sky-50 dark:bg-sky-950/40 rounded-2xl p-3 text-center transition-colors">
-                  <p className="text-lg font-bold tabular-nums text-sky-700 dark:text-sky-300">{todayStats.siteVisits}</p>
-                  <p className="text-[10px] font-semibold text-sky-600 dark:text-sky-400">Site Visits</p>
-                </div>
-                <div className="flex-1 bg-brand-50 dark:bg-brand-950/40 rounded-2xl p-3 text-center transition-colors">
-                  <p className="text-lg font-bold tabular-nums text-brand-700 dark:text-brand-300">{todayStats.jobs}</p>
-                  <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-400">Jobs</p>
-                </div>
-                <div className="flex-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl p-3 text-center transition-colors">
-                  <div className="flex items-center justify-center gap-1">
-                    <p className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{todayStats.completed}</p>
-                    {todayStats.completed > 0 && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" strokeWidth={2.5} />
-                    )}
-                  </div>
-                  <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Completed</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* StatCard grid — top-of-page KPI strip */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard label="Today" value={scheduledForToday} icon={Calendar} />
-              <StatCard label="Completed" value={todayStats.completed} icon={CheckCircle2} />
-              <StatCard label="Pending Quotes" value={revenue.pendingQuotes} icon={ClipboardList} format="currency" />
-              <StatCard label="This Month" value={revenue.completedValue} icon={Wallet} format="currency" />
+        {/* Row: Today + Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="card">
+            <div className="eyebrow-muted mb-3">Today</div>
+            <div className="space-y-2.5">
+              <TodayRow label="Scheduled" count={scheduledForToday} />
+              <TodayRow label="Completed" count={todayStats.completed} />
+              <TodayRow label="Overdue"   count={revenue.overdueCount} />
             </div>
-
-            {/* Revenue Snapshot */}
-            <Card className="p-4 md:p-6 space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Revenue This Month</h3>
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between py-1">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-brand-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-500">Completed Work</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{formatCurrency(revenue.completedValue)}</span>
-                </div>
-                <div className="flex items-center justify-between py-1">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                    <span className="text-sm text-gray-600 dark:text-gray-500">Pending Quotes</span>
-                  </div>
-                  <span className="text-sm font-bold text-amber-600">{formatCurrency(revenue.pendingQuotes)}</span>
-                </div>
-                {revenue.overdueCount > 0 && (
-                  <div className="flex items-center justify-between py-1 px-3 -mx-3 bg-red-50 rounded-xl">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-sm font-medium text-red-600">{revenue.overdueCount} Overdue Invoice{revenue.overdueCount > 1 ? 's' : ''}</span>
-                    </div>
-                    <span className="text-sm font-bold text-red-600">{formatCurrency(revenue.overdueInvoices)}</span>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <div className="flex gap-2.5">
-              <Button onClick={() => navigate('/jobs')} className="flex-1 text-sm">New Job</Button>
-              <Button variant="secondary" onClick={() => navigate('/quotes/new')} className="flex-1 text-sm">New Quote</Button>
-              <Button variant="secondary" onClick={() => navigate('/clients')} className="flex-1 text-sm">Add Client</Button>
-            </div>
+            <button onClick={() => navigate('/schedule')} className="text-[12.5px] text-brand-600 dark:text-brand-400 font-medium mt-4 hover:text-brand-700 transition-colors">
+              Open schedule →
+            </button>
           </div>
 
-          {/* Right column — 40% */}
-          <div className="lg:w-2/5">
-            <Card className="p-4 md:p-6 lg:sticky lg:top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 flex items-center gap-2">
-                  Recent Activity
-                  {unreadCount > 0 && (
-                    <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-brand-500 text-white rounded-full animate-scale-in">{unreadCount}</span>
-                  )}
-                </h3>
+          <div className="lg:col-span-2 card">
+            <div className="flex items-center justify-between mb-3">
+              <div className="eyebrow-muted flex items-center gap-2">
+                Recent activity
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors">Mark all read</button>
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-brand-500 text-white rounded-full tabular-nums">{unreadCount}</span>
                 )}
               </div>
-              <ActivityPanel activities={activities.slice(0, 10)} onMarkRead={markRead} />
-            </Card>
+              {unreadCount > 0 && (
+                <button onClick={markAllRead} className="text-[11px] font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 transition-colors">Mark all read</button>
+              )}
+            </div>
+            <ActivityPanel activities={activities.slice(0, 6)} onMarkRead={markRead} />
           </div>
         </div>
       </div>
     </PageWrapper>
+  )
+}
+
+function TodayRow({ label, count }) {
+  return (
+    <div className="flex items-center justify-between border-b border-line-2 last:border-b-0 pb-2 last:pb-0">
+      <span className="text-[13px] text-ink-2">{label}</span>
+      <span className="text-[14px] font-semibold tabular-nums text-ink-1">{count}</span>
+    </div>
   )
 }
