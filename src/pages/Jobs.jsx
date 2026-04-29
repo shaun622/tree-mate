@@ -25,6 +25,7 @@ import JobTypePicker from '../components/pickers/JobTypePicker'
 import JobDetailView from '../components/jobs/JobDetailView'
 import Card from '../components/ui/Card'
 import { statusLabel, statusColor, formatCurrency, calculateGST, PRIORITY_STYLES, cn } from '../lib/utils'
+import { acceptQuote } from '../lib/quotes'
 
 // 4-stage operational pipeline: Accepted Quotes → Scheduled → Invoice → Completed.
 // Earlier sales stages (enquiry/site_visit/quoted) live on /quotes.
@@ -160,14 +161,16 @@ export default function Jobs() {
   const previewAcceptQuote = async () => {
     if (!previewData.quote?.id || !previewJob) return
     setPreviewUpdating(true)
-    const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', previewData.quote.id).select().single()
-    if (updatedQuote) setPreviewData(prev => ({ ...prev, quote: updatedQuote }))
-    const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', previewJob.id).select().single()
-    if (updatedJob) {
+    try {
+      const { quote: updatedQuote, job: updatedJob } = await acceptQuote(supabase, previewData.quote.id)
+      setPreviewData(prev => ({ ...prev, quote: updatedQuote }))
       setPreviewJob(updatedJob)
       setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+    } catch (err) {
+      console.error('[Jobs] previewAcceptQuote failed:', err)
+    } finally {
+      setPreviewUpdating(false)
     }
-    setPreviewUpdating(false)
   }
 
   // ── Quote Editor Modal ─────────────────────────────────────────────────────
@@ -419,10 +422,13 @@ export default function Jobs() {
     const handleQuickAccept = async (e) => {
       e.stopPropagation()
       if (!job.quote_id) return
-      const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', job.quote_id).select().single()
-      if (updatedQuote) setQuotes(prev => ({ ...prev, [updatedQuote.id]: updatedQuote }))
-      const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', job.id).select().single()
-      if (updatedJob) setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+      try {
+        const { quote: updatedQuote, job: updatedJob } = await acceptQuote(supabase, job.quote_id)
+        setQuotes(prev => ({ ...prev, [updatedQuote.id]: updatedQuote }))
+        setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j))
+      } catch (err) {
+        console.error('[Jobs] handleQuickAccept failed:', err)
+      }
     }
 
     const handleQuickComplete = async (e) => {

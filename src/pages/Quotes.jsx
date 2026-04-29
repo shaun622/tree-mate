@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FileText, Send, Clock, Wallet, ArrowRight } from 'lucide-react'
+import { Plus, FileText, Send, Clock, Wallet, ArrowRight, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
 import { useJobSites } from '../hooks/useJobSites'
+import { useConfirm } from '../contexts/ConfirmContext'
+import { useToast } from '../contexts/ToastContext'
+import { acceptQuote } from '../lib/quotes'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
@@ -20,9 +23,12 @@ export default function Quotes() {
   const { clients } = useClients(business?.id)
   const { jobSites } = useJobSites(business?.id)
   const navigate = useNavigate()
+  const confirm = useConfirm()
+  const toast = useToast()
   const [quotes, setQuotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
+  const [acceptingId, setAcceptingId] = useState(null)
 
   useEffect(() => {
     if (!business?.id) return
@@ -66,6 +72,28 @@ export default function Quotes() {
       draft: 'Draft',
     }
     return map[status] || statusLabel(status)
+  }
+
+  // Mark a quote accepted → propagates to linked job (or creates one) via lib/quotes.js
+  const handleAccept = async (quote) => {
+    const clientName = clientMap[quote.client_id]?.name || 'this quote'
+    const ok = await confirm({
+      title: 'Mark quote as accepted?',
+      description: `An approved job will be created for ${clientName}, ready to schedule on the Jobs board.`,
+      confirmLabel: 'Mark accepted',
+    })
+    if (!ok) return
+    setAcceptingId(quote.id)
+    try {
+      const { quote: updatedQuote } = await acceptQuote(supabase, quote.id)
+      setQuotes(prev => prev.map(q => q.id === updatedQuote.id ? updatedQuote : q))
+      toast.success('Quote accepted', { description: 'Job moved to Accepted Quotes — ready to schedule.' })
+    } catch (err) {
+      console.error('[Quotes] accept failed:', err)
+      toast.error('Could not accept quote', { description: err?.message })
+    } finally {
+      setAcceptingId(null)
+    }
   }
 
   // KPI counts for the strip
@@ -218,7 +246,16 @@ export default function Quotes() {
               {/* Detail panel — tree-domain fields */}
               <div className="md:col-span-5 xl:col-span-5">
                 {selected ? (
-                  <QuoteDetail quote={selected} client={clientMap[selected.client_id]} site={siteMap[selected.job_site_id]} stateLabel={stateLabel} badgeVariant={badgeVariant} navigate={navigate} />
+                  <QuoteDetail
+                    quote={selected}
+                    client={clientMap[selected.client_id]}
+                    site={siteMap[selected.job_site_id]}
+                    stateLabel={stateLabel}
+                    badgeVariant={badgeVariant}
+                    navigate={navigate}
+                    onAccept={() => handleAccept(selected)}
+                    accepting={acceptingId === selected.id}
+                  />
                 ) : (
                   <div className="card !p-8 text-center text-gray-500 dark:text-gray-400 text-sm">Select a quote to view details</div>
                 )}
@@ -231,10 +268,11 @@ export default function Quotes() {
   )
 }
 
-function QuoteDetail({ quote, client, site, stateLabel, badgeVariant, navigate }) {
+function QuoteDetail({ quote, client, site, stateLabel, badgeVariant, navigate, onAccept, accepting }) {
   const ref = quote.quote_number || `TM-${String(quote.id).slice(0, 4).toUpperCase()}`
   const lineItems = Array.isArray(quote.line_items) ? quote.line_items : []
   const hazards = Array.isArray(quote.hazards) ? quote.hazards : []
+  const canAccept = !['accepted', 'declined'].includes(quote.status)
 
   return (
     <div className="card !p-5 sticky top-24">
@@ -315,13 +353,23 @@ function QuoteDetail({ quote, client, site, stateLabel, badgeVariant, navigate }
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2">
         <button
           onClick={() => navigate(`/quotes/${quote.id}`)}
           className="text-xs font-semibold text-brand-600 dark:text-brand-400 inline-flex items-center gap-1 hover:gap-1.5 transition-all"
         >
           Open quote <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
         </button>
+        {canAccept && onAccept && (
+          <button
+            onClick={onAccept}
+            disabled={accepting}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider bg-brand-600 text-white shadow-button hover:bg-brand-700 disabled:opacity-60 disabled:cursor-wait transition-colors"
+          >
+            <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+            {accepting ? 'Accepting…' : 'Mark accepted'}
+          </button>
+        )}
       </div>
     </div>
   )

@@ -16,6 +16,7 @@ import JobSitePicker from '../components/pickers/JobSitePicker'
 import JobTypePicker from '../components/pickers/JobTypePicker'
 import JobDetailView, { useJobDetail } from '../components/jobs/JobDetailView'
 import { JOB_STATUSES } from '../lib/utils'
+import { acceptQuote } from '../lib/quotes'
 
 export default function JobDetail() {
   const { id } = useParams()
@@ -100,12 +101,16 @@ export default function JobDetail() {
   const handleAcceptQuote = async () => {
     if (!quote?.id) return
     setUpdating(true)
-    const { data: updatedQuote } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id).select().single()
-    if (updatedQuote) setQuote(updatedQuote)
-    // Move job to approved and open deposit capture
-    const { data: updatedJob } = await supabase.from('jobs').update({ status: 'approved' }).eq('id', id).select().single()
-    if (updatedJob) setJob(updatedJob)
-    setUpdating(false)
+    try {
+      const { quote: updatedQuote, job: updatedJob } = await acceptQuote(supabase, quote.id)
+      setQuote(updatedQuote)
+      setJob(updatedJob)
+    } catch (err) {
+      console.error('[JobDetail] handleAcceptQuote failed:', err)
+    } finally {
+      setUpdating(false)
+    }
+    // Move on to deposit capture even if the update threw — UX should not block the cash step
     openDepositCapture()
   }
 
