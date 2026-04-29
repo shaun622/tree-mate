@@ -630,12 +630,13 @@ export default function Jobs() {
       { key: 'done',      label: 'Done · awaiting invoice',statuses: ['completed','invoiced'] },
     ]
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {filteredColumns.map(col => {
           const colJobs = jobs.filter(j => col.statuses.includes(j.status))
           return (
-            <div key={col.key} className="bg-shell-2 rounded-card border border-line p-3 min-h-[280px]">
-              <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-line-2">
+            <div key={col.key} className="min-h-[280px]">
+              {/* Column header — no background, just the eyebrow + count + hairline below */}
+              <div className="flex items-center justify-between pb-2 border-b border-line mb-2.5">
                 <div className="eyebrow-muted">{col.label}</div>
                 <span className="text-[11px] font-mono tabular-nums text-ink-3">{colJobs.length}</span>
               </div>
@@ -652,10 +653,10 @@ export default function Jobs() {
                         key={job.id}
                         onClick={() => openPreview(job)}
                         className={cn(
-                          'cursor-pointer rounded-card border p-3 transition-all hover:-translate-y-0.5',
+                          'cursor-pointer rounded-card border p-3 transition-all hover:-translate-y-0.5 hover:shadow-card-hover',
                           tinted
-                            ? 'bg-brand-50 dark:bg-brand-950/30 border-brand-200/60 dark:border-brand-800/40 hover:shadow-card-hover'
-                            : 'bg-shell border-line hover:shadow-card-hover'
+                            ? 'bg-surface-3 border-line dark:bg-gray-800 dark:border-gray-700'
+                            : 'bg-surface-card border-line',
                         )}
                       >
                         <div className="flex items-center justify-between mb-1">
