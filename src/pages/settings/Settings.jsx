@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import {
   Building2, Palette, Users, Wrench, Briefcase, MessageSquare, Zap, Star,
   Receipt, BarChart3, Repeat, Plug, Upload, CreditCard, Award, LogOut, ChevronRight,
+  Settings as SettingsIcon,
 } from 'lucide-react'
 import { useBusiness } from '../../hooks/useBusiness'
 import { useAuth } from '../../hooks/useAuth'
@@ -89,7 +90,7 @@ export default function Settings() {
   const onSettingsRoot = location.pathname === '/settings'
 
   return (
-    <PageWrapper width="wide">
+    <PageWrapper width="wide" className="!bg-slate-50 dark:!bg-gray-950">
       <div className="md:hidden">
         <Header
           title={onSettingsRoot ? 'Settings' : activeItem.label}
@@ -101,7 +102,12 @@ export default function Settings() {
       <div className="px-4 md:px-6 py-5 md:py-6">
         <div className="hidden md:block mb-5">
           <PageHero
-            eyebrow="Settings"
+            eyebrow={
+              <span className="inline-flex items-center gap-2">
+                <SettingsIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Settings
+              </span>
+            }
             title={activeItem.label}
             subtitle={null}
           />
@@ -111,7 +117,7 @@ export default function Settings() {
             When on /settings (root), show the row-link card list. */}
         {!onSettingsRoot && (
           <div className="md:hidden">
-            <Suspense fallback={<div className="text-sm text-ink-3 italic">Loading…</div>}>
+            <Suspense fallback={<div className="text-sm text-gray-500 dark:text-gray-400 italic">Loading…</div>}>
               <Outlet />
             </Suspense>
           </div>
@@ -131,12 +137,12 @@ export default function Settings() {
               )}
             </div>
             <div className="relative min-w-0">
-              <h2 className="font-bold text-ink-1 text-base truncate">{business?.name}</h2>
-              {business?.email && <p className="text-sm text-ink-3 truncate">{business.email}</p>}
+              <h2 className="font-bold text-gray-900 dark:text-gray-100 text-base truncate">{business?.name}</h2>
+              {business?.email && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{business.email}</p>}
             </div>
           </Card>
 
-          <Card className="!p-0 divide-y divide-line-2 overflow-hidden">
+          <Card className="!p-0 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
             {SIDEBAR.filter(s => !s.end).map(s => {
               const { Icon } = s
               const colorKey = MOBILE_ROW_COLORS[s.label] || 'brand'
@@ -144,15 +150,15 @@ export default function Settings() {
                 <NavLink
                   key={s.to}
                   to={s.to}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-shell-2 active:bg-shell-3 transition-colors text-left group"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 active:bg-gray-100 dark:active:bg-gray-800 transition-colors text-left group"
                 >
                   <div className={cn('w-9 h-9 rounded-card flex items-center justify-center shrink-0', COLOR_CLASSES[colorKey])}>
                     <Icon className="w-4 h-4" strokeWidth={2} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-ink-1 text-[13.5px]">{s.label}</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-[13.5px]">{s.label}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-ink-4 group-hover:translate-x-0.5 transition-transform shrink-0" strokeWidth={2} />
+                  <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:translate-x-0.5 transition-transform shrink-0" strokeWidth={2} />
                 </NavLink>
               )
             })}
@@ -162,8 +168,8 @@ export default function Settings() {
             <h3 className="section-title px-1">Appearance</h3>
             <Card className="flex items-center justify-between gap-4">
               <div className="min-w-0">
-                <p className="font-semibold text-ink-1 text-[13.5px]">Theme</p>
-                <p className="text-[11.5px] text-ink-3">Choose light, dark, or match your system</p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100 text-[13.5px]">Theme</p>
+                <p className="text-[11.5px] text-gray-500 dark:text-gray-400">Choose light, dark, or match your system</p>
               </div>
               <ThemeToggleFull />
             </Card>
@@ -172,14 +178,14 @@ export default function Settings() {
           <div className="pt-2">
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-card text-sm font-semibold text-ink-2 bg-shell border border-line shadow-card hover:bg-shell-2 min-h-tap transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-card text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-card hover:bg-gray-50 dark:hover:bg-gray-800/50 min-h-tap transition-colors"
             >
               <LogOut className="w-4 h-4" strokeWidth={2} />
               Sign out
             </button>
           </div>
 
-          <p className="text-center text-xs text-ink-4 pb-2">TreeMate v1.0.0</p>
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500 pb-2">TreeMate v1.0.0</p>
         </div>
 
         {/* DESKTOP: sidebar + pane */}
@@ -196,8 +202,8 @@ export default function Settings() {
                     className={({ isActive }) => cn(
                       'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left text-[13px] transition-colors',
                       isActive
-                        ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-medium'
-                        : 'text-ink-2 hover:bg-shell-2',
+                        ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-semibold'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50',
                     )}
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
@@ -209,20 +215,20 @@ export default function Settings() {
           </aside>
 
           <div className="md:col-span-9 card !p-6 space-y-6">
-            <Suspense fallback={<div className="text-sm text-ink-3 italic">Loading…</div>}>
+            <Suspense fallback={<div className="text-sm text-gray-500 dark:text-gray-400 italic">Loading…</div>}>
               <Outlet />
             </Suspense>
 
             {/* Sign out — sits at the bottom of every pane */}
-            <div className="pt-4 border-t border-line-2">
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-card text-sm font-medium text-ink-2 bg-shell border border-line hover:bg-shell-2 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-card text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" strokeWidth={2} />
                 Sign out
               </button>
-              <p className="text-[10px] text-ink-4 mt-3">TreeMate v1.0.0 · Signed in as {user?.email}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-3">TreeMate v1.0.0 · Signed in as {user?.email}</p>
             </div>
           </div>
         </div>
