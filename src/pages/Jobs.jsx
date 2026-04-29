@@ -26,9 +26,10 @@ import JobDetailView from '../components/jobs/JobDetailView'
 import Card from '../components/ui/Card'
 import { statusLabel, statusColor, formatCurrency, calculateGST, PRIORITY_STYLES, cn } from '../lib/utils'
 
-// 4-stage pipeline: Quoted → Scheduled → Invoice → Completed
+// 4-stage operational pipeline: Accepted Quotes → Scheduled → Invoice → Completed.
+// Earlier sales stages (enquiry/site_visit/quoted) live on /quotes.
 const LIST_FILTERS = [
-  { key: 'quoted', label: 'Quoted', statuses: ['enquiry', 'site_visit', 'quoted', 'approved'] },
+  { key: 'quoted', label: 'Accepted Quotes', statuses: ['approved'] },
   { key: 'scheduled', label: 'Scheduled', statuses: ['scheduled', 'in_progress'] },
   { key: 'invoice', label: 'Invoice', statuses: ['completed', 'invoiced'] },
   { key: 'completed', label: 'Completed', statuses: ['paid'] },
@@ -641,14 +642,14 @@ export default function Jobs() {
   // ── Pipeline Kanban View ──────────────────────────────────────────────────
   const PipelineView = () => {
     const columns = [
-      { key: 'quoted',    label: 'Quoted',                 statuses: ['enquiry','site_visit','quoted','approved'] },
+      { key: 'quoted',    label: 'Accepted Quotes',        statuses: ['approved'] },
       { key: 'scheduled', label: 'Scheduled',              statuses: ['scheduled','in_progress'] },
       { key: 'progress',  label: 'In progress',            statuses: ['in_progress'] },
       { key: 'done',      label: 'Done · awaiting invoice',statuses: ['completed','invoiced'] },
     ]
     // Avoid scheduled+in_progress duplicating — separate them properly:
     const filteredColumns = [
-      { key: 'quoted',    label: 'Quoted',                 statuses: ['enquiry','site_visit','quoted','approved'] },
+      { key: 'quoted',    label: 'Accepted Quotes',        statuses: ['approved'] },
       { key: 'scheduled', label: 'Scheduled',              statuses: ['scheduled'] },
       { key: 'progress',  label: 'In progress',            statuses: ['in_progress'] },
       { key: 'done',      label: 'Done · awaiting invoice',statuses: ['completed','invoiced'] },
