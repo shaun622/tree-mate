@@ -24,12 +24,19 @@
   --brand-900: 20 83 45;
   --brand-950: 5 46 22;
 
-  /* FieldSuite warm-cream surface stack (oklch — warm undertones, no green) */
-  --canvas:    oklch(0.945 0.005 80);    /* outer canvas — deeper warm cream */
-  --canvas-2:  oklch(0.955 0.004 80);    /* between canvas and shell */
-  --shell:     oklch(0.985 0.003 80);    /* warm off-white inside the app card */
-  --shell-2:   oklch(0.965 0.004 80);    /* slightly tinted surface */
-  --shell-3:   oklch(0.945 0.005 80);    /* deeper tint for grouping */
+  /* FieldSuite warm-cream surface stack — RGB triplets so opacity modifiers work */
+  --surface:      248 246 239;   /* page bg, also dashboard bg (#f8f6ef) */
+  --surface-2:    244 241 233;   /* mid bg / alt sections (#f4f1e9) */
+  --surface-3:    237 233 222;   /* deeper / hover (#ede9de) */
+  --surface-card: 255 255 255;   /* pure white card on top of cream */
+
+  /* Legacy aliases — keep .bg-canvas / .bg-shell utilities working during migration.
+     `canvas` and `shell` both point at the same warm cream now (no double-frame). */
+  --canvas:    248 246 239;
+  --canvas-2:  244 241 233;
+  --shell:     248 246 239;
+  --shell-2:   244 241 233;
+  --shell-3:   237 233 222;
 
   /* Ink (text) — warm-cool neutral. */
   --ink-1:     oklch(0.18 0.012 250);    /* darkest */
@@ -44,11 +51,15 @@
 }
 
 .dark {
-  --canvas:   #050810;                    /* deep night */
-  --canvas-2: #0a1018;
-  --shell:    #0e131c;                    /* app card surface */
-  --shell-2:  #131927;
-  --shell-3:  #182030;
+  --surface:      5 8 16;        /* deep night #050810 */
+  --surface-2:    10 16 24;      /* #0a1018 */
+  --surface-3:    19 25 39;      /* #131927 */
+  --surface-card: 14 19 28;      /* card surface in dark — slate-zinc #0e131c */
+  --canvas:    5 8 16;
+  --canvas-2:  10 16 24;
+  --shell:     5 8 16;
+  --shell-2:   10 16 24;
+  --shell-3:   19 25 39;
   --ink-1:    #f3f4f6;
   --ink-2:    #d1d5db;
   --ink-3:    #9ca3af;
@@ -61,7 +72,7 @@
   html {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    background: var(--canvas);
+    background: rgb(var(--surface));
     transition: background-color 0.35s var(--ease-out-expo), color 0.35s var(--ease-out-expo);
   }
   html * {
@@ -79,7 +90,7 @@
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: var(--canvas);
+    background: rgb(var(--surface));
     color: var(--ink-1);
   }
 
@@ -144,9 +155,9 @@
     font-size: 16px;
   }
 
-  /* ─── Card — 10px radius, hairline border ─────────────────────────────── */
+  /* ─── Card — 10px radius, hairline border. PURE WHITE on cream surface. ── */
   .card {
-    background: var(--shell);
+    background: rgb(var(--surface-card));
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 14px;
@@ -161,12 +172,12 @@
   }
   .card-interactive:active { transform: translateY(0); }
 
-  /* ─── App shell — the cream card that holds the whole app on desktop ── */
+  /* ─── App shell — flattened. The entire page is one cream surface now;
+   * the card primitive carries the visual hierarchy via white-on-cream.
+   * Kept as a no-op class for backwards-compat with PageWrapper.
+   * ────────────────────────────────────────────────────────────────────── */
   .app-shell {
-    background: var(--shell);
-    border: 1px solid var(--line);
-    border-radius: 24px;
-    box-shadow: 0 1px 2px rgba(15,17,24,0.04), 0 24px 60px -20px rgba(15,17,24,0.06);
+    background: transparent;
   }
 
   /* ─── Buttons (utility variant — <Button> primitive composes the same) ─ */
@@ -206,12 +217,17 @@
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
 
-  /* Surface utilities backed by the theme tokens */
-  .bg-canvas    { background: var(--canvas); }
-  .bg-canvas-2  { background: var(--canvas-2); }
-  .bg-shell     { background: var(--shell); }
-  .bg-shell-2   { background: var(--shell-2); }
-  .bg-shell-3   { background: var(--shell-3); }
+  /* Surface utilities backed by the theme tokens (RGB triplets → opacity-friendly) */
+  .bg-surface       { background: rgb(var(--surface)); }
+  .bg-surface-2     { background: rgb(var(--surface-2)); }
+  .bg-surface-3     { background: rgb(var(--surface-3)); }
+  .bg-surface-card  { background: rgb(var(--surface-card)); }
+  /* Legacy aliases — same values, keep templates working */
+  .bg-canvas    { background: rgb(var(--canvas)); }
+  .bg-canvas-2  { background: rgb(var(--canvas-2)); }
+  .bg-shell     { background: rgb(var(--shell)); }
+  .bg-shell-2   { background: rgb(var(--shell-2)); }
+  .bg-shell-3   { background: rgb(var(--shell-3)); }
   .text-ink-1   { color: var(--ink-1); }
   .text-ink-2   { color: var(--ink-2); }
   .text-ink-3   { color: var(--ink-3); }
