@@ -2,3 +2,10 @@ node_modules
 dist
 .env
 .claude
+
+# Local working files — screenshots, scratch audits, planning docs
+Assets/
+SCHEDULE_MAP_AUDIT.md
+TREEPRO_DESIGN_POLISH_SPEC.md
+TREEPRO_FULL_AUDIT.md
+TREEPRO_RESTRUCTURE_V2.md
