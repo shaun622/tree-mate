@@ -34,9 +34,9 @@ export default {
         },
       },
       fontFamily: {
-        sans:    ['"Geist Variable"', '"Inter Variable"', 'system-ui', '-apple-system', 'sans-serif'],
-        mono:    ['"Geist Mono Variable"', '"JetBrains Mono Variable"', 'ui-monospace', 'monospace'],
-        display: ['"Geist Variable"', '"Inter Variable"', 'system-ui', 'sans-serif'],
+        sans:    ['"Inter Variable"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono:    ['"JetBrains Mono Variable"', 'ui-monospace', 'monospace'],
+        display: ['"Inter Variable"', 'system-ui', 'sans-serif'],
       },
       spacing: { tap: '44px' },
       minHeight: { tap: '44px' },

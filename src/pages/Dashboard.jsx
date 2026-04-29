@@ -96,7 +96,7 @@ export default function Dashboard() {
   const scheduledForToday = todayStats.jobs + todayStats.siteVisits
 
   return (
-    <PageWrapper width="wide">
+    <PageWrapper width="wide" className="!bg-slate-50 dark:!bg-gray-950">
       <div className="md:hidden">
         <Header title="TreeMate" rightAction={
           <button onClick={() => navigate('/settings')} className="p-2 hover:bg-black/5 rounded-xl transition-colors">
