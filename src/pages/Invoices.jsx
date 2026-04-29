@@ -128,11 +128,11 @@ export default function Invoices() {
 
             {/* Desktop: clean table */}
             <div className="hidden md:block card !p-0 overflow-hidden">
-              <div className="grid grid-cols-12 px-4 py-2 border-b border-line-2 bg-shell-2 section-title">
+              <div className="grid grid-cols-12 gap-3 px-4 py-2 border-b border-line-2 bg-shell-2 section-title">
                 <div className="col-span-2">Ref</div>
-                <div className="col-span-4">Client</div>
-                <div className="col-span-2 text-right">Value</div>
-                <div className="col-span-2">State</div>
+                <div className="col-span-3">Client</div>
+                <div className="col-span-2">Value</div>
+                <div className="col-span-3">State</div>
                 <div className="col-span-2 text-right">Paid</div>
               </div>
               <div className="divide-y divide-line-2">
@@ -140,14 +140,14 @@ export default function Invoices() {
                   <button
                     key={inv.id}
                     onClick={() => navigate(`/invoices/${inv.id}`)}
-                    className="grid grid-cols-12 w-full text-left px-4 py-3 items-center hover:bg-shell-2 transition-colors"
+                    className="grid grid-cols-12 gap-3 w-full text-left px-4 py-3 items-center hover:bg-shell-2 transition-colors"
                   >
-                    <div className="col-span-2 text-[11px] font-mono font-medium text-brand-600 dark:text-brand-400 tracking-wider">
+                    <div className="col-span-2 text-[11px] font-mono font-medium text-brand-600 dark:text-brand-400 tracking-wider truncate">
                       {inv.invoice_number || `INV-${String(inv.id).slice(0, 4).toUpperCase()}`}
                     </div>
-                    <div className="col-span-4 text-[13px] text-ink-1 truncate">{clientMap[inv.client_id]?.name || 'Unknown'}</div>
-                    <div className="col-span-2 text-[13px] font-medium text-ink-1 tabular-nums text-right">{formatCurrency(inv.total || 0)}</div>
-                    <div className="col-span-2"><Badge variant={badgeVariant(inv.computedStatus)}>{stateLabel(inv)}</Badge></div>
+                    <div className="col-span-3 text-[13px] text-ink-1 truncate">{clientMap[inv.client_id]?.name || 'Unknown'}</div>
+                    <div className="col-span-2 text-[13px] font-medium text-ink-1 tabular-nums">{formatCurrency(inv.total || 0)}</div>
+                    <div className="col-span-3"><Badge variant={badgeVariant(inv.computedStatus)}>{stateLabel(inv)}</Badge></div>
                     <div className="col-span-2 text-[12px] font-mono text-ink-3 tabular-nums text-right">
                       {inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : '—'}
                     </div>
