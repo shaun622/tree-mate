@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useBusiness } from '../../hooks/useBusiness'
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import EmptyState from '../../components/ui/EmptyState'
 import { formatDate } from '../../lib/utils'
@@ -21,8 +19,7 @@ export default function SurveyResults() {
   const avgRating = surveys.length ? (surveys.reduce((sum, s) => sum + (s.rating || 0), 0) / surveys.length).toFixed(1) : '0.0'
 
   return (
-    <PageWrapper>
-      <Header title="Survey Results" back="/settings" />
+    <>
       <div className="px-4 py-4 space-y-4">
         {surveys.length > 0 && (
           <Card className="p-4 text-center">
@@ -54,6 +51,6 @@ export default function SurveyResults() {
           </div>
         )}
       </div>
-    </PageWrapper>
+    </>
   )
 }

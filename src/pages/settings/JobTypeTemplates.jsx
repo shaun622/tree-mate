@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useBusiness } from '../../hooks/useBusiness'
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -68,14 +66,8 @@ export default function JobTypeTemplates() {
   const existingNames = new Set(templates.map(t => t.name))
 
   return (
-    <PageWrapper>
-      <Header title="Job Types" back="/settings" rightAction={
-        <button onClick={() => { setEditing(null); setForm({ name: '', description: '', color: '#22c55e', default_tasks: '', estimated_duration_minutes: '', price: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
-          <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-        </button>
-      } />
-
-      <div className="px-4 py-4 space-y-4">
+    <>
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Suggested Job Types</h3>
           <button onClick={() => setShowSuggestions(!showSuggestions)} className="text-xs text-brand-600 font-medium">
@@ -156,6 +148,6 @@ export default function JobTypeTemplates() {
         confirmLabel="Delete"
         onConfirm={async () => { await handleDelete(deleteId) }}
       />
-    </PageWrapper>
+    </>
   )
 }

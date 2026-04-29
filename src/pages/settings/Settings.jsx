@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Suspense } from 'react'
 import {
   Building2, Palette, Users, Wrench, Briefcase, MessageSquare, Zap, Star,
   Receipt, BarChart3, Repeat, Plug, Upload, CreditCard, Award, LogOut, ChevronRight,
@@ -13,55 +13,96 @@ import { ThemeToggleFull } from '../../components/layout/ThemeToggle'
 import Card from '../../components/ui/Card'
 import { cn } from '../../lib/utils'
 
-// Mobile sections (used by mobile row-link layout) and desktop sidebar (single source)
+/**
+ * Settings — sidebar + pane shell. Each sidebar item routes to a child path
+ * but the layout (sidebar + chrome) stays mounted; only the right pane swaps.
+ *
+ * Routes (configured in App.jsx):
+ *   /settings              → OrganisationPane (index)
+ *   /settings/branding     → BrandingPane
+ *   /settings/team         → Staff
+ *   /settings/equipment    → EquipmentLibrary
+ *   /settings/job-types    → JobTypeTemplates
+ *   /settings/templates    → CommunicationTemplates
+ *   /settings/automations  → Automations
+ *   /settings/surveys      → SurveyResults
+ *   /settings/integrations → Integrations
+ *   /settings/import       → ImportData
+ *   /settings/billing      → Subscription
+ *   /settings/compliance   → CompliancePane
+ *
+ * Sub-pages must NOT render their own PageWrapper or Header — they render
+ * INSIDE the right-pane card here.
+ */
+
 const SIDEBAR = [
-  { key: 'organisation',  label: 'Organisation',     Icon: Building2,    desc: 'Branding · trading name · cert' },
-  { key: 'branding',      label: 'Branding',         Icon: Palette,      desc: 'Logo, colours, public touchpoints' },
-  { key: 'team',          label: 'Team & roles',     Icon: Users,        desc: 'Staff list, photos, roles',     route: '/settings/staff' },
-  { key: 'catalogue',     label: 'Service catalogue',Icon: Briefcase,    desc: 'Job types & default tasks',     route: '/settings/job-types' },
-  { key: 'equipment',     label: 'Equipment library',Icon: Wrench,       desc: 'Tools, machinery, hourly rates',route: '/settings/equipment' },
-  { key: 'templates',     label: 'Templates',        Icon: MessageSquare,desc: 'Email & SMS message templates',  route: '/settings/templates' },
-  { key: 'automations',   label: 'Automations',      Icon: Zap,          desc: 'Auto-send reminders & follow-ups',route: '/settings/automations' },
-  { key: 'surveys',       label: 'Survey results',   Icon: Star,         desc: 'Customer feedback & ratings',     route: '/settings/surveys' },
-  { key: 'integrations',  label: 'Integrations',     Icon: Plug,         desc: 'Connect third-party services',    route: '/settings/integrations' },
-  { key: 'import',        label: 'Import data',      Icon: Upload,       desc: 'Upload CSV client & site data',   route: '/settings/import' },
-  { key: 'billing',       label: 'Billing',          Icon: CreditCard,   desc: 'Plan, invoices, payment method',  route: '/subscription' },
-  { key: 'compliance',    label: 'Compliance',       Icon: Award,        desc: 'AS 4373 · insurance · permits' },
+  { to: '/settings',              label: 'Organisation',     Icon: Building2,    end: true },
+  { to: '/settings/branding',     label: 'Branding',         Icon: Palette },
+  { to: '/settings/staff',        label: 'Team & roles',     Icon: Users },
+  { to: '/settings/job-types',    label: 'Service catalogue',Icon: Briefcase },
+  { to: '/settings/equipment',    label: 'Equipment library',Icon: Wrench },
+  { to: '/settings/templates',    label: 'Templates',        Icon: MessageSquare },
+  { to: '/settings/automations',  label: 'Automations',      Icon: Zap },
+  { to: '/settings/surveys',      label: 'Survey results',   Icon: Star },
+  { to: '/settings/integrations', label: 'Integrations',     Icon: Plug },
+  { to: '/settings/import',       label: 'Import data',      Icon: Upload },
+  { to: '/settings/billing',      label: 'Billing',          Icon: CreditCard },
+  { to: '/settings/compliance',   label: 'Compliance',       Icon: Award },
 ]
 
-const BRAND_SWATCHES = [
-  { value: '#22c55e', name: 'Tree green' },
-  { value: '#16a34a', name: 'Forest' },
-  { value: '#0ea5e9', name: 'Sky' },
-  { value: '#f97316', name: 'Orange' },
-  { value: '#dc2626', name: 'Red' },
-  { value: '#0b0b0d', name: 'Black' },
-]
+// Mobile row-link card colors (icon-box tint per row)
+const MOBILE_ROW_COLORS = {
+  Organisation: 'brand', Branding: 'violet',
+  'Team & roles': 'blue', 'Service catalogue': 'brand',
+  'Equipment library': 'amber', Templates: 'violet',
+  Automations: 'amber', 'Survey results': 'pink',
+  Integrations: 'gray', 'Import data': 'teal',
+  Billing: 'violet', Compliance: 'emerald',
+}
+const COLOR_CLASSES = {
+  brand:   'bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400',
+  blue:    'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+  amber:   'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
+  emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+  violet:  'bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400',
+  pink:    'bg-pink-50 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400',
+  teal:    'bg-teal-50 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400',
+  gray:    'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+}
 
 export default function Settings() {
   const { business } = useBusiness()
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const [active, setActive] = useState('organisation')
+  const location = useLocation()
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/login')
   }
 
-  const activeItem = SIDEBAR.find(s => s.key === active)
+  // Active section for the page title
+  const activeItem = [...SIDEBAR].reverse().find(s =>
+    s.end ? location.pathname === s.to : location.pathname.startsWith(s.to)
+  ) || SIDEBAR[0]
+
+  const onSettingsRoot = location.pathname === '/settings'
 
   return (
     <PageWrapper width="wide">
       <div className="md:hidden">
-        <Header title="Settings" subtitle="Business configuration" />
+        <Header
+          title={onSettingsRoot ? 'Settings' : activeItem.label}
+          subtitle={onSettingsRoot ? 'Business configuration' : undefined}
+          back={onSettingsRoot ? undefined : '/settings'}
+        />
       </div>
 
       <div className="px-4 md:px-6 py-5 md:py-6">
         <div className="hidden md:block mb-5">
           <PageHero
             eyebrow="Settings"
-            title={activeItem?.label || 'Organisation'}
+            title={activeItem.label}
             subtitle={null}
             action={
               <button className="pill-ghost text-[12px] text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800/50 bg-brand-50 dark:bg-brand-950/30 hover:bg-brand-100">
@@ -71,8 +112,18 @@ export default function Settings() {
           />
         </div>
 
-        {/* Mobile: row-link card list */}
-        <div className="md:hidden space-y-4">
+        {/* MOBILE: when on a sub-route, show the Outlet directly (full-bleed sub-page).
+            When on /settings (root), show the row-link card list. */}
+        {!onSettingsRoot && (
+          <div className="md:hidden">
+            <Suspense fallback={<div className="text-sm text-ink-3 italic">Loading…</div>}>
+              <Outlet />
+            </Suspense>
+          </div>
+        )}
+
+        {/* MOBILE: row-link card list of all sub-pages — only on /settings root */}
+        <div className={cn('md:hidden space-y-4', !onSettingsRoot && 'hidden')}>
           <Card className="!p-5 flex items-center gap-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-brand-light opacity-30 dark:opacity-10" />
             <div className="relative shrink-0">
@@ -91,28 +142,27 @@ export default function Settings() {
           </Card>
 
           <Card className="!p-0 divide-y divide-line-2 overflow-hidden">
-            {SIDEBAR.filter(s => s.route).map(s => {
+            {SIDEBAR.filter(s => !s.end).map(s => {
               const { Icon } = s
+              const colorKey = MOBILE_ROW_COLORS[s.label] || 'brand'
               return (
-                <button
-                  key={s.key}
-                  onClick={() => navigate(s.route)}
+                <NavLink
+                  key={s.to}
+                  to={s.to}
                   className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-shell-2 active:bg-shell-3 transition-colors text-left group"
                 >
-                  <div className="w-9 h-9 rounded-card bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                  <div className={cn('w-9 h-9 rounded-card flex items-center justify-center shrink-0', COLOR_CLASSES[colorKey])}>
                     <Icon className="w-4 h-4" strokeWidth={2} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-ink-1 text-[13.5px]">{s.label}</p>
-                    <p className="text-[11.5px] text-ink-3 truncate">{s.desc}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-ink-4 group-hover:translate-x-0.5 transition-transform shrink-0" strokeWidth={2} />
-                </button>
+                </NavLink>
               )
             })}
           </Card>
 
-          {/* Appearance */}
           <div className="space-y-2">
             <h3 className="section-title px-1">Appearance</h3>
             <Card className="flex items-center justify-between gap-4">
@@ -137,19 +187,18 @@ export default function Settings() {
           <p className="text-center text-xs text-ink-4 pb-2">TreeMate v1.0.0</p>
         </div>
 
-        {/* Desktop: sidebar + pane */}
+        {/* DESKTOP: sidebar + pane */}
         <div className="hidden md:grid md:grid-cols-12 gap-4">
-          {/* Sidebar */}
           <aside className="md:col-span-3 card !p-2 self-start">
             <nav className="space-y-0.5">
               {SIDEBAR.map(s => {
                 const { Icon } = s
-                const isActive = active === s.key
                 return (
-                  <button
-                    key={s.key}
-                    onClick={() => s.route ? navigate(s.route) : setActive(s.key)}
-                    className={cn(
+                  <NavLink
+                    key={s.to}
+                    to={s.to}
+                    end={s.end}
+                    className={({ isActive }) => cn(
                       'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left text-[13px] transition-colors',
                       isActive
                         ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 font-medium'
@@ -158,27 +207,18 @@ export default function Settings() {
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
                     <span className="truncate">{s.label}</span>
-                  </button>
+                  </NavLink>
                 )
               })}
             </nav>
           </aside>
 
-          {/* Pane */}
           <div className="md:col-span-9 card !p-6 space-y-6">
-            {active === 'organisation' && (
-              <OrganisationPane business={business} user={user} />
-            )}
-            {active === 'branding' && <BrandingPane business={business} />}
-            {active === 'compliance' && (
-              <div>
-                <div className="eyebrow mb-2">Compliance</div>
-                <h3 className="text-[16px] font-semibold text-ink-1">AS 4373 · Insurance · Permits</h3>
-                <p className="text-[12.5px] text-ink-3 mt-1">Coming soon — track certifications, public liability, and council permits in one place.</p>
-              </div>
-            )}
+            <Suspense fallback={<div className="text-sm text-ink-3 italic">Loading…</div>}>
+              <Outlet />
+            </Suspense>
 
-            {/* Sign out */}
+            {/* Sign out — sits at the bottom of every pane */}
             <div className="pt-4 border-t border-line-2">
               <button
                 onClick={handleSignOut}
@@ -193,80 +233,5 @@ export default function Settings() {
         </div>
       </div>
     </PageWrapper>
-  )
-}
-
-function OrganisationPane({ business, user }) {
-  return (
-    <>
-      <div>
-        <div className="eyebrow mb-2">Branding · what your customers see</div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-3">
-          <Field label="Trading name" value={business?.name || 'Your Tree Services Ltd'} />
-          <Field label="Domain" value={business?.website || 'yourtree.com.au'} />
-          <Field label="Cert / membership" value="Arboricultural Assoc · #4471" />
-          <Field label="Public email" value={business?.email || user?.email || ''} />
-        </div>
-      </div>
-
-      <div>
-        <div className="eyebrow mb-2">Brand colour · used on PDFs, the customer portal, your invoices</div>
-        <div className="flex items-center gap-2 mt-3">
-          {BRAND_SWATCHES.map(c => (
-            <button
-              key={c.value}
-              className={cn(
-                'w-9 h-9 rounded-card border-2 transition-all',
-                c.value === '#22c55e' ? 'border-ink-1 ring-2 ring-brand-200/50' : 'border-line hover:border-ink-3',
-              )}
-              style={{ backgroundColor: c.value }}
-              aria-label={c.name}
-            />
-          ))}
-          <span className="ml-3 text-[12px] font-mono text-ink-3 tabular-nums">Selected · #22c55e</span>
-        </div>
-      </div>
-
-      <div>
-        <div className="eyebrow mb-2">Sample report preview</div>
-        <div className="card-interactive card !p-4 flex items-center justify-between mt-3 cursor-pointer hover:shadow-card-hover">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-card bg-gradient-brand flex items-center justify-center text-white font-bold">
-              {business?.name?.charAt(0) || 'T'}
-            </div>
-            <div className="min-w-0">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-brand-600 dark:text-brand-400">AS 4373 ready certified</div>
-              <div className="text-[14px] font-semibold text-ink-1 mt-0.5 truncate">{business?.name || 'Your Tree Services Ltd'}</div>
-              <div className="text-[11.5px] text-ink-3">Site visit report · 28 Apr 2026 · REF TM-2041</div>
-            </div>
-          </div>
-          <span className="pill-ghost text-[12px] shrink-0">Open PDF</span>
-        </div>
-      </div>
-    </>
-  )
-}
-
-function BrandingPane({ business }) {
-  return (
-    <div>
-      <div className="eyebrow mb-2">Branding</div>
-      <p className="text-[13px] text-ink-3 max-w-prose">
-        Logo, public colours, and the look of your customer-facing PDFs and portal. Configured in Organisation for now.
-      </p>
-    </div>
-  )
-}
-
-function Field({ label, value }) {
-  return (
-    <div>
-      <label className="block text-[10px] font-mono uppercase tracking-wider text-ink-3 mb-1.5">{label}</label>
-      <input
-        defaultValue={value}
-        className="input"
-        style={{ fontSize: '14px' }}
-      />
-    </div>
   )
 }

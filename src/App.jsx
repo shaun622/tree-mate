@@ -39,6 +39,9 @@ const Automations = React.lazy(() => import('./pages/settings/Automations'))
 const SurveyResults = React.lazy(() => import('./pages/settings/SurveyResults'))
 const Integrations = React.lazy(() => import('./pages/settings/Integrations'))
 const ImportData = React.lazy(() => import('./pages/settings/ImportData'))
+const SettingsOrganisationPane = React.lazy(() => import('./pages/settings/panes/OrganisationPane'))
+const SettingsBrandingPane     = React.lazy(() => import('./pages/settings/panes/BrandingPane'))
+const SettingsCompliancePane   = React.lazy(() => import('./pages/settings/panes/CompliancePane'))
 
 // Portal
 const PortalLogin = React.lazy(() => import('./pages/portal/PortalLogin'))
@@ -170,20 +173,26 @@ export default function App() {
                 <Route path="/quotes" element={<Navigate to="/jobs?status=quoted" replace />} />
                 <Route path="/quotes/new" element={<QuoteBuilder />} />
                 <Route path="/quotes/:id" element={<QuoteBuilder />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/settings/staff" element={<Staff />} />
-                <Route path="/settings/equipment" element={<EquipmentLibrary />} />
-                <Route path="/settings/templates" element={<CommunicationTemplates />} />
-                <Route path="/settings/job-types" element={<JobTypeTemplates />} />
-                <Route path="/settings/automations" element={<Automations />} />
-                <Route path="/settings/surveys" element={<SurveyResults />} />
-                <Route path="/settings/integrations" element={<Integrations />} />
-                <Route path="/settings/import" element={<ImportData />} />
+                {/* Settings — single shell with sidebar + Outlet for pane content. */}
+                <Route path="/settings" element={<Settings />}>
+                  <Route index                  element={<SettingsOrganisationPane />} />
+                  <Route path="branding"        element={<SettingsBrandingPane />} />
+                  <Route path="compliance"      element={<SettingsCompliancePane />} />
+                  <Route path="staff"           element={<Staff />} />
+                  <Route path="equipment"       element={<EquipmentLibrary />} />
+                  <Route path="templates"       element={<CommunicationTemplates />} />
+                  <Route path="job-types"       element={<JobTypeTemplates />} />
+                  <Route path="automations"     element={<Automations />} />
+                  <Route path="surveys"         element={<SurveyResults />} />
+                  <Route path="integrations"    element={<Integrations />} />
+                  <Route path="import"          element={<ImportData />} />
+                  <Route path="billing"         element={<Subscription />} />
+                </Route>
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/invoices/new" element={<InvoiceBuilder />} />
                 <Route path="/invoices/:id" element={<InvoiceBuilder />} />
                 <Route path="/reports" element={<Reports />} />
-                <Route path="/subscription" element={<Subscription />} />
+                <Route path="/subscription" element={<Navigate to="/settings/billing" replace />} />
               </Route>
             </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,3 @@
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 
@@ -13,8 +11,7 @@ const integrations = [
 
 export default function Integrations() {
   return (
-    <PageWrapper>
-      <Header title="Integrations" back="/settings" />
+    <>
       <div className="px-4 py-4 space-y-2">
         {integrations.map(int => (
           <Card key={int.name} className="p-4 flex items-center gap-4">
@@ -29,6 +26,6 @@ export default function Integrations() {
           </Card>
         ))}
       </div>
-    </PageWrapper>
+    </>
   )
 }

@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useBusiness } from '../../hooks/useBusiness'
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 
@@ -42,8 +40,7 @@ export default function ImportData() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Import Data" back="/settings" />
+    <>
       <div className="px-4 py-4 space-y-4">
         <Card className="p-4 space-y-4">
           <div>
@@ -80,6 +77,6 @@ export default function ImportData() {
           )}
         </Card>
       </div>
-    </PageWrapper>
+    </>
   )
 }

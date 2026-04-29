@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useBusiness } from '../../hooks/useBusiness'
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -55,14 +53,8 @@ export default function CommunicationTemplates() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Templates" back="/settings" rightAction={
-        <button onClick={() => { setEditing(null); setForm({ name: '', type: 'email', trigger_type: 'job_completed', subject: '', body: '' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
-          <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-        </button>
-      } />
-
-      <div className="px-4 py-4">
+    <>
+      <div className="space-y-4">
         {templates.length === 0 ? (
           <EmptyState title="No templates" description="Create email/SMS templates for automated communications" actionLabel="Add Template" onAction={() => setShowModal(true)} />
         ) : (
@@ -109,6 +101,6 @@ export default function CommunicationTemplates() {
           <Button type="submit" loading={saving} className="w-full">{editing ? 'Save' : 'Add Template'}</Button>
         </form>
       </Modal>
-    </PageWrapper>
+    </>
   )
 }

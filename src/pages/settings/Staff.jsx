@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useBusiness } from '../../hooks/useBusiness'
 import { useStaff } from '../../hooks/useStaff'
-import PageWrapper from '../../components/layout/PageWrapper'
-import Header from '../../components/layout/Header'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -53,16 +51,18 @@ export default function Staff() {
   }
 
   return (
-    <PageWrapper>
-      <Header title="Staff" back="/settings" rightAction={
-        canAdd ? (
-          <button onClick={() => { setEditing(null); setForm({ name: '', email: '', phone: '', role: 'arborist' }); setShowModal(true) }} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 rounded-full">
-            <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+    <>
+      {canAdd && (
+        <div className="flex items-center justify-end mb-3">
+          <button
+            onClick={() => { setEditing(null); setForm({ name: '', email: '', phone: '', role: 'arborist' }); setShowModal(true) }}
+            className="pill-ghost text-[12px]"
+          >
+            + Add staff
           </button>
-        ) : null
-      } />
-
-      <div className="px-4 py-4 space-y-4">
+        </div>
+      )}
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-500">{staff.length} / {limit} staff members</p>
           <Badge variant={canAdd ? 'success' : 'warning'}>{business?.plan || 'trial'} plan</Badge>
@@ -109,6 +109,6 @@ export default function Staff() {
         confirmLabel="Remove"
         onConfirm={async () => { await deleteStaff(deleteId) }}
       />
-    </PageWrapper>
+    </>
   )
 }
