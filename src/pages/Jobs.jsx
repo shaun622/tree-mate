@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  Plus, Briefcase, LayoutGrid, List, User2, MapPin, Clock,
+  Pencil, Check, Calendar, Receipt, ChevronLeft, AlertTriangle, Trash2,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
@@ -427,7 +431,10 @@ export default function Jobs() {
     }
 
     return (
-      <div className={`w-full text-left bg-white dark:bg-gray-900 rounded-2xl shadow-card overflow-hidden border border-gray-100/80 hover:border-brand-200 hover:shadow-card-hover hover:-translate-y-0.5 transition-colors duration-150 ${done ? 'opacity-60' : ''}`}>
+      <div className={cn(
+        'w-full text-left bg-white dark:bg-gray-900 rounded-2xl shadow-card overflow-hidden border border-gray-100 dark:border-gray-800 hover:shadow-card-hover hover:-translate-y-0.5 hover:border-brand-200/70 dark:hover:border-brand-800/60 transition-all duration-150',
+        done && 'opacity-60',
+      )}>
         <button
           type="button"
           onClick={handleClick}
@@ -439,19 +446,19 @@ export default function Jobs() {
             <div className="flex items-start justify-between gap-1.5 mb-1">
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{job.job_type || 'Job'}</p>
               {showPriority && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${pStyle.bg} ${pStyle.text}`}>
+                <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md', pStyle.bg, pStyle.text)}>
                   {job.priority === 'emergency' ? '!!!' : '!!'}
                 </span>
               )}
             </div>
-            {jc && <p className="text-xs text-gray-600 dark:text-gray-500 truncate">{jc.name}</p>}
+            {jc && <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{jc.name}</p>}
             {js?.address && <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{getSuburb(js.address)}</p>}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               {quote?.total > 0 && (
-                <span className="text-[11px] font-bold text-brand-600">{formatCurrency(quote.total)}</span>
+                <span className="text-[11px] font-bold tabular-nums text-brand-600 dark:text-brand-400">{formatCurrency(quote.total)}</span>
               )}
               {job.scheduled_date && (
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                <span className="text-[10px] tabular-nums text-gray-400 dark:text-gray-500">
                   {new Date(job.scheduled_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                 </span>
               )}
@@ -463,10 +470,15 @@ export default function Jobs() {
         ) : (
           /* List full card */
           <div className="flex">
-            <div className={`w-16 ${done ? 'bg-gray-300' : 'bg-gradient-to-br from-brand-500 to-brand-700'} flex flex-col items-center justify-center text-white flex-shrink-0`}>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className={cn(
+              'w-16 flex flex-col items-center justify-center flex-shrink-0',
+              done
+                ? 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600'
+                : 'bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300',
+            )}>
+              <Briefcase className="w-6 h-6" strokeWidth={1.8} />
               {job.scheduled_date && (
-                <p className="text-[10px] font-bold mt-1 leading-tight text-center px-1">
+                <p className="text-[10px] font-bold tabular-nums mt-1 leading-tight text-center px-1">
                   {new Date(job.scheduled_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                 </p>
               )}
@@ -474,50 +486,62 @@ export default function Jobs() {
             <div className="flex-1 p-3 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2 min-w-0">
-                  <p className={`font-bold truncate ${done ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>{job.job_type || 'Job'}</p>
+                  <p className={cn('font-bold truncate', done ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100')}>{job.job_type || 'Job'}</p>
                   {showPriority && (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${pStyle.bg} ${pStyle.text}`}>
+                    <span className={cn('text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md flex-shrink-0', pStyle.bg, pStyle.text)}>
                       {statusLabel(job.priority)}
                     </span>
                   )}
                 </div>
                 {invoiceView ? (
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${job.status === 'invoiced' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                    {job.status === 'invoiced' ? 'Invoice Sent' : 'Not Sent'}
+                  <span className={cn(
+                    'text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap',
+                    job.status === 'invoiced'
+                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                      : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
+                  )}>
+                    {job.status === 'invoiced' ? 'Invoice sent' : 'Not sent'}
                   </span>
                 ) : quotedView ? (
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${job.status === 'approved' ? 'bg-green-100 text-green-700' : job.status === 'quoted' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-500'}`}>
-                    {job.status === 'approved' ? 'Quote Accepted' : job.status === 'quoted' ? 'Quote Sent' : statusLabel(job.status)}
+                  <span className={cn(
+                    'text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap',
+                    job.status === 'approved'
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                      : job.status === 'quoted'
+                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                      : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                  )}>
+                    {job.status === 'approved' ? 'Quote accepted' : job.status === 'quoted' ? 'Quote sent' : statusLabel(job.status)}
                   </span>
                 ) : (
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap ${statusColor(job.status)}`}>
+                  <span className={cn('text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap', statusColor(job.status))}>
                     {statusLabel(job.status)}
                   </span>
                 )}
               </div>
               {jc && (
-                <p className="text-sm text-gray-700 dark:text-gray-300 truncate flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <p className="text-sm text-gray-700 dark:text-gray-300 truncate inline-flex items-center gap-1.5">
+                  <User2 className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2} />
                   {jc.name}
                 </p>
               )}
               {js?.address && (
-                <p className="text-xs text-gray-500 dark:text-gray-500 truncate flex items-center gap-1.5 mt-0.5">
-                  <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate inline-flex items-center gap-1.5 mt-0.5">
+                  <MapPin className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2} />
                   {js.address}
                 </p>
               )}
-              <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500 dark:text-gray-500 flex-wrap">
+              <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500 dark:text-gray-400 flex-wrap">
                 {quote?.total > 0 && (
-                  <span className="font-bold text-brand-600">{formatCurrency(quote.total)}</span>
+                  <span className="font-bold tabular-nums text-brand-600 dark:text-brand-400">{formatCurrency(quote.total)}</span>
                 )}
                 {job.scheduled_start && (
-                  <span className="flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" /></svg>
+                  <span className="inline-flex items-center gap-1 tabular-nums">
+                    <Clock className="w-3 h-3" strokeWidth={2} />
                     {new Date(job.scheduled_start).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })}
                   </span>
                 )}
-                {job.duration_minutes && <span>· {job.duration_minutes}m</span>}
+                {job.duration_minutes && <span className="tabular-nums">· {job.duration_minutes}m</span>}
                 {staffMember && <span>· {staffMember.name}</span>}
               </div>
             </div>
@@ -531,17 +555,17 @@ export default function Jobs() {
               <>
                 <button
                   onClick={handleQuickEdit}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 transition-colors duration-150"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors duration-150"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                  Edit Job
+                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                  Edit job
                 </button>
                 <div className="w-px bg-gray-100 dark:bg-gray-800" />
                 <button
                   onClick={(e) => { e.stopPropagation(); navigate(`/jobs/${job.id}`) }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
                   Schedule
                 </button>
               </>
@@ -549,19 +573,19 @@ export default function Jobs() {
               <>
                 <button
                   onClick={handleQuickEdit}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 transition-colors duration-150"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors duration-150"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                  {job.quote_id ? 'Edit Quote' : 'Create Quote'}
+                  <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                  {job.quote_id ? 'Edit quote' : 'Create quote'}
                 </button>
                 {job.quote_id && (
                   <>
                     <div className="w-px bg-gray-100 dark:bg-gray-800" />
                     <button
                       onClick={handleQuickAccept}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                       Accept
                     </button>
                   </>
@@ -575,18 +599,18 @@ export default function Jobs() {
           <div className="flex border-t border-gray-100 dark:border-gray-800">
             <button
               onClick={handleQuickEdit}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 transition-colors duration-150"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-              Edit Job
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+              Edit job
             </button>
             <div className="w-px bg-gray-100 dark:bg-gray-800" />
             <button
               onClick={handleQuickComplete}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              Complete Job
+              <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Complete job
             </button>
           </div>
         )}
@@ -595,18 +619,18 @@ export default function Jobs() {
           <div className="flex border-t border-gray-100 dark:border-gray-800">
             <button
               onClick={handleQuickEdit}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:bg-gray-900/50 transition-colors duration-150"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-              Edit Job
+              <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+              Edit job
             </button>
             <div className="w-px bg-gray-100 dark:bg-gray-800" />
             <button
               onClick={(e) => { e.stopPropagation(); job.status === 'invoiced' ? openPreview(job) : navigate(`/invoices/new?job_id=${job.id}`) }}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-brand-600 hover:text-white hover:bg-brand-600 transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              {job.status === 'invoiced' ? 'Mark Paid' : 'Create Invoice'}
+              <Receipt className="w-3.5 h-3.5" strokeWidth={2} />
+              {job.status === 'invoiced' ? 'Mark paid' : 'Create invoice'}
             </button>
           </div>
         )}
@@ -636,13 +660,13 @@ export default function Jobs() {
           return (
             <div key={col.key} className="min-h-[280px]">
               {/* Column header — no background, just the eyebrow + count + hairline below */}
-              <div className="flex items-center justify-between pb-2 border-b border-line mb-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-800 mb-2.5">
                 <div className="eyebrow-muted">{col.label}</div>
-                <span className="text-[11px] font-mono tabular-nums text-ink-3">{colJobs.length}</span>
+                <span className="text-[11px] font-semibold tabular-nums text-gray-500 dark:text-gray-400">{colJobs.length}</span>
               </div>
               <div className="space-y-2">
                 {colJobs.length === 0 ? (
-                  <div className="text-[11px] text-ink-4 italic px-1 py-2">—</div>
+                  <div className="text-[11px] text-gray-400 dark:text-gray-600 italic px-1 py-2">—</div>
                 ) : (
                   colJobs.map(job => {
                     const ref = `TM-${String(job.id).slice(0, 4).toUpperCase()}`
@@ -653,21 +677,21 @@ export default function Jobs() {
                         key={job.id}
                         onClick={() => openPreview(job)}
                         className={cn(
-                          'cursor-pointer rounded-card border p-3 transition-all hover:-translate-y-0.5 hover:shadow-card-hover',
+                          'cursor-pointer rounded-2xl border p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover',
                           tinted
-                            ? 'bg-surface-3 border-line dark:bg-gray-800 dark:border-gray-700'
-                            : 'bg-surface-card border-line',
+                            ? 'bg-brand-50/60 border-brand-200/60 dark:bg-brand-950/30 dark:border-brand-800/40'
+                            : 'bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800',
                         )}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10px] font-mono font-medium text-brand-600 dark:text-brand-400 tracking-wider">{ref}</span>
+                          <span className="text-[10px] font-semibold tabular-nums text-brand-600 dark:text-brand-400 tracking-wider">{ref}</span>
                         </div>
-                        <p className="text-[13px] font-semibold text-ink-1 leading-snug mb-1">
+                        <p className="text-[13px] font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-1">
                           {job.job_type || 'Job'}
                         </p>
-                        <p className="text-[11.5px] text-ink-3 mb-2">{clientMap[job.client_id]?.name || '—'}</p>
-                        <div className="flex items-center justify-between text-[10.5px] font-mono text-ink-3 tabular-nums">
-                          <span className="text-ink-2 font-medium">
+                        <p className="text-[11.5px] text-gray-500 dark:text-gray-400 mb-2">{clientMap[job.client_id]?.name || '—'}</p>
+                        <div className="flex items-center justify-between text-[10.5px] tabular-nums text-gray-500 dark:text-gray-400">
+                          <span className="text-gray-700 dark:text-gray-300 font-semibold">
                             {value != null ? formatCurrency(value) : (job.scheduled_date || job.scheduled_start ? new Date(job.scheduled_start || job.scheduled_date).toLocaleDateString('en-AU', { weekday:'short', hour:'2-digit', minute:'2-digit' }) : '—')}
                           </span>
                           <span>{job.staff_id ? '·' : (job.created_at ? `${Math.floor((Date.now() - new Date(job.created_at).getTime()) / 86400000)}d` : '')}</span>
@@ -685,7 +709,7 @@ export default function Jobs() {
   }
 
   return (
-    <PageWrapper width="wide">
+    <PageWrapper width="wide" className="!bg-slate-50 dark:!bg-gray-950">
       <div className="md:hidden">
       <Header title="Jobs" subtitle="Track every job from enquiry to completion" rightAction={
         <div className="flex items-center gap-2">
@@ -693,29 +717,33 @@ export default function Jobs() {
             onClick={() => setViewMode(viewMode === 'list' ? 'pipeline' : 'list')}
             className="p-2 hover:bg-black/5 rounded-xl transition-colors duration-150"
             title={viewMode === 'list' ? 'Pipeline view' : 'List view'}
+            aria-label="Toggle view"
           >
-            {viewMode === 'list' ? (
-              <svg className="w-5 h-5 text-gray-500 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
-            ) : (
-              <svg className="w-5 h-5 text-gray-500 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-            )}
+            {viewMode === 'list'
+              ? <LayoutGrid className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2} />
+              : <List className="w-5 h-5 text-gray-500 dark:text-gray-400" strokeWidth={2} />}
           </button>
           <button onClick={() => openQuoteModal(null, null)} className="px-3 py-1.5 text-xs font-semibold text-brand-600 border-2 border-brand-200 rounded-xl hover:bg-brand-50 transition-colors duration-150 active:scale-95">
             Quick Quote
           </button>
-          <button onClick={() => setShowModal(true)} className="px-3 py-1.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 shadow-button transition-colors duration-150 active:scale-95 flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+          <button onClick={() => setShowModal(true)} className="px-3 py-1.5 text-xs font-semibold text-white bg-brand-600 rounded-xl hover:bg-brand-700 shadow-button transition-colors duration-150 active:scale-95 inline-flex items-center gap-1">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
             New Job
           </button>
         </div>
       } />
       </div>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 md:px-6 py-5 md:py-6 space-y-5">
         {/* Desktop hero — mobile uses Header above */}
         <div className="hidden md:block">
           <PageHero
-            eyebrow="Jobs board"
+            eyebrow={
+              <span className="inline-flex items-center gap-2">
+                <Briefcase className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Jobs board
+              </span>
+            }
             title={(() => {
               const active = jobs.filter(j => !['paid','completed','invoiced'].includes(j.status)).length
               const distinctClients = new Set(jobs.map(j => j.client_id).filter(Boolean)).size
@@ -723,11 +751,17 @@ export default function Jobs() {
             })()}
             action={
               <div className="flex items-center gap-2">
-                <button onClick={() => setViewMode(viewMode === 'list' ? 'pipeline' : 'list')} className="pill-ghost">
-                  {viewMode === 'pipeline' ? 'List' : 'Board'}
+                <button
+                  onClick={() => setViewMode(viewMode === 'list' ? 'pipeline' : 'list')}
+                  className="pill-ghost inline-flex items-center gap-1.5"
+                  aria-label="Toggle view"
+                >
+                  {viewMode === 'pipeline'
+                    ? <><List className="w-3.5 h-3.5" strokeWidth={2.5} /> List</>
+                    : <><LayoutGrid className="w-3.5 h-3.5" strokeWidth={2.5} /> Board</>}
                 </button>
-                <Button onClick={() => setShowModal(true)}>
-                  <span className="text-[13px]">+ New job</span>
+                <Button onClick={() => setShowModal(true)} leftIcon={Plus}>
+                  <span className="text-[13px]">New job</span>
                 </Button>
               </div>
             }
@@ -751,7 +785,7 @@ export default function Jobs() {
           <SkeletonStatGrid count={4} />
         ) : jobs.length === 0 ? (
           <EmptyState
-            icon={<svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+            icon={<Briefcase className="w-8 h-8" strokeWidth={1.5} />}
             title="No jobs" description="Create your first job to get started"
             actionLabel="Create Job" onAction={() => setShowModal(true)}
           />
@@ -797,7 +831,7 @@ export default function Jobs() {
           {quoteStatus === 'accepted' && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <AlertTriangle className="w-4 h-4" strokeWidth={2} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-amber-800">This quote has been accepted</p>
@@ -843,8 +877,8 @@ export default function Jobs() {
                   }} className="flex-1" />
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 pb-3 w-24 text-right">{formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}</p>
                   {quoteForm.line_items.length > 1 && (
-                    <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: p.line_items.filter((_, idx) => idx !== i) }))} className="pb-3 text-red-400 hover:text-red-600">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: p.line_items.filter((_, idx) => idx !== i) }))} className="pb-3 text-red-400 hover:text-red-600" aria-label="Remove line">
+                      <Trash2 className="w-5 h-5" strokeWidth={2} />
                     </button>
                   )}
                 </div>
@@ -943,7 +977,7 @@ export default function Jobs() {
                   : 'text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-800 cursor-not-allowed opacity-50'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <Receipt className="w-4 h-4" strokeWidth={2} />
               Add Quote
             </button>
             <Button type="submit" loading={saving} disabled={!form.client_id} className="w-full">Create Job</Button>
@@ -953,9 +987,9 @@ export default function Jobs() {
             <button
               type="button"
               onClick={() => setNewJobStep(1)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-300 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2} />
               Back to Job Details
             </button>
 
