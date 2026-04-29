@@ -155,13 +155,24 @@
     font-size: 16px;
   }
 
-  /* ─── Card — 10px radius, hairline border. PURE WHITE on cream surface. ── */
+  /* ─── Card — 10px radius. PURE WHITE on cream/slate surface.
+   * No border outline — floats on shadow + a subtle 4% black ring for edge
+   * definition. Matches AWC. ────────────────────────────────────────────── */
   .card {
     background: rgb(var(--surface-card));
-    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 14px;
-    transition: box-shadow 0.2s var(--ease-out-expo), border-color 0.2s, transform 0.2s;
+    box-shadow:
+      0 1px 3px 0 rgba(0,0,0,0.04),
+      0 1px 2px -1px rgba(0,0,0,0.03),
+      inset 0 0 0 1px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s var(--ease-out-expo), transform 0.2s;
+  }
+  .dark .card {
+    box-shadow:
+      0 1px 3px 0 rgba(0,0,0,0.20),
+      0 1px 2px -1px rgba(0,0,0,0.10),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
   }
   .card-interactive {
     cursor: pointer;
