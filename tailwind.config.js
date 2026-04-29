@@ -62,7 +62,7 @@ export default {
         'gradient-danger':      'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
         'gradient-warm':        'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
         'gradient-glass':       'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)',
-        'gradient-page':        'linear-gradient(180deg, #f8fafc 0%, #f0f4f8 50%, #e8eef3 100%)',
+        'gradient-page':        'linear-gradient(180deg, rgb(248 246 239) 0%, rgb(244 241 233) 50%, rgb(237 233 222) 100%)',
         'gradient-dark':        'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
         'gradient-hero':        'linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-700)) 50%, rgb(var(--brand-800)) 100%)',
       },
