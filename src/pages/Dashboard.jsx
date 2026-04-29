@@ -183,9 +183,11 @@ export default function Dashboard() {
 
 function TodayRow({ label, count }) {
   return (
-    <div className="flex items-center justify-between border-b border-line-2 last:border-b-0 pb-2 last:pb-0">
+    <div className="flex items-center justify-between py-1">
       <span className="text-[13px] text-ink-2">{label}</span>
-      <span className="text-[14px] font-semibold tabular-nums text-ink-1">{count}</span>
+      <span className="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full bg-surface-3 text-[11px] font-mono font-medium tabular-nums text-ink-2">
+        {count}
+      </span>
     </div>
   )
 }
