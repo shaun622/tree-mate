@@ -177,6 +177,7 @@ export default function App() {
                 {/* Settings — single shell with sidebar + Outlet for pane content. */}
                 <Route path="/settings" element={<Settings />}>
                   <Route index                  element={<SettingsOrganisationPane />} />
+                  <Route path="organisation"    element={<SettingsOrganisationPane />} />
                   <Route path="branding"        element={<SettingsBrandingPane />} />
                   <Route path="compliance"      element={<SettingsCompliancePane />} />
                   <Route path="staff"           element={<Staff />} />

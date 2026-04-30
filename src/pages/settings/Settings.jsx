@@ -143,13 +143,16 @@ export default function Settings() {
           </Card>
 
           <Card className="!p-0 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
-            {SIDEBAR.filter(s => !s.end).map(s => {
+            {SIDEBAR.map(s => {
               const { Icon } = s
               const colorKey = MOBILE_ROW_COLORS[s.label] || 'brand'
+              // Organisation is the desktop-index route at /settings — on mobile that path
+              // shows the row-card list itself, so route the mobile tap to the alias.
+              const mobileTo = s.end ? '/settings/organisation' : s.to
               return (
                 <NavLink
                   key={s.to}
-                  to={s.to}
+                  to={mobileTo}
                   className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 active:bg-gray-100 dark:active:bg-gray-800 transition-colors text-left group"
                 >
                   <div className={cn('w-9 h-9 rounded-card flex items-center justify-center shrink-0', COLOR_CLASSES[colorKey])}>
