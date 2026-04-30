@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
-import { Plus, Search, ArrowRight, Users, Briefcase, Wallet } from 'lucide-react'
+import { Plus, Search, ArrowRight, ChevronRight, Users, Briefcase, Wallet } from 'lucide-react'
 import PageWrapper from '../components/layout/PageWrapper'
 import Header from '../components/layout/Header'
 import PageHero from '../components/layout/PageHero'
@@ -25,6 +25,23 @@ function getClientBadge(clientJobs) {
   const hasEnquiry = clientJobs.some(j => ['enquiry', 'site_visit'].includes(j.status))
   if (hasEnquiry) return { label: 'Lead', variant: 'info' }
   return { label: 'Completed', variant: 'neutral' }
+}
+
+// Deterministic soft-tone avatar palette — matches MOBILE_ROW_COLORS pattern in Settings.
+// Same client always gets the same tone, but the spread reads as on-brand variety.
+const AVATAR_TONES = ['brand', 'blue', 'amber', 'emerald', 'violet', 'pink', 'teal']
+const AVATAR_TONE_CLASSES = {
+  brand:   'bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300',
+  blue:    'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
+  amber:   'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
+  emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
+  violet:  'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300',
+  pink:    'bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300',
+  teal:    'bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300',
+}
+function avatarTone(name) {
+  const sum = (name || '').split('').reduce((s, c) => s + c.charCodeAt(0), 0)
+  return AVATAR_TONES[sum % AVATAR_TONES.length]
 }
 
 export default function Clients() {
@@ -148,9 +165,36 @@ export default function Clients() {
           </div>
         </div>
 
-        {/* Mobile search + grid */}
-        <div className="md:hidden">
-          <div className="relative mb-3">
+        {/* Mobile — KPI strip + search + list */}
+        <div className="md:hidden space-y-4">
+          {/* Compact 2-up KPI: Active jobs + YTD revenue (brand-soft hero) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="card !p-3.5">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Active jobs</p>
+                  <p className="mt-1.5 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">{activeJobsTotal}</p>
+                </div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                  <Briefcase className="w-4 h-4" strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-brand-200/60 dark:border-brand-800/40 p-3.5 bg-gradient-brand-soft dark:bg-brand-950/20 shadow-card">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">YTD Revenue</p>
+                  <p className="mt-1.5 text-xl font-bold tabular-nums text-gray-900 dark:text-gray-100 leading-none">{formatCurrency(ytdTotal)}</p>
+                </div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-brand-100/70 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+                  <Wallet className="w-4 h-4" strokeWidth={2} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2} />
             <input
               type="text"
@@ -161,33 +205,48 @@ export default function Clients() {
               style={{ fontSize: '16px' }}
             />
           </div>
+
+          {/* List or empty state */}
           {displayed.length === 0 ? (
             <EmptyState
-              title="No clients yet"
-              description="Add your first client to get started"
-              actionLabel="Add Client"
-              onAction={() => setShowModal(true)}
+              icon={<Users className="w-8 h-8" strokeWidth={1.5} />}
+              title={search ? 'No matches' : 'No clients yet'}
+              description={search ? `Nothing matches "${search}"` : 'Add your first client to get started'}
+              actionLabel={search ? null : 'Add Client'}
+              onAction={search ? null : () => setShowModal(true)}
             />
           ) : (
             <div className="space-y-2">
               {displayed.map(client => {
                 const badge = getClientBadge(clientJobs[client.id])
+                const isHot = badge.variant === 'success' || badge.variant === 'warning'
                 const initials = client.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-                const hue = client.name.split('').reduce((sum, c) => sum + c.charCodeAt(0), 0) % 360
+                const tone = avatarTone(client.name)
+                const ytd = (clientJobs[client.id] || []).reduce((s, j) => s + (j.total || 0), 0)
                 return (
                   <Card key={client.id} onClick={() => navigate(`/clients/${client.id}`)} className="!p-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: `hsl(${hue}, 55%, 50%)` }}>
+                      <div className={cn('w-10 h-10 rounded-card flex items-center justify-center text-sm font-bold flex-shrink-0', AVATAR_TONE_CLASSES[tone])}>
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{client.name}</p>
+                        <div className="flex items-center gap-1.5">
+                          {isHot && <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />}
+                          <p className="font-semibold text-gray-900 dark:text-gray-100 truncate flex-1">{client.name}</p>
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </div>
-                        <p className="text-[12.5px] text-gray-500 dark:text-gray-400 truncate">{client.email || client.phone || '—'}</p>
+                        <div className="flex items-center justify-between gap-2 mt-0.5">
+                          <p className="text-[12.5px] text-gray-500 dark:text-gray-400 truncate flex-1 min-w-0">
+                            {client.email || client.phone || '—'}
+                          </p>
+                          {ytd > 0 && (
+                            <p className="text-[12.5px] font-semibold tabular-nums text-gray-700 dark:text-gray-300 shrink-0">
+                              {formatCurrency(ytd)}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2} />
+                      <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" strokeWidth={2} />
                     </div>
                   </Card>
                 )
