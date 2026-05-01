@@ -11,10 +11,12 @@ import { Input, Select } from '../../components/ui/Input'
 import EmptyState from '../../components/ui/EmptyState'
 import { STAFF_ROLES } from '../../lib/utils'
 
-const PLAN_LIMITS = { trial: 5, basic: 5, unlimited: Infinity }
-
 export default function Staff() {
-  const { business } = useBusiness()
+  // staffLimit comes from useBusiness, which derives it from
+  // businesses.staff_seat_override (HQ admin override) ?? plan.max_staff
+  // ?? 1. Source of truth lives in the `plans` table now (see migration
+  // 005_plans.sql); HQ admin can also pin a per-business override.
+  const { business, staffLimit } = useBusiness()
   const { staff, createStaff, updateStaff, deleteStaff, uploadPhoto } = useStaff(business?.id)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -22,8 +24,7 @@ export default function Staff() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'arborist' })
   const [deleteId, setDeleteId] = useState(null)
 
-  const limit = PLAN_LIMITS[business?.plan] || 1
-  const canAdd = staff.length < limit
+  const canAdd = staff.length < staffLimit
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -64,7 +65,7 @@ export default function Staff() {
       )}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-500">{staff.length} / {limit} staff members</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">{staff.length} / {staffLimit} staff members</p>
           <Badge variant={canAdd ? 'success' : 'warning'}>{business?.plan || 'trial'} plan</Badge>
         </div>
 

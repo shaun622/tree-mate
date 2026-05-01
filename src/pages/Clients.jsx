@@ -10,10 +10,8 @@ import PageHero from '../components/layout/PageHero'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
-import Modal from '../components/ui/Modal'
-import { Input, TextArea } from '../components/ui/Input'
 import EmptyState from '../components/ui/EmptyState'
-import AddressAutocomplete from '../components/ui/AddressAutocomplete'
+import NewClientModal from '../components/ui/NewClientModal'
 import { cn, formatCurrency } from '../lib/utils'
 
 function getClientBadge(clientJobs) {
@@ -46,12 +44,10 @@ function avatarTone(name) {
 
 export default function Clients() {
   const { business } = useBusiness()
-  const { clients, createClient } = useClients(business?.id)
+  const { clients, refreshClients } = useClients(business?.id)
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', notes: '' })
-  const [saving, setSaving] = useState(false)
   const [clientJobs, setClientJobs] = useState({})
   const [selectedId, setSelectedId] = useState(null)
 
@@ -83,16 +79,13 @@ export default function Clients() {
   const selected = clients.find(c => c.id === selectedId)
   const recurringCount = clients.filter(c => clientJobs[c.id]?.some(j => j.status === 'in_progress' || j.status === 'scheduled')).length
 
-  const handleAdd = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    const { data, error } = await createClient(form)
-    setSaving(false)
-    if (!error && data) {
-      setShowModal(false)
-      setForm({ name: '', email: '', phone: '', address: '', notes: '' })
-      navigate(`/clients/${data.id}?addSite=1`)
-    }
+  // NewClientModal handles its own insert (with email/phone dup detection)
+  // and hands the saved row back via onCreated. We refresh the list so the
+  // new client shows up, then deep-link the operator to add a site.
+  function handleClientCreated(newClient) {
+    setShowModal(false)
+    refreshClients()
+    navigate(`/clients/${newClient.id}?addSite=1`)
   }
 
   // KPI: total YTD revenue across all clients
@@ -371,16 +364,11 @@ export default function Clients() {
         </div>
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Add Client">
-        <form onSubmit={handleAdd} className="space-y-4">
-          <Input label="Name" placeholder="Client name" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required />
-          <Input label="Email" type="email" placeholder="client@email.com" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
-          <Input label="Phone" type="tel" placeholder="04XX XXX XXX" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
-          <AddressAutocomplete label="Address" placeholder="Street address" value={form.address} onChange={(addr) => setForm(p => ({ ...p, address: addr }))} />
-          <TextArea label="Notes" placeholder="Any notes..." value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
-          <Button type="submit" loading={saving} className="w-full">Add Client</Button>
-        </form>
-      </Modal>
+      <NewClientModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onCreated={handleClientCreated}
+      />
     </PageWrapper>
   )
 }

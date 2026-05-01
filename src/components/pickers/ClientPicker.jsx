@@ -2,35 +2,43 @@ import { useState } from 'react'
 import { Input, Select } from '../ui/Input'
 import AddressAutocomplete from '../ui/AddressAutocomplete'
 import Button from '../ui/Button'
+import NewClientModal from '../ui/NewClientModal'
 
-export default function ClientPicker({ clients, value, onChange, onCreate, onUpdate, label = 'Client', required = false }) {
-  const [mode, setMode] = useState('idle') // 'idle' | 'new' | 'edit'
-  const [newForm, setNewForm] = useState({ name: '', email: '', phone: '', address: '' })
+/**
+ * ClientPicker — dropdown with inline edit + nested "New client" modal.
+ *
+ * Note on `onCreate`: legacy callers pass `onCreate={createClient}` from
+ * useClients. We intentionally ignore that prop now — `NewClientModal`
+ * does its own insert via supabase, with email/phone duplicate detection
+ * baked in. Edit mode still uses the parent's `onUpdate(id, values)`.
+ */
+export default function ClientPicker({ clients, value, onChange, onUpdate, label = 'Client', required = false }) {
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', address: '' })
+  const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [showNewModal, setShowNewModal] = useState(false)
+  // Clients created via NewClientModal that haven't yet been refetched
+  // into the parent's `clients` prop. Keeps the dropdown UX consistent
+  // until the parent refreshes useClients on next nav.
+  const [extraClients, setExtraClients] = useState([])
 
-  const selected = clients.find(c => c.id === value)
+  const allClients = [...clients, ...extraClients.filter(ec => !clients.some(c => c.id === ec.id))]
+  const selected = allClients.find(c => c.id === value)
 
   const handleSelect = (val) => {
     if (val === '__new__') {
-      setMode('new')
+      setShowNewModal(true)
       onChange('')
     } else {
-      setMode('idle')
+      setEditing(false)
       onChange(val)
     }
   }
 
-  const handleCreate = async () => {
-    if (!newForm.name.trim()) return
-    setBusy(true)
-    const { data, error } = await onCreate(newForm)
-    if (!error && data) {
-      onChange(data.id)
-      setMode('idle')
-      setNewForm({ name: '', email: '', phone: '', address: '' })
-    }
-    setBusy(false)
+  const handleNewClientCreated = (client) => {
+    setExtraClients(prev => [...prev.filter(c => c.id !== client.id), client])
+    onChange(client.id)
+    setShowNewModal(false)
   }
 
   const startEdit = () => {
@@ -41,13 +49,13 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
       phone: selected.phone || '',
       address: selected.address || '',
     })
-    setMode('edit')
+    setEditing(true)
   }
 
   const handleSaveEdit = async () => {
     setBusy(true)
     await onUpdate(selected.id, editForm)
-    setMode('idle')
+    setEditing(false)
     setBusy(false)
   }
 
@@ -61,31 +69,11 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
         options={[
           { value: '', label: 'Select client...' },
           { value: '__new__', label: '+ New Client' },
-          ...clients.map(c => ({ value: c.id, label: c.name })),
+          ...allClients.map(c => ({ value: c.id, label: c.name })),
         ]}
       />
 
-      {mode === 'new' && (
-        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200 dark:border-gray-800">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide">Quick Add Client</p>
-          <Input placeholder="Client name" value={newForm.name} onChange={e => setNewForm(p => ({ ...p, name: e.target.value }))} />
-          <div className="flex gap-2">
-            <Input placeholder="Email" type="email" value={newForm.email} onChange={e => setNewForm(p => ({ ...p, email: e.target.value }))} className="flex-1" />
-            <Input placeholder="Phone" type="tel" value={newForm.phone} onChange={e => setNewForm(p => ({ ...p, phone: e.target.value }))} className="flex-1" />
-          </div>
-          <AddressAutocomplete
-            value={newForm.address}
-            onChange={(addr) => setNewForm(p => ({ ...p, address: addr }))}
-            placeholder="Address (optional)"
-          />
-          <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
-            <Button type="button" onClick={handleCreate} loading={busy} className="flex-1 !min-h-[40px] text-xs">Add Client</Button>
-          </div>
-        </div>
-      )}
-
-      {mode === 'edit' && selected && (
+      {editing && selected && (
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200 dark:border-gray-800">
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide">Edit Client</p>
           <Input placeholder="Name" value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} />
@@ -99,13 +87,13 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
             placeholder="Address"
           />
           <div className="flex gap-2">
-            <Button type="button" variant="secondary" onClick={() => setMode('idle')} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
+            <Button type="button" variant="secondary" onClick={() => setEditing(false)} className="flex-1 !min-h-[40px] text-xs">Cancel</Button>
             <Button type="button" loading={busy} onClick={handleSaveEdit} className="flex-1 !min-h-[40px] text-xs">Save</Button>
           </div>
         </div>
       )}
 
-      {mode === 'idle' && selected && (
+      {!editing && selected && (
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
             {selected.name?.charAt(0)}
@@ -121,6 +109,13 @@ export default function ClientPicker({ clients, value, onChange, onCreate, onUpd
           </button>
         </div>
       )}
+
+      <NewClientModal
+        open={showNewModal}
+        onClose={() => setShowNewModal(false)}
+        onCreated={handleNewClientCreated}
+        zLayer={70}
+      />
     </div>
   )
 }

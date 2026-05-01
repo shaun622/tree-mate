@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { usePlans } from './usePlans'
 
 const BusinessContext = createContext({})
 
 export function BusinessProvider({ children }) {
   const { user, loading: authLoading } = useAuth()
+  const { plansBySlug, loading: plansLoading } = usePlans()
   const [business, setBusiness] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -47,8 +49,25 @@ export function BusinessProvider({ children }) {
     return { data, error }
   }
 
+  // Effective staff seat limit. HQ admin can pin a per-business override
+  // via businesses.staff_seat_override (NULL = use plan default). Note `??`
+  // not `||` — `0` is a legal override meaning "no staff allowed", useful
+  // for parking delinquent tenants without changing their plan.
+  const staffLimit = (() => {
+    if (!business) return 1
+    if (business.staff_seat_override != null) return business.staff_seat_override
+    return plansBySlug?.[business.plan]?.max_staff ?? 1
+  })()
+
   return (
-    <BusinessContext.Provider value={{ business, loading: loading || authLoading, createBusiness, updateBusiness, refreshBusiness: fetchBusiness }}>
+    <BusinessContext.Provider value={{
+      business,
+      staffLimit,
+      loading: loading || authLoading || plansLoading,
+      createBusiness,
+      updateBusiness,
+      refreshBusiness: fetchBusiness,
+    }}>
       {children}
     </BusinessContext.Provider>
   )
