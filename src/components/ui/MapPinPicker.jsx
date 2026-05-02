@@ -2,7 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { reverseGeocode, searchAddresses } from '../../lib/geocode'
+import { supabase } from '../../lib/supabase'
+import { useBusiness } from '../../hooks/useBusiness'
 import Button from './Button'
+
+// Hardcoded ultimate fallback — Sydney CBD. Used when geolocation is
+// blocked AND the business has never pinned a job site (so we have no
+// proxy for "where they operate").
+const SYDNEY_FALLBACK = [-33.8688, 151.2093]
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const TILE_URL = MAPBOX_TOKEN
@@ -38,6 +45,7 @@ function Recenter({ center }) {
 }
 
 export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) {
+  const { business } = useBusiness()
   const [marker, setMarker] = useState(null)
   const [label, setLabel] = useState('')
   const [busy, setBusy] = useState(false)
@@ -46,25 +54,71 @@ export default function MapPinPicker({ initialLabel = '', onClose, onConfirm }) 
   const debounceRef = useRef(null)
   const initialLabelRef = useRef(initialLabel)
 
-  // Seed map position from initial label — only on mount
+  // Seed map position. Cascade when no initialLabel is supplied:
+  //   1. browser geolocation — best "near me" answer
+  //   2. business's most recently pinned job_site — proxy for where
+  //      this business actually operates
+  //   3. Sydney CBD — hardcoded ultimate fallback
   useEffect(() => {
     const text = initialLabelRef.current
-    if (!text || text.trim().length < 3) {
-      setCenter([-33.8688, 151.2093])
+    if (text && text.trim().length >= 3) {
+      // Seed from typed address — keeps existing behaviour for the
+      // common case where the operator already typed something.
+      setSearching(true)
+      searchAddresses(text, { limit: 1 }).then(r => {
+        if (r?.[0]) {
+          setCenter([r[0].lat, r[0].lng])
+          setMarker({ lat: r[0].lat, lng: r[0].lng })
+          setLabel(r[0].label)
+        } else {
+          setCenter(SYDNEY_FALLBACK)
+        }
+        setSearching(false)
+      })
       return
     }
-    setSearching(true)
-    searchAddresses(text, { limit: 1 }).then(r => {
-      if (r?.[0]) {
-        setCenter([r[0].lat, r[0].lng])
-        setMarker({ lat: r[0].lat, lng: r[0].lng })
-        setLabel(r[0].label)
-      } else {
-        setCenter([-33.8688, 151.2093])
+
+    // No initial address — run the cascade.
+    let cancelled = false
+
+    async function tryBusinessFallback() {
+      if (cancelled) return
+      if (!business?.id) {
+        setCenter(SYDNEY_FALLBACK)
+        return
       }
-      setSearching(false)
-    })
-  }, [])
+      const { data } = await supabase
+        .from('job_sites')
+        .select('latitude, longitude')
+        .eq('business_id', business.id)
+        .not('latitude', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (cancelled) return
+      if (data?.latitude != null && data?.longitude != null) {
+        setCenter([Number(data.latitude), Number(data.longitude)])
+      } else {
+        setCenter(SYDNEY_FALLBACK)
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (cancelled) return
+          setCenter([pos.coords.latitude, pos.coords.longitude])
+        },
+        () => { tryBusinessFallback() },
+        { timeout: 5000, enableHighAccuracy: false, maximumAge: 60_000 },
+      )
+    } else {
+      tryBusinessFallback()
+    }
+
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [business?.id])
 
   // Lock scroll — use same pattern as Modal (position:fixed on html)
   useEffect(() => {

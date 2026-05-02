@@ -334,13 +334,18 @@ export default function Schedule() {
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
+                {/* Lead with client name when present (same convention
+                    as the desktop today list and week grid). */}
+                <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                  {client?.name
+                    ? `${client.name} · ${job.job_type || 'Job'}`
+                    : (job.job_type || 'Job')}
+                </p>
                 <span className={cn('text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap', sty.bg, sty.text)}>
                   {statusLabel(job.status)}
                 </span>
               </div>
-              {client && <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{client.name}</p>}
-              {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{site.address}</p>}
+              {site?.address && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{site.address}</p>}
               <div className="flex items-center gap-3 mt-2">
                 {job.scheduled_start && (
                   <span className="text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300 inline-flex items-center gap-1">
@@ -476,12 +481,20 @@ export default function Schedule() {
                         {time && (
                           <div className="text-[9.5px] font-semibold tabular-nums text-brand-700 dark:text-brand-300">{time}</div>
                         )}
-                        <div className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 leading-tight mt-0.5">
-                          {job.job_type || 'Job'}
+                        {/* Lead with client name when present — same
+                            convention as PoolPro's schedule. Most jobs
+                            share a generic title ("Site Visit", "Job")
+                            so the client is the differentiating
+                            identifier. Falls back to job_type alone
+                            when no client. */}
+                        <div className="text-[11px] font-semibold text-gray-900 dark:text-gray-100 leading-tight mt-0.5 truncate">
+                          {client?.name
+                            ? `${client.name} · ${job.job_type || 'Job'}`
+                            : (job.job_type || 'Job')}
                         </div>
-                        {(client?.name || site?.address) && (
+                        {site?.address && (
                           <div className="text-[9.5px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                            {client?.name || site?.address}
+                            {site.address}
                           </div>
                         )}
                       </button>
@@ -548,9 +561,16 @@ export default function Schedule() {
                   >
                     <div className="col-span-2 text-[11px] font-semibold text-brand-600 dark:text-brand-400 tabular-nums">{time}</div>
                     <div className="col-span-7 min-w-0">
-                      <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</div>
+                      {/* Title leads with client name when present.
+                          Address moves into the subtitle line where
+                          it's the most operationally useful info. */}
+                      <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100 truncate">
+                        {client?.name
+                          ? `${client.name} · ${job.job_type || 'Job'}`
+                          : (job.job_type || 'Job')}
+                      </div>
                       <div className="text-[11.5px] text-gray-500 dark:text-gray-400 truncate">
-                        {[site?.address, client?.name].filter(Boolean).join(' · ') || '—'}
+                        {site?.address || '—'}
                       </div>
                     </div>
                     <div className="col-span-3 flex justify-end">
@@ -791,13 +811,16 @@ export default function Schedule() {
                           className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-card p-4 cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.99]"
                         >
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_type || 'Job'}</p>
+                            <p className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                              {client?.name
+                                ? `${client.name} · ${job.job_type || 'Job'}`
+                                : (job.job_type || 'Job')}
+                            </p>
                             <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-lg whitespace-nowrap bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300">
                               {statusLabel(job.status)}
                             </span>
                           </div>
-                          {client && <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{client.name}</p>}
-                          {site?.address && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{site.address}</p>}
+                          {site?.address && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{site.address}</p>}
                           {job.scheduled_start && (
                             <p className="text-xs font-semibold tabular-nums text-gray-700 dark:text-gray-300 mt-1.5 inline-flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" strokeWidth={2.2} />
