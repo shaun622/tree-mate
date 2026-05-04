@@ -40,6 +40,11 @@ const LIST_FILTERS = [
 export default function Jobs() {
   const confirm = useConfirm()
   const { business } = useBusiness()
+  // Effective GST rate for any quote/invoice math in this page.
+  // Per-doc rate isn't carried here — the inline quote modals are
+  // always for *new* docs, so the business default is the right
+  // starting point. numeric(5,4) arrives as a string from PostgREST.
+  const gstRate = business?.gst_rate != null ? Number(business.gst_rate) : 0.10
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
@@ -216,13 +221,13 @@ export default function Jobs() {
   }
 
   const quoteSubtotal = quoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-  const { gst: quoteGst, total: quoteTotal } = calculateGST(quoteSubtotal)
+  const { gst: quoteGst, total: quoteTotal } = calculateGST(quoteSubtotal, gstRate)
 
   const saveQuote = async (status = 'draft') => {
     const payload = {
       business_id: business.id, client_id: quoteForm.client_id || null, job_site_id: quoteForm.job_site_id || null,
       scope: quoteForm.scope, terms: quoteForm.terms, line_items: quoteForm.line_items,
-      subtotal: quoteSubtotal, gst: quoteGst, total: quoteTotal, status,
+      subtotal: quoteSubtotal, gst: quoteGst, gst_rate: gstRate, total: quoteTotal, status,
       inclusions: quoteForm.inclusions || null, exclusions: quoteForm.exclusions || null,
       job_id: quoteLinkedJobId || null,
     }
@@ -355,7 +360,7 @@ export default function Jobs() {
     }).select().single()
     if (!error && jobData) {
       const njqSubtotal = newJobQuoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-      const { gst: njqGst, total: njqTotal } = calculateGST(njqSubtotal)
+      const { gst: njqGst, total: njqTotal } = calculateGST(njqSubtotal, gstRate)
       const { data: quoteData } = await supabase.from('quotes').insert({
         business_id: business.id,
         client_id: form.client_id || null,
@@ -364,7 +369,7 @@ export default function Jobs() {
         scope: newJobQuoteForm.scope || null,
         terms: newJobQuoteForm.terms || null,
         line_items: newJobQuoteForm.line_items,
-        subtotal: njqSubtotal, gst: njqGst, total: njqTotal,
+        subtotal: njqSubtotal, gst: njqGst, gst_rate: gstRate, total: njqTotal,
         inclusions: newJobQuoteForm.inclusions || null,
         exclusions: newJobQuoteForm.exclusions || null,
         status: send ? 'sent' : 'draft',
@@ -894,7 +899,7 @@ export default function Jobs() {
             <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: [...p.line_items, { description: '', quantity: 1, unit_price: 0 }] }))} className="w-full py-2 text-sm text-brand-600 font-medium hover:bg-brand-50 rounded-lg transition-colors">+ Add Line Item</button>
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
               <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(quoteSubtotal)}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(quoteGst)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(quoteGst)}</span></div>
               <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(quoteTotal)}</span></div>
             </div>
           </Card>
@@ -1029,11 +1034,11 @@ export default function Jobs() {
               <button type="button" onClick={() => setNewJobQuoteForm(p => ({ ...p, line_items: [...p.line_items, { description: '', quantity: 1, unit_price: 0 }] }))} className="w-full py-2 text-sm text-brand-600 font-medium hover:bg-brand-50 rounded-lg transition-colors">+ Add Line Item</button>
               {(() => {
                 const njSub = newJobQuoteForm.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-                const { gst: njGst, total: njTotal } = calculateGST(njSub)
+                const { gst: njGst, total: njTotal } = calculateGST(njSub, gstRate)
                 return (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
                     <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(njSub)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(njGst)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(njGst)}</span></div>
                     <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(njTotal)}</span></div>
                   </div>
                 )

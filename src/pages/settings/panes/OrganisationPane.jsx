@@ -28,6 +28,10 @@ export default function OrganisationPane() {
     cert_membership: '',
     email: '',
     brand_colour: '#22c55e',
+    // GST rate stored as decimal (0.10 = 10%) but edited in the form
+    // as a percent so the operator types "10" instead of "0.10". Save
+    // converts back to decimal before writing.
+    gst_rate_percent: '10',
   })
   const [initial, setInitial] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -39,12 +43,15 @@ export default function OrganisationPane() {
   // Hydrate from business when it loads/changes
   useEffect(() => {
     if (!business) return
+    // numeric(5,4) arrives from PostgREST as a string ("0.1000") so coerce.
+    const ratePct = business.gst_rate != null ? String(+(Number(business.gst_rate) * 100).toFixed(4)) : '10'
     const next = {
-      name:            business.name            || '',
-      website:         business.website         || '',
-      cert_membership: business.cert_membership || '',
-      email:           business.email           || '',
-      brand_colour:    business.brand_colour    || '#22c55e',
+      name:             business.name            || '',
+      website:          business.website         || '',
+      cert_membership:  business.cert_membership || '',
+      email:            business.email           || '',
+      brand_colour:     business.brand_colour    || '#22c55e',
+      gst_rate_percent: ratePct,
     }
     setForm(next)
     setInitial(next)
@@ -58,7 +65,14 @@ export default function OrganisationPane() {
   const handleSave = async () => {
     if (!dirty || saving) return
     setSaving(true)
-    const { error } = await updateBusiness(form)
+    const { gst_rate_percent, ...rest } = form
+    const payload = {
+      ...rest,
+      // Convert percent → decimal for storage. Clamp to [0, 1] so a
+      // typo like "100" can't write a 1.0 rate that breaks invoices.
+      gst_rate: Math.max(0, Math.min(1, (Number(gst_rate_percent) || 10) / 100)),
+    }
+    const { error } = await updateBusiness(payload)
     setSaving(false)
     if (error) {
       toast.error('Could not save', { description: error.message })
@@ -254,6 +268,23 @@ export default function OrganisationPane() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Tax & invoicing — GST rate applied to new quotes / invoices */}
+      <div>
+        <div className="eyebrow mb-2">Tax & invoicing · rate applied to new quotes and invoices</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-3">
+          <Field
+            label="GST rate (%)"
+            value={form.gst_rate_percent}
+            onChange={v => update('gst_rate_percent', v)}
+            placeholder="10"
+            type="number"
+          />
+        </div>
+        <p className="text-[11.5px] text-gray-500 dark:text-gray-400 mt-2">
+          Existing quotes and invoices keep the rate they were issued under — this only changes new docs.
+        </p>
       </div>
 
       {/* Brand colour — swatches + hex input + native picker */}

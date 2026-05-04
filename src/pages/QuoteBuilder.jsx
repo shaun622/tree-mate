@@ -39,6 +39,11 @@ export default function QuoteBuilder() {
     species: '', dbh_cm: '', height_m: '', spread_m: '', prune_code: '',
     hazards: [],
   })
+  // Per-doc gst_rate. Null on legacy quotes that predate the column —
+  // those fall back to business.gst_rate, then to the 0.10 hardcoded
+  // default. New quotes inherit the business rate at save time so
+  // they're frozen against future rate changes.
+  const [docGstRate, setDocGstRate] = useState(null)
 
   // Load existing quote for editing
   useEffect(() => {
@@ -60,6 +65,7 @@ export default function QuoteBuilder() {
             prune_code: data.prune_code || '',
             hazards: Array.isArray(data.hazards) ? data.hazards : [],
           })
+          setDocGstRate(data.gst_rate != null ? Number(data.gst_rate) : null)
           setQuoteStatus(data.status)
           if (data.job_id) setLinkedJobId(data.job_id)
         }
@@ -113,7 +119,10 @@ export default function QuoteBuilder() {
   const removeItem = (index) => setForm(prev => ({ ...prev, line_items: prev.line_items.filter((_, i) => i !== index) }))
 
   const subtotal = form.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-  const { gst, total } = calculateGST(subtotal)
+  // Effective rate: per-doc → business default → hardcoded 0.10. The
+  // hardcoded fallback only fires before business has loaded.
+  const gstRate = docGstRate ?? (business?.gst_rate != null ? Number(business.gst_rate) : 0.10)
+  const { gst, total } = calculateGST(subtotal, gstRate)
 
   const save = async (status = 'draft') => {
     const payload = {
@@ -125,6 +134,9 @@ export default function QuoteBuilder() {
       line_items: form.line_items,
       subtotal,
       gst,
+      // Persist the rate alongside the amount so a future business-
+      // level rate change doesn't retroactively relabel this quote.
+      gst_rate: gstRate,
       total,
       status,
       inclusions: form.inclusions || null,
@@ -311,7 +323,7 @@ export default function QuoteBuilder() {
           {/* Totals */}
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
             <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(gst)}</span></div>
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
           </div>
         </Card>

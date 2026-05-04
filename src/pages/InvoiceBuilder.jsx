@@ -28,6 +28,10 @@ export default function InvoiceBuilder() {
     client_id: '', invoice_number: '', due_date: '', notes: '',
     line_items: [{ description: '', quantity: 1, unit_price: 0 }],
   })
+  // Per-doc gst_rate. Null on legacy invoices that predate the column —
+  // those fall back to business.gst_rate, then to 0.10 hardcoded
+  // default. New invoices freeze the business rate at save time.
+  const [docGstRate, setDocGstRate] = useState(null)
 
   // Load existing invoice for editing
   useEffect(() => {
@@ -39,6 +43,7 @@ export default function InvoiceBuilder() {
             due_date: data.due_date || '', notes: data.notes || '',
             line_items: data.line_items || [{ description: '', quantity: 1, unit_price: 0 }],
           })
+          setDocGstRate(data.gst_rate != null ? Number(data.gst_rate) : null)
           if (data.job_id) setLinkedJobId(data.job_id)
         }
       })
@@ -99,7 +104,9 @@ export default function InvoiceBuilder() {
   }
 
   const subtotal = form.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-  const { gst, total } = calculateGST(subtotal)
+  // Effective rate: per-doc → business default → hardcoded 0.10.
+  const gstRate = docGstRate ?? (business?.gst_rate != null ? Number(business.gst_rate) : 0.10)
+  const { gst, total } = calculateGST(subtotal, gstRate)
 
   const handleSave = async (status = 'draft') => {
     setSaving(true)
@@ -107,6 +114,9 @@ export default function InvoiceBuilder() {
       business_id: business.id, client_id: form.client_id || null,
       invoice_number: form.invoice_number, due_date: form.due_date || null,
       notes: form.notes, line_items: form.line_items, subtotal, gst, total,
+      // Persist the rate alongside the amount so a future business-
+      // level rate change doesn't retroactively relabel this invoice.
+      gst_rate: gstRate,
       status: status === 'sent' ? 'draft' : status, // edge function sets 'sent'
       job_id: linkedJobId || null,
     }
@@ -199,7 +209,7 @@ export default function InvoiceBuilder() {
 
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
             <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST (10%)</span><span>{formatCurrency(gst)}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(gst)}</span></div>
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
           </div>
         </Card>

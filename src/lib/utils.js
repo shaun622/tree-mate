@@ -29,9 +29,15 @@ export function formatCurrency(amount) {
   }).format(amount)
 }
 
-// ── GST (10% Australian) ────────────────────────────────────────────────────
-export function calculateGST(subtotal) {
-  const gst = subtotal * 0.1
+// ── GST (per-business, decimal) ──────────────────────────────────────────────
+// Default kept at 0.10 (Australian) so any caller that hasn't yet
+// been wired through the new business setting still produces correct
+// totals for the current rate. Per-business override lives at
+// businesses.gst_rate (migration 007); per-doc override lives at
+// quotes.gst_rate / invoices.gst_rate so historical docs keep their
+// issued rate.
+export function calculateGST(subtotal, rate = 0.10) {
+  const gst = subtotal * rate
   return {
     subtotal: Math.round(subtotal * 100) / 100,
     gst: Math.round(gst * 100) / 100,
