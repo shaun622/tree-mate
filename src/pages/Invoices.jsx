@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Receipt, Wallet, Clock, AlertTriangle } from 'lucide-react'
+import { Download, Plus, Receipt, Wallet, Clock, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useBusiness } from '../hooks/useBusiness'
 import { useClients } from '../hooks/useClients'
@@ -52,6 +52,44 @@ export default function Invoices() {
 
   const monthLabel = today.toLocaleDateString('en-AU', { month: 'long' })
 
+  // CSV export — full invoice list (this page has no status filter,
+  // so "export" means everything). One row per invoice with header
+  // data; line items belong on the per-invoice PDF.
+  const csvCell = (v) => {
+    if (v == null) return ''
+    const s = String(v)
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  function exportCsv() {
+    const header = [
+      'Invoice number', 'Client', 'Status',
+      'Issued date', 'Due date', 'Paid date',
+      'Subtotal', 'GST', 'GST rate', 'Total',
+    ]
+    const rows = enrichedInvoices.map(inv => [
+      inv.invoice_number || '',
+      clientMap[inv.client_id]?.name || '',
+      inv.computedStatus === 'overdue' ? `Overdue (${inv.daysOverdue}d)` : statusLabel(inv.status),
+      inv.created_at ? String(inv.created_at).slice(0, 10) : '',
+      inv.due_date || '',
+      inv.paid_at ? String(inv.paid_at).slice(0, 10) : '',
+      Number(inv.subtotal || 0).toFixed(2),
+      Number(inv.gst || 0).toFixed(2),
+      inv.gst_rate != null ? `${(Number(inv.gst_rate) * 100).toFixed(2)}%` : '',
+      Number(inv.total || 0).toFixed(2),
+    ])
+    const csv = [header, ...rows].map(r => r.map(csvCell).join(',')).join('\r\n')
+    // UTF-8 BOM for Excel-friendly opening with non-ASCII names.
+    const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const todayStr = new Date().toISOString().slice(0, 10)
+    a.download = `treemate-invoices-${todayStr}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const badgeVariant = (status) => ({
     draft: 'neutral',
     sent: 'success',
@@ -94,9 +132,16 @@ export default function Invoices() {
             title={`${invoices.length} invoice${invoices.length === 1 ? '' : 's'} · ${monthLabel}`}
             subtitle={null}
             action={
-              <Button onClick={() => navigate('/invoices/new')} leftIcon={Plus}>
-                <span className="text-[13px]">New invoice</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                {invoices.length > 0 && (
+                  <Button onClick={exportCsv} leftIcon={Download} variant="secondary">
+                    <span className="text-[13px]">Export</span>
+                  </Button>
+                )}
+                <Button onClick={() => navigate('/invoices/new')} leftIcon={Plus}>
+                  <span className="text-[13px]">New invoice</span>
+                </Button>
+              </div>
             }
           />
         </div>
