@@ -119,9 +119,15 @@ export default function QuoteBuilder() {
   const removeItem = (index) => setForm(prev => ({ ...prev, line_items: prev.line_items.filter((_, i) => i !== index) }))
 
   const subtotal = form.line_items.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0)
-  // Effective rate: per-doc → business default → hardcoded 0.10. The
-  // hardcoded fallback only fires before business has loaded.
-  const gstRate = docGstRate ?? (business?.gst_rate != null ? Number(business.gst_rate) : 0.10)
+  // Effective rate: per-doc (existing quote) → business default →
+  // hardcoded 0.10. When the business has GST disabled, force rate=0
+  // for new quotes regardless of stored business.gst_rate. Existing-
+  // quote rate (docGstRate) still wins so we don't retroactively
+  // rewrite an issued doc.
+  const businessRate = business?.gst_enabled === false
+    ? 0
+    : (business?.gst_rate != null ? Number(business.gst_rate) : 0.10)
+  const gstRate = docGstRate ?? businessRate
   const { gst, total } = calculateGST(subtotal, gstRate)
 
   const save = async (status = 'draft') => {
@@ -323,7 +329,9 @@ export default function QuoteBuilder() {
           {/* Totals */}
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
             <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(gst)}</span></div>
+            {gstRate > 0 && (
+              <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(gst)}</span></div>
+            )}
             <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
           </div>
         </Card>

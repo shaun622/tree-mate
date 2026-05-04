@@ -87,7 +87,9 @@ export default function PublicQuote() {
 
           <div className="space-y-1 text-sm">
             <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(quote.subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-500">GST ({+((quote.gst_rate != null ? Number(quote.gst_rate) : 0.10) * 100).toFixed(2)}%)</span><span>{formatCurrency(quote.gst)}</span></div>
+            {Number(quote.gst_rate) > 0 && (
+              <div className="flex justify-between"><span className="text-gray-500 dark:text-gray-500">GST ({+(Number(quote.gst_rate) * 100).toFixed(2)}%)</span><span>{formatCurrency(quote.gst)}</span></div>
+            )}
             <div className="flex justify-between text-base font-bold pt-2 border-t"><span>Total</span><span>{formatCurrency(quote.total)}</span></div>
           </div>
 

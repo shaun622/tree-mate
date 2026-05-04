@@ -43,8 +43,11 @@ export default function Jobs() {
   // Effective GST rate for any quote/invoice math in this page.
   // Per-doc rate isn't carried here — the inline quote modals are
   // always for *new* docs, so the business default is the right
-  // starting point. numeric(5,4) arrives as a string from PostgREST.
-  const gstRate = business?.gst_rate != null ? Number(business.gst_rate) : 0.10
+  // starting point. When the business has GST disabled, force rate=0
+  // so the inline-modal totals + saved docs reflect that.
+  const gstRate = business?.gst_enabled === false
+    ? 0
+    : (business?.gst_rate != null ? Number(business.gst_rate) : 0.10)
   const { clients, createClient, updateClient } = useClients(business?.id)
   const { jobSites, createJobSite, updateJobSite, getJobSitesByClient } = useJobSites(business?.id)
   const { staff } = useStaff(business?.id)
@@ -899,7 +902,9 @@ export default function Jobs() {
             <button type="button" onClick={() => setQuoteForm(p => ({ ...p, line_items: [...p.line_items, { description: '', quantity: 1, unit_price: 0 }] }))} className="w-full py-2 text-sm text-brand-600 font-medium hover:bg-brand-50 rounded-lg transition-colors">+ Add Line Item</button>
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
               <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(quoteSubtotal)}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(quoteGst)}</span></div>
+              {gstRate > 0 && (
+                <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(quoteGst)}</span></div>
+              )}
               <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(quoteTotal)}</span></div>
             </div>
           </Card>
@@ -1038,7 +1043,9 @@ export default function Jobs() {
                 return (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
                     <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">Subtotal</span><span>{formatCurrency(njSub)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(njGst)}</span></div>
+                    {gstRate > 0 && (
+                      <div className="flex justify-between text-sm"><span className="text-gray-500 dark:text-gray-500">GST ({+(gstRate * 100).toFixed(2)}%)</span><span>{formatCurrency(njGst)}</span></div>
+                    )}
                     <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatCurrency(njTotal)}</span></div>
                   </div>
                 )
