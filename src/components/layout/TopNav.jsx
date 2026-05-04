@@ -4,6 +4,9 @@ import { cn } from '../../lib/utils'
 import GlobalSearch from './GlobalSearch'
 import { ThemeToggleCompact } from './ThemeToggle'
 
+// Settings sits in row 1 next to the theme toggle (see render below)
+// rather than the tabs row, so the underline tabs stay focused on the
+// daily-use destinations.
 const TABS = [
   { path: '/',          label: 'Home',     Icon: Home,        end: true },
   { path: '/schedule',  label: 'Schedule', Icon: Calendar },
@@ -12,7 +15,6 @@ const TABS = [
   { path: '/quotes',    label: 'Quotes',   Icon: FileText },
   { path: '/invoices',  label: 'Invoices', Icon: Receipt },
   { path: '/reports',   label: 'Analytics',Icon: BarChart3 },
-  { path: '/settings',  label: 'Settings', Icon: SettingsIcon },
 ]
 
 export default function TopNav() {
@@ -50,10 +52,16 @@ export default function TopNav() {
             <ThemeToggleCompact />
             <Link
               to="/settings"
-              aria-label="Account"
-              className="ml-1 w-8 h-8 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center text-brand-700 dark:text-brand-200 text-xs font-semibold"
+              title="Settings"
+              aria-label="Settings"
+              className={cn(
+                'ml-1 min-h-tap min-w-tap w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
+                pathname.startsWith('/settings')
+                  ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/70',
+              )}
             >
-              <span aria-hidden>·</span>
+              <SettingsIcon className="w-4 h-4" strokeWidth={2} />
             </Link>
           </div>
         </div>
