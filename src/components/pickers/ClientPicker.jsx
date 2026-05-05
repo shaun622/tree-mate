@@ -26,13 +26,8 @@ export default function ClientPicker({ clients, value, onChange, onUpdate, label
   const selected = allClients.find(c => c.id === value)
 
   const handleSelect = (val) => {
-    if (val === '__new__') {
-      setShowNewModal(true)
-      onChange('')
-    } else {
-      setEditing(false)
-      onChange(val)
-    }
+    setEditing(false)
+    onChange(val)
   }
 
   const handleNewClientCreated = (client) => {
@@ -61,17 +56,32 @@ export default function ClientPicker({ clients, value, onChange, onUpdate, label
 
   return (
     <div className="space-y-2">
-      <Select
-        label={label}
-        value={value}
-        onChange={e => handleSelect(e.target.value)}
-        required={required}
-        options={[
-          { value: '', label: 'Select client...' },
-          { value: '__new__', label: '+ New Client' },
-          ...allClients.map(c => ({ value: c.id, label: c.name })),
-        ]}
-      />
+      {/* Picker + visible "+ New" button. The button used to live as a
+          synthetic dropdown option ('+ New Client') which worked but
+          required the operator to open the dropdown to find it. A
+          dedicated button next to the Select is the same affordance
+          ProLine ships and is much more discoverable. */}
+      <div className="flex items-end gap-2">
+        <div className="flex-1 min-w-0">
+          <Select
+            label={label}
+            value={value}
+            onChange={e => handleSelect(e.target.value)}
+            required={required}
+            options={[
+              { value: '', label: 'Select client...' },
+              ...allClients.map(c => ({ value: c.id, label: c.name })),
+            ]}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowNewModal(true)}
+          className="min-h-[44px] px-3 rounded-xl border border-dashed border-brand-300 dark:border-brand-700/60 text-brand-600 dark:text-brand-400 text-sm font-semibold hover:bg-brand-50 dark:hover:bg-brand-950/40 transition-colors whitespace-nowrap shrink-0"
+        >
+          + New
+        </button>
+      </div>
 
       {editing && selected && (
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3 space-y-2 border-2 border-dashed border-gray-200 dark:border-gray-800">
